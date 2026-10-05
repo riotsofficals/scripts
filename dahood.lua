@@ -4564,6 +4564,15 @@ local WHITE = Color3.fromRGB(255, 255, 255)
 local BLACK = Color3.fromRGB(0, 0, 0)
 local Watermark = nil
 local allToggles = {}
+local combatState = {
+    AimbotTarget = nil,
+    TargetLocked = nil,
+    SilentTarget = nil,
+    SilentLocked = nil,
+    FOVRotationAngle = 0,
+    SilentFOVRotationAngle = 0,
+    LastTriggerShot = 0,
+}
 
 local targetHudGroup = nil
 local hpBarFill = nil
@@ -5545,11 +5554,11 @@ do
             "Unified Ultra-Smooth FOV Circles (Aimbot & Silent)",
             "Zero-Default Safe Startup Configuration",
             "Modern Pill Subtab Navigation Bar",
-            "Tactical Screen HUD Overlays with Real-Time Audio",
+            "Tactical Screen HUD Overlays & Target HUD",
             "Dynamic Multi-Version Interactive Changelogs"
         },
         ["v2.3 (Tactical Engine)"] = {
-            "Real-Time Sound Visualizer HUD (All In-Game Audio)",
+            "Real-Time Dynamic Target HUD & Keybinds",
             "Keybinds Monitor & Target Profile HUD Cards",
             "Movement Prediction Engine (Ground & Air Tracking)",
             "Sticky Aim Lock & Dynamic Hitpart Resolver",
@@ -10659,7 +10668,6 @@ local hudConfig = {
     Keybinds = false,
     GameData = false,
     TargetHUD = false,
-    AudioVisualizer = false
 }
 Library.HUDConfig = hudConfig
 
@@ -10947,16 +10955,7 @@ do
         end,
     })
 
-    OverlaysSection:Toggle({
-        Name = "Sound / Audio Visualizer Overlay",
-        Flag = "Overlay_AudioVisualizer",
-        Default = false,
-        Callback = function(val)
-            hudConfig.AudioVisualizer = val
-            if Library.UpdateOverlays then Library.UpdateOverlays() end
-        end,
-    })
-
+    
     local MenuSection = SettingsPage:Section({
         Name = "Menu Settings",
         Icon = ICON_DEFAULT_SEC,
@@ -11411,305 +11410,144 @@ do
 
     makeDraggable(targetHudCard)
 
-    local audioFrame = Instance.new("Frame")
-    audioFrame.Name = "AudioVisualizerHUD"
-    audioFrame.Parent = overlayGui
-    audioFrame.Size = UDim2.new(0, 220, 0, 40)
-    audioFrame.AnchorPoint = Vector2.new(0.5, 1)
-    audioFrame.Position = UDim2.new(0.5, 0, 1, -45)
-    audioFrame.BackgroundTransparency = 1
-    audioFrame.BorderSizePixel = 0
-
-    local afBarsContainer = Instance.new("Frame")
-    afBarsContainer.Parent = audioFrame
-    afBarsContainer.BackgroundTransparency = 1
-    afBarsContainer.Size = UDim2.fromScale(1, 1)
-    afBarsContainer.Position = UDim2.new(0, 0, 0, 0)
-
-    local afLayout = Instance.new("UIListLayout")
-    afLayout.Parent = afBarsContainer
-    afLayout.FillDirection = Enum.FillDirection.Horizontal
-    afLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-    afLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    afLayout.Padding = UDim.new(0, 3)
-
-    local audioBars = {}
-    local numBars = 22
-    for i = 1, numBars do
-        local bar = Instance.new("Frame")
-        bar.Name = "AudioBar_" .. i
-        bar.Parent = afBarsContainer
-        bar.BackgroundColor3 = Theme.Accent
-        bar.BorderSizePixel = 0
-        bar.Size = UDim2.new(0, 4, 0, 4)
-        Library:AddToTheme(bar, {BackgroundColor3 = "Accent"})
-
-        local bc = Instance.new("UICorner")
-        bc.CornerRadius = UDim.new(1, 0)
-        bc.Parent = bar
-
-        local bgGrad = Instance.new("UIGradient")
-        bgGrad.Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
-            ColorSequenceKeypoint.new(0.4, Color3.fromRGB(220, 220, 255)),
-            ColorSequenceKeypoint.new(1.0, Color3.fromRGB(120, 120, 150))
-        })
-        bgGrad.Rotation = 90
-        bgGrad.Parent = bar
-
-        table.insert(audioBars, bar)
-    end
-
-    makeDraggable(audioFrame)
-
-    local function updateOverlaysVisibility()
-        local master = hudConfig.Master ~= false
-        watermarkFrame.Visible = master and (hudConfig.Watermark ~= false)
-        keybindsFrame.Visible = master and (hudConfig.Keybinds ~= false)
-        gameDataFrame.Visible = master and (hudConfig.GameData == true)
-        targetHudCard.Visible = master and (hudConfig.TargetHUD == true)
-        audioFrame.Visible = master and (hudConfig.AudioVisualizer == true)
-    end
-    Library.UpdateOverlays = updateOverlaysVisibility
-    updateOverlaysVisibility()
-
-    local trackedBinds = {
-        { Name = "Combat Aimbot", Flag = "Combat_Aimbot", Key = "E", Mode = "Hold" },
-        { Name = "Triggerbot", Flag = "Combat_Triggerbot", Key = "F", Mode = "Hold" },
-        { Name = "Fly Mode", Flag = "Misc_FlyToggle", Key = "X", Mode = "Toggle" },
-        { Name = "Noclip", Flag = "Misc_Noclip", Key = "V", Mode = "Toggle" },
-        { Name = "Third Person", Flag = "Misc_ThirdPerson", Key = "None", Mode = "Toggle" },
-        { Name = "Infinite Jump", Flag = "Misc_InfJump", Key = "Space", Mode = "Toggle" },
-        { Name = "Speed Multiplier", Flag = "Misc_SpeedToggle", Key = "None", Mode = "Toggle" },
-        { Name = "Bunny Hop", Flag = "Misc_BHop", Key = "None", Mode = "Toggle" },
-        { Name = "SpinBot", Flag = "Combat_SpinBot", Key = "None", Mode = "Toggle" },
-        { Name = "Hitbox Expander", Flag = "Combat_HitboxExpander", Key = "None", Mode = "Toggle" },
-    }
-
-    local function refreshKeybindsHUD()
-        if not hudConfig.Keybinds then return end
-        for _, child in ipairs(kbList:GetChildren()) do
-            if child:IsA("Frame") or child.Name == "NoneActive" then
-                child:Destroy()
-            end
-        end
-
-        local count = 0
-        for _, bind in ipairs(trackedBinds) do
-            local active = Library.Flags[bind.Flag]
-            if active then
-                count = count + 1
-                local row = Instance.new("Frame")
-                row.Name = "BindRow_" .. count
-                row.Parent = kbList
-                row.BackgroundTransparency = 1
-                row.Size = UDim2.new(1, 0, 0, 16)
-
-                local nameLbl = Instance.new("TextLabel")
-                nameLbl.Parent = row
-                nameLbl.BackgroundTransparency = 1
-                nameLbl.FontFace = Library.Font
-                nameLbl.Text = bind.Name
-                nameLbl.TextColor3 = Theme.Text
-                nameLbl.TextSize = 10
-                nameLbl.Size = UDim2.new(1, -55, 1, 0)
-                nameLbl.TextXAlignment = Enum.TextXAlignment.Left
-                Library:AddToTheme(nameLbl, {TextColor3 = "Text"})
-
-                local badge = Instance.new("TextLabel")
-                badge.Parent = row
-                badge.BackgroundTransparency = 1
-                badge.FontFace = Library.Font
-                badge.Text = "[" .. bind.Key .. "] " .. (bind.Mode == "Hold" and "HOLD" or "ACTIVE")
-                badge.TextColor3 = Theme.Accent
-                badge.TextSize = 9
-                badge.Position = UDim2.new(1, -60, 0, 0)
-                badge.Size = UDim2.new(0, 60, 1, 0)
-                badge.TextXAlignment = Enum.TextXAlignment.Right
-                Library:AddToTheme(badge, {TextColor3 = "Accent"})
-            end
-        end
-
-        if count == 0 then
-            local none = Instance.new("TextLabel")
-            none.Name = "NoneActive"
-            none.Parent = kbList
-            none.BackgroundTransparency = 1
-            none.FontFace = Library.Font
-            none.Text = "No active keybinds"
-            none.TextColor3 = Theme.Text
-            none.TextTransparency = 0.5
-            none.TextSize = 10
-            none.Size = UDim2.new(1, 0, 0, 16)
-            none.TextXAlignment = Enum.TextXAlignment.Left
-            Library:AddToTheme(none, {TextColor3 = "Text"})
-        end
-    end
+    local sessionStartTime = tick()
 
     local targetThumbCache = {}
-    local function refreshTargetHUD()
-        if not hudConfig.TargetHUD then return end
-        local bestPlayer = nil
-        local bestDist = math.huge
+    local function getActiveTarget()
         local lp = Players.LocalPlayer
         local myChar = lp and lp.Character
         local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+        local cam = Workspace.CurrentCamera
+
+        if combatState.AimbotTarget and combatState.AimbotTarget.Parent then
+            local p = combatState.AimbotTarget
+            local char = p.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then
+                return p, char, hum
+            end
+        end
+
+        if combatState.TargetLocked and combatState.TargetLocked.Parent then
+            local char = combatState.TargetLocked
+            local p = Players:GetPlayerFromCharacter(char)
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if p and hum and hum.Health > 0 then
+                return p, char, hum
+            end
+        end
+
+        local mouseLoc = UserInputService:GetMouseLocation()
+        local bestPlayer, bestChar, bestHum = nil, nil, nil
+        local closestDist = math.huge
 
         for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
-                local dist = myHrp and (p.Character.HumanoidRootPart.Position - myHrp.Position).Magnitude or 100
-                if dist < bestDist then
-                    bestDist = dist
-                    bestPlayer = p
+            if p ~= lp and p.Character then
+                local char = p.Character
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head")
+                if hum and hum.Health > 0 and hrp and cam then
+                    local pos2d, onScreen = cam:WorldToViewportPoint(hrp.Position)
+                    if onScreen and pos2d.Z > 0 then
+                        local screenDist = (Vector2.new(pos2d.X, pos2d.Y) - mouseLoc).Magnitude
+                        if screenDist < 250 and screenDist < closestDist then
+                            closestDist = screenDist
+                            bestPlayer = p
+                            bestChar = char
+                            bestHum = hum
+                        end
+                    end
                 end
             end
         end
 
-        if bestPlayer and bestPlayer.Character then
-            local hum = bestPlayer.Character:FindFirstChildOfClass("Humanoid")
-            local curHp = hum and math.max(0, math.floor(hum.Health)) or 100
-            local maxHp = hum and math.max(1, math.floor(hum.MaxHealth)) or 100
+        if not bestPlayer and myHrp then
+            local worldDist = math.huge
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= lp and p.Character then
+                    local char = p.Character
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    local hrp = char:FindFirstChild("HumanoidRootPart")
+                    if hum and hum.Health > 0 and hrp then
+                        local d = (hrp.Position - myHrp.Position).Magnitude
+                        if d < 120 and d < worldDist then
+                            worldDist = d
+                            bestPlayer = p
+                            bestChar = char
+                            bestHum = hum
+                        end
+                    end
+                end
+            end
+        end
+
+        return bestPlayer, bestChar, bestHum
+    end
+
+    local function refreshTargetHUD()
+        if not hudConfig.TargetHUD then return end
+
+        local targetPlayer, targetChar, targetHum = getActiveTarget()
+        local lp = Players.LocalPlayer
+        local myChar = lp and lp.Character
+        local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
+
+        if targetPlayer and targetChar and targetHum then
+            local curHp = math.max(0, math.floor(targetHum.Health))
+            local maxHp = math.max(1, math.floor(targetHum.MaxHealth))
             local hpRatio = math.clamp(curHp / maxHp, 0, 1)
 
-            thName.Text = bestPlayer.DisplayName
-            thUser.Text = "@" .. bestPlayer.Name .. " • " .. math.floor(bestDist) .. " studs"
+            local dist = 0
+            local targetHrp = targetChar:FindFirstChild("HumanoidRootPart") or targetChar:FindFirstChild("Head")
+            if targetHrp and myHrp then
+                dist = math.floor((targetHrp.Position - myHrp.Position).Magnitude)
+            end
+
+            local tool = targetChar:FindFirstChildOfClass("Tool")
+            local toolName = tool and tool.Name or "None"
+
+            thName.Text = targetPlayer.DisplayName
+            thUser.Text = "@" .. targetPlayer.Name .. " - " .. dist .. " studs - [" .. toolName .. "]"
             thHealthText.Text = string.format("%d / %d HP (%d%%)", curHp, maxHp, math.floor(hpRatio * 100))
 
-            TweenService:Create(thHealthFill, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            TweenService:Create(thHealthFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Size = UDim2.new(hpRatio, 0, 1, 0),
                 BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
             }):Play()
 
-            if not targetThumbCache[bestPlayer.UserId] then
+            if not targetThumbCache[targetPlayer.UserId] then
                 task.spawn(function()
                     local s, img = pcall(function()
                         return Players:GetUserThumbnailAsync(
-                            bestPlayer.UserId,
+                            targetPlayer.UserId,
                             Enum.ThumbnailType.HeadShot,
                             Enum.ThumbnailSize.Size100x100
                         )
                     end)
                     if s and img then
-                        targetThumbCache[bestPlayer.UserId] = img
+                        targetThumbCache[targetPlayer.UserId] = img
                         if thAvatar.Parent then thAvatar.Image = img end
                     end
                 end)
             else
-                thAvatar.Image = targetThumbCache[bestPlayer.UserId]
+                thAvatar.Image = targetThumbCache[targetPlayer.UserId]
             end
+        else
+            thName.Text = "No Target Locked"
+            thUser.Text = "Awaiting target acquisition..."
+            thHealthText.Text = "0 / 0 HP (0%)"
+            TweenService:Create(thHealthFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 0, 1, 0),
+                BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+            }):Play()
+            thAvatar.Image = ""
         end
     end
 
     local sessionStartTime = tick()
-    local soundCache = {}
-    local soundActivityEnergy = 0
-    local hookedSounds = {}
-
-    local function hookSound(sound)
-        if not sound or not sound:IsA("Sound") or hookedSounds[sound] then return end
-        hookedSounds[sound] = true
-        table.insert(soundCache, sound)
-
-        pcall(function()
-            sound.Played:Connect(function()
-                soundActivityEnergy = math.min(soundActivityEnergy + 0.55, 1.0)
-            end)
-            sound:GetPropertyChangedSignal("Playing"):Connect(function()
-                if sound.Playing then
-                    soundActivityEnergy = math.min(soundActivityEnergy + 0.45, 1.0)
-                end
-            end)
-        end)
-    end
-
-    task.spawn(function()
-        pcall(function()
-            for _, s in ipairs(game:GetDescendants()) do
-                if s:IsA("Sound") then
-                    hookSound(s)
-                end
-            end
-        end)
-    end)
-
-    pcall(function()
-        game.DescendantAdded:Connect(function(desc)
-            if desc:IsA("Sound") then
-                hookSound(desc)
-            end
-        end)
-    end)
-
-    task.spawn(function()
-        local smoothedLoudness = 0
-
-        while not unloaded and getgenv().AltHackGen == GEN do
-            task.wait(0.03)
-            if hudConfig.AudioVisualizer and audioFrame.Visible then
-                local totalLoudness = 0
-                local playingCount = 0
-
-                for idx = #soundCache, 1, -1 do
-                    local sound = soundCache[idx]
-                    if not sound or not sound.Parent then
-                        table.remove(soundCache, idx)
-                        hookedSounds[sound] = nil
-                    else
-                        local isPlaying = false
-                        pcall(function()
-                            isPlaying = sound.Playing or sound.IsPlaying or (sound.TimePosition > 0 and sound.Volume > 0)
-                        end)
-                        if isPlaying then
-                            playingCount = playingCount + 1
-                            local pl = 0
-                            pcall(function()
-                                pl = sound.PlaybackLoudness or 0
-                            end)
-                            totalLoudness = totalLoudness + pl
-                        end
-                    end
-                end
-
-                if playingCount > 0 then
-                    soundActivityEnergy = math.min(soundActivityEnergy + (playingCount * 0.15), 1.0)
-                else
-                    soundActivityEnergy = math.max(soundActivityEnergy - 0.04, 0.0)
-                end
-
-                local activeEnergy = math.clamp((totalLoudness / 200) + (soundActivityEnergy * 0.8), 0, 1.0)
-                smoothedLoudness = smoothedLoudness + (activeEnergy - smoothedLoudness) * 0.4
-
-                local t = tick() * 8.0
-                for i, bar in ipairs(audioBars) do
-                    local normPos = i / numBars
-                    local freqOffset = normPos * math.pi * 3.8
-                    local wave1 = math.sin(t + freqOffset) * 0.5 + 0.5
-                    local wave2 = math.cos(t * 1.7 - freqOffset * 1.5) * 0.5 + 0.5
-                    local combinedWave = (wave1 * 0.6 + wave2 * 0.4)
-
-                    local bellCurve = math.sin(normPos * math.pi)
-                    local barHeight
-
-                    if smoothedLoudness > 0.02 then
-                        local dynamicPeak = (combinedWave * 26 * smoothedLoudness * (0.5 + bellCurve * 0.9)) + (math.random(0, 8) * smoothedLoudness)
-                        barHeight = math.floor(4 + dynamicPeak)
-                    else
-
-                        barHeight = math.floor(3 + combinedWave * 6 * (0.4 + bellCurve * 0.6))
-                    end
-
-                    barHeight = math.clamp(barHeight, 3, 36)
-                    TweenService:Create(bar, TweenInfo.new(0.035, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                        Size = UDim2.new(0, 4, 0, barHeight)
-                    }):Play()
-                end
-            end
-        end
-    end)
-
     task.spawn(function()
         while not unloaded and getgenv().AltHackGen == GEN do
-            task.wait(0.25)
+            task.wait(0.1)
             pcall(function()
                 local stats = game:GetService("Stats")
                 local pingVal = stats.Network.ServerStatsItem["Data Ping"]:GetValueString()
