@@ -2111,7 +2111,7 @@ local Library do
                     Name = "TabsList",
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
-                    Size = UDim2New(1, -220, 1, 0),
+                    Size = UDim2New(1, -260, 1, 0),
                     CanvasSize = UDim2New(0, 0, 0, 0),
                     AutomaticCanvasSize = Enum.AutomaticSize.X,
                     ScrollBarThickness = 0,
@@ -2119,12 +2119,6 @@ local Library do
                     LayoutOrder = 3,
                     ZIndex = 15
                 })
-
-                pcall(function()
-                    local PagesFlex = Instance.new("UIFlexItem")
-                    PagesFlex.FlexMode = Enum.UIFlexMode.Fill
-                    PagesFlex.Parent = Items["Pages"].Instance
-                end)
 
                 Instances:Create("UIListLayout", {
                     Parent = Items["Pages"].Instance,
@@ -2518,7 +2512,6 @@ local Library do
                     Parent = Items["Page"].Instance,
                     Name = "\0",
                     FillDirection = Enum.FillDirection.Horizontal,
-                    HorizontalFlex = Enum.UIFlexAlignment.Fill,
                     Padding = UDimNew(0, 12),
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
