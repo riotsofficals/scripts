@@ -6570,6 +6570,91 @@ do
         end
     end
 
+    
+    local function getBestSilentTarget()
+        local cam = Workspace.CurrentCamera
+        if not cam then return nil, nil end
+
+        local fovOrigin = getFOVOrigin(Library.Flags["SilentAim_FOVPlacement"] or "Middle")
+        local fovRadius = Library.Flags["SilentAim_FOVSize"] or 180
+        local useFOV = Library.Flags["SilentAim_UseFOV"] ~= false
+        local checks = Library.Flags["SilentAim_Checks"] or {"Team Check", "Dead Check"}
+        local hitChance = Library.Flags["SilentAim_HitChance"] or 100
+
+        if math.random(1, 100) > hitChance then
+            return nil, nil
+        end
+
+        local closestDist = math.huge
+        local bestPlayer = nil
+        local bestPart = nil
+
+        for _, p in ipairs(Players:GetPlayers()) do
+            if validateTarget(p, checks) then
+                local char = p.Character
+                local hum = char and char:FindFirstChildOfClass("Humanoid")
+                local isAir = hum and (hum.FloorMaterial == Enum.Material.Air or (char.PrimaryPart and math.abs(char.PrimaryPart.Velocity.Y) > 2))
+                local hitPartName = isAir and (Library.Flags["SilentAim_HitpartAir"] or "HumanoidRootPart") or (Library.Flags["SilentAim_HitpartGround"] or "Head")
+                local part = getTargetHitpart(char, hitPartName)
+
+                if part then
+                    local pos2d, onScreen = cam:WorldToViewportPoint(part.Position)
+                    if onScreen and pos2d.Z > 0 then
+                        local screenDist = (Vector2.new(pos2d.X, pos2d.Y) - fovOrigin).Magnitude
+                        if (not useFOV or screenDist <= fovRadius) and screenDist < closestDist then
+                            closestDist = screenDist
+                            bestPlayer = p
+                            bestPart = part
+                        end
+                    end
+                end
+            end
+        end
+
+        return bestPlayer, bestPart
+    end
+
+    local function getSilentAimPosition()
+        if not Library.Flags["SilentAim_Enable"] then return nil end
+        local p, part = getBestSilentTarget()
+        if not p or not part then return nil end
+
+        combatState.SilentTarget = p
+        combatState.SilentLocked = part
+
+        local pos = part.Position
+        local vel = part.AssemblyLinearVelocity or part.Velocity or Vector3.zero
+        if Library.Flags["SilentAim_UsePrediction"] then
+            local predScale = (Library.Flags["SilentAim_PredictionSlider"] or 12.0) / 100
+            pos = pos + (vel * predScale)
+        end
+        return pos, part
+    end
+
+    pcall(function()
+        if hookmetamethod then
+            local oldNamecall
+            oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+                local method = getnamecallmethod()
+                local args = {...}
+
+                if not unloaded and Library.Flags["SilentAim_Enable"] and (method == "Raycast" or method == "FindPartOnRay" or method == "FindPartOnRayWithWhitelist" or method == "FindPartOnRayWithIgnoreList") then
+                    local silentPos, silentPart = getSilentAimPosition()
+                    if silentPos and silentPart then
+                        if method == "Raycast" and args[1] and typeof(args[1]) == "Vector3" then
+                            local origin = args[1]
+                            local dir = (silentPos - origin).Unit * 1000
+                            args[2] = dir
+                            return oldNamecall(self, table.unpack(args))
+                        end
+                    end
+                end
+
+                return oldNamecall(self, ...)
+            end)
+        end
+    end)
+
     Library:Connect(RunService.RenderStepped, function(dt)
         if unloaded or getgenv().AltHackGen ~= GEN then return end
         local cam = Workspace.CurrentCamera
@@ -6670,8 +6755,9 @@ do
                 local targetCF = CFrame.new(camPos, targetPos)
 
                 if Library.Flags["Combat_UseSmoothing"] then
-                    local smoothVal = math.clamp(Library.Flags["Combat_SmoothingValue"] or 6, 1, 100)
-                    local alpha = math.clamp(dt * (60 / smoothVal), 0.01, 1)
+                    local smoothVal = math.clamp(Library.Flags["Combat_SmoothingValue"] or 5, 1, 100)
+                    local alpha = 1 - math.exp(- (105 - smoothVal) * 0.28 * dt)
+                    alpha = math.clamp(alpha, 0.005, 1.0)
 
                     if Library.Flags["Combat_UseEasing"] then
                         alpha = applyEasing(alpha, Library.Flags["Combat_EasingStyle"] or "Quad")
@@ -11233,9 +11319,18 @@ do
             end
         end
 
+        if combatState.SilentTarget and combatState.SilentTarget.Parent then
+            local p = combatState.SilentTarget
+            local char = p.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then
+                return p, char, hum
+            end
+        end
+
         if combatState.TargetLocked and combatState.TargetLocked.Parent then
             local char = combatState.TargetLocked
-            local p = Players:GetPlayerFromCharacter(char)
+            local p = Players:GetPlayerFromCharacter(char) or combatState.AimbotTarget or combatState.SilentTarget
             local hum = char:FindFirstChildOfClass("Humanoid")
             if p and hum and hum.Health > 0 then
                 return p, char, hum
@@ -11255,7 +11350,7 @@ do
                     local pos2d, onScreen = cam:WorldToViewportPoint(hrp.Position)
                     if onScreen and pos2d.Z > 0 then
                         local screenDist = (Vector2.new(pos2d.X, pos2d.Y) - mouseLoc).Magnitude
-                        if screenDist < 250 and screenDist < closestDist then
+                        if screenDist < 400 and screenDist < closestDist then
                             closestDist = screenDist
                             bestPlayer = p
                             bestChar = char
@@ -11275,7 +11370,7 @@ do
                     local hrp = char:FindFirstChild("HumanoidRootPart")
                     if hum and hum.Health > 0 and hrp then
                         local d = (hrp.Position - myHrp.Position).Magnitude
-                        if d < 120 and d < worldDist then
+                        if d < 200 and d < worldDist then
                             worldDist = d
                             bestPlayer = p
                             bestChar = char
@@ -11311,40 +11406,19 @@ do
             local tool = targetChar:FindFirstChildOfClass("Tool")
             local toolName = tool and tool.Name or "None"
 
-            thName.Text = targetPlayer.DisplayName
-            thUser.Text = "@" .. targetPlayer.Name .. " - " .. dist .. " studs - [" .. toolName .. "]"
+            thName.Text = tostring(targetPlayer.DisplayName or targetPlayer.Name)
+            thUser.Text = "@" .. tostring(targetPlayer.Name) .. " - " .. dist .. " studs - [" .. toolName .. "]"
             thHealthText.Text = string.format("%d / %d HP (%d%%)", curHp, maxHp, math.floor(hpRatio * 100))
 
-            TweenService:Create(thHealthFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(hpRatio, 0, 1, 0),
-                BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
-            }):Play()
-
-            if not targetThumbCache[targetPlayer.UserId] then
-                task.spawn(function()
-                    local s, img = pcall(function()
-                        return Players:GetUserThumbnailAsync(
-                            targetPlayer.UserId,
-                            Enum.ThumbnailType.HeadShot,
-                            Enum.ThumbnailSize.Size100x100
-                        )
-                    end)
-                    if s and img then
-                        targetThumbCache[targetPlayer.UserId] = img
-                        if thAvatar.Parent then thAvatar.Image = img end
-                    end
-                end)
-            else
-                thAvatar.Image = targetThumbCache[targetPlayer.UserId]
-            end
+            thHealthFill.Size = UDim2.new(hpRatio, 0, 1, 0)
+            thHealthFill.BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
+            thAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(targetPlayer.UserId) .. "&w=150&h=150&filters=0"
         else
             thName.Text = "No Target Locked"
             thUser.Text = "Awaiting target acquisition..."
             thHealthText.Text = "0 / 0 HP (0%)"
-            TweenService:Create(thHealthFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                Size = UDim2.new(0, 0, 1, 0),
-                BackgroundColor3 = Color3.fromRGB(60, 60, 75)
-            }):Play()
+            thHealthFill.Size = UDim2.new(0, 0, 1, 0)
+            thHealthFill.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
             thAvatar.Image = ""
         end
     end
