@@ -430,26 +430,21 @@ local Library do
             end
 
             local Gui = self.Instance
-            local DragTarget = (Handle and Handle.Instance) or Gui
+            local DragTarget = (Handle and Handle.Instance) or (Handle and typeof(Handle) == "Instance" and Handle) or Gui
             local Dragging = false
             local DragStart
             local StartPosition
+            local DragInput
 
             local Set = function(Input)
                 local DragDelta = Input.Position - DragStart
-                local NewX = StartPosition.X.Offset + DragDelta.X
-                local NewY = StartPosition.Y.Offset + DragDelta.Y
-
-                local ScreenSize = Gui.Parent.AbsoluteSize
-                local GuiSize = Gui.AbsoluteSize
-
-                NewX = MathClamp(NewX, 0, ScreenSize.X - GuiSize.X)
-                NewY = MathClamp(NewY, 0, ScreenSize.Y - GuiSize.Y)
-
-                self:Tween(TweenInfo.new(0.35, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {Position = UDim2New(0, NewX, 0, NewY)})
+                Gui.Position = UDim2New(
+                    StartPosition.X.Scale,
+                    StartPosition.X.Offset + DragDelta.X,
+                    StartPosition.Y.Scale,
+                    StartPosition.Y.Offset + DragDelta.Y
+                )
             end
-
-            local InputChanged
 
             Library:Connect(DragTarget.InputBegan, function(Input)
                 if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
@@ -457,25 +452,34 @@ local Library do
                     DragStart = Input.Position
                     StartPosition = Gui.Position
 
-                    if InputChanged then
-                        return
-                    end
-
-                    InputChanged = Library:Connect(Input.Changed, function()
+                    local changedConn
+                    changedConn = Input.Changed:Connect(function()
                         if Input.UserInputState == Enum.UserInputState.End then
                             Dragging = false
-                            InputChanged.Connection:Disconnect()
-                            InputChanged = nil
+                            if changedConn then
+                                changedConn:Disconnect()
+                                changedConn = nil
+                            end
                         end
                     end)
                 end
             end)
 
-            Library:Connect(UserInputService.InputChanged, function(Input)
+            Library:Connect(DragTarget.InputChanged, function(Input)
                 if Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch then
-                    if Dragging then
-                        Set(Input)
-                    end
+                    DragInput = Input
+                end
+            end)
+
+            Library:Connect(UserInputService.InputChanged, function(Input)
+                if (Input == DragInput or Input.UserInputType == Enum.UserInputType.MouseMovement or Input.UserInputType == Enum.UserInputType.Touch) and Dragging then
+                    Set(Input)
+                end
+            end)
+
+            Library:Connect(UserInputService.InputEnded, function(Input)
+                if Input.UserInputType == Enum.UserInputType.MouseButton1 or Input.UserInputType == Enum.UserInputType.Touch then
+                    Dragging = false
                 end
             end)
 
@@ -2072,6 +2076,8 @@ local Library do
                 })
 
                 Items["MainFrame"]:MakeDraggable(Items["TitleArea"])
+                Items["MainFrame"]:MakeDraggable(Items["TopBar"])
+                Items["MainFrame"]:MakeDraggable(Items["TopContainer"])
 
                 Instances:Create("UIListLayout", {
                     Parent = Items["TitleArea"].Instance,
@@ -5127,6 +5133,7 @@ do
         local titleGroup = Instance.new("Frame")
         titleGroup.Name = "Swatware_TitleGroup"
         titleGroup.Parent = titleArea
+        Items["MainFrame"]:MakeDraggable(titleGroup)
         titleGroup.BackgroundTransparency = 1
         titleGroup.Size = UDim2.new(0, 0, 1, 0)
         titleGroup.AutomaticSize = Enum.AutomaticSize.X
