@@ -8128,15 +8128,18 @@ do
             syncPreviewPosition()
         end
 
-        if espConfig.AutoRotatePreview and previewViewport and previewModel then
+        if espConfig.AutoRotatePreview and previewCharModel and previewCharModel.PrimaryPart then
             previewRotAngle = (previewRotAngle + (dt * 45 * (espConfig.PreviewSpeed or 1.0))) % 360
-            local root = previewModel:FindFirstChild("HumanoidRootPart") or previewModel.PrimaryPart
+            local root = previewCharModel:FindFirstChild("HumanoidRootPart") or previewCharModel.PrimaryPart
             if root then
                 local center = root.Position
                 local rad = math.rad(previewRotAngle)
                 local zoom = espConfig.PreviewZoom or 9.2
                 local camPos = center + Vector3.new(math.sin(rad) * zoom, 0.4, math.cos(rad) * zoom)
-                previewCam.CFrame = CFrame.new(camPos, center + Vector3.new(0, -0.2, 0))
+                viewportCamera.CFrame = CFrame.lookAt(camPos, center + Vector3.new(0, -0.2, 0))
+                if updatePreviewOverlay then
+                    updatePreviewOverlay()
+                end
             end
         end
     end)
@@ -11238,7 +11241,7 @@ do
     thName.Parent = targetHudCard
     thName.BackgroundTransparency = 1
     thName.FontFace = Library.Font
-    thName.Text = "Target Name"
+    thName.Text = "No Target Locked"
     thName.TextColor3 = Theme.Text
     thName.TextSize = 13
     thName.Position = UDim2.new(0, 72, 0, 12)
@@ -11252,7 +11255,7 @@ do
     thUser.Parent = targetHudCard
     thUser.BackgroundTransparency = 1
     thUser.FontFace = Library.Font
-    thUser.Text = "@target • 0 studs"
+    thUser.Text = "Awaiting target acquisition..."
     thUser.TextColor3 = Theme.Accent
     thUser.TextSize = 10
     thUser.Position = UDim2.new(0, 72, 0, 29)
@@ -11290,7 +11293,7 @@ do
     thHealthText.Parent = targetHudCard
     thHealthText.BackgroundTransparency = 1
     thHealthText.FontFace = Library.Font
-    thHealthText.Text = "100 HP (100%)"
+    thHealthText.Text = "0 / 0 HP (0%)"
     thHealthText.TextColor3 = Theme.Text
     thHealthText.TextTransparency = 0.3
     thHealthText.TextSize = 9
@@ -11350,7 +11353,7 @@ do
                     local pos2d, onScreen = cam:WorldToViewportPoint(hrp.Position)
                     if onScreen and pos2d.Z > 0 then
                         local screenDist = (Vector2.new(pos2d.X, pos2d.Y) - mouseLoc).Magnitude
-                        if screenDist < 400 and screenDist < closestDist then
+                        if screenDist < 450 and screenDist < closestDist then
                             closestDist = screenDist
                             bestPlayer = p
                             bestChar = char
@@ -11370,10 +11373,29 @@ do
                     local hrp = char:FindFirstChild("HumanoidRootPart")
                     if hum and hum.Health > 0 and hrp then
                         local d = (hrp.Position - myHrp.Position).Magnitude
-                        if d < 200 and d < worldDist then
+                        if d < worldDist then
                             worldDist = d
                             bestPlayer = p
                             bestChar = char
+                            bestHum = hum
+                        end
+                    end
+                end
+            end
+        end
+
+        if not bestPlayer and myHrp then
+            local npcDist = math.huge
+            for _, obj in ipairs(Workspace:GetChildren()) do
+                if obj:IsA("Model") and obj ~= myChar then
+                    local hum = obj:FindFirstChildOfClass("Humanoid")
+                    local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Head")
+                    if hum and hum.Health > 0 and hrp then
+                        local d = (hrp.Position - myHrp.Position).Magnitude
+                        if d < 300 and d < npcDist then
+                            npcDist = d
+                            bestPlayer = { Name = obj.Name, DisplayName = obj.Name, UserId = 1 }
+                            bestChar = obj
                             bestHum = hum
                         end
                     end
