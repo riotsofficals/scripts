@@ -1766,20 +1766,18 @@ local Library do
             end)
         end)
 
-        Library:Connect(UserInputService.InputBegan, function(Input)
-            if Keybind.Value == "None" then
-                return
-            end
+        local function matchesKeybind(Input)
+            if not Keybind.Key or Keybind.Key == "" or Keybind.Key == "None" or Keybind.Value == "None" then return false end
+            local keyStr = tostring(Keybind.Key)
+            local codeStr = tostring(Input.KeyCode)
+            local typeStr = tostring(Input.UserInputType)
+            local codeName = Input.KeyCode.Name
+            local typeName = Input.UserInputType.Name
+            return (codeStr == keyStr) or (typeStr == keyStr) or (codeName == keyStr) or (typeName == keyStr) or keyStr:find(codeName, 1, true) or keyStr:find(typeName, 1, true)
+        end
 
-            if tostring(Input.KeyCode) == Keybind.Key then
-                if Keybind.Mode == "Toggle" then
-                    Keybind:Press()
-                elseif Keybind.Mode == "Hold" then
-                    Keybind:Press(true)
-                elseif Keybind.Mode == "Always" then
-                    Keybind:Press(true)
-                end
-            elseif tostring(Input.UserInputType) == Keybind.Key then
+        Library:Connect(UserInputService.InputBegan, function(Input)
+            if matchesKeybind(Input) then
                 if Keybind.Mode == "Toggle" then
                     Keybind:Press()
                 elseif Keybind.Mode == "Hold" then
@@ -1803,17 +1801,7 @@ local Library do
         end)
 
         Library:Connect(UserInputService.InputEnded, function(Input)
-            if Keybind.Value == "None" then
-                return
-            end
-
-            if tostring(Input.KeyCode) == Keybind.Key then
-                if Keybind.Mode == "Hold" then
-                    Keybind:Press(false)
-                elseif Keybind.Mode == "Always" then
-                    Keybind:Press(true)
-                end
-            elseif tostring(Input.UserInputType) == Keybind.Key then
+            if matchesKeybind(Input) then
                 if Keybind.Mode == "Hold" then
                     Keybind:Press(false)
                 elseif Keybind.Mode == "Always" then
@@ -2289,13 +2277,38 @@ local Library do
                     ZIndex = 17
                 }):AddToTheme({ImageColor3 = 'Text'})
 
+                Items["BottomBar"] = Instances:Create("Frame", {
+                    Parent = Items["MainFrame"].Instance,
+                    Name = "BottomBar",
+                    AnchorPoint = Vector2New(0, 1),
+                    Position = UDim2New(0, 0, 1, 0),
+                    Size = UDim2New(1, 0, 0, 20),
+                    BackgroundColor3 = Library.Theme["Inline"],
+                    BackgroundTransparency = 0.4,
+                    BorderSizePixel = 0,
+                    ZIndex = 5
+                }):AddToTheme({BackgroundColor3 = 'Inline'})
+
+                local BottomBarBorder = Instances:Create("Frame", {
+                    Parent = Items["BottomBar"].Instance,
+                    Name = "Border",
+                    Size = UDim2New(1, 0, 0, 1),
+                    Position = UDim2New(0, 0, 0, 0),
+                    BackgroundColor3 = Library.Theme["Outline"],
+                    BackgroundTransparency = 0.3,
+                    BorderSizePixel = 0,
+                    ZIndex = 6
+                }):AddToTheme({BackgroundColor3 = 'Outline'})
+
+                Items["MainFrame"]:MakeDraggable(Items["BottomBar"])
+
                 Items["Content"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
                     Name = "Content",
                     BackgroundTransparency = 1,
                     Position = UDim2New(0, 0, 0, 48),
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2New(1, 0, 1, -48),
+                    Size = UDim2New(1, 0, 1, -68),
                     BorderSizePixel = 0,
                     ZIndex = 1
                 })
@@ -2797,14 +2810,38 @@ local Library do
                     Section.Collapsed = collapsed
 
                     local Content = Items["Content"].Instance
-                    Content.AutomaticSize = collapsed and Enum.AutomaticSize.None or Enum.AutomaticSize.Y
-                    Content.Size = UDim2New(1, 0, 0, 0)
-                    Content.Visible = not collapsed
-
-                    Items["Arrow"]:Tween(TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Items["Arrow"]:Tween(TweenInfo.new(0.25, Enum.EasingStyle.Quart, Enum.EasingDirection.Out), {
                         Rotation = collapsed and -90 or 0,
                         ImageTransparency = collapsed and 0.65 or 0.35
                     })
+
+                    if collapsed then
+                        Content.AutomaticSize = Enum.AutomaticSize.None
+                        local tw = TweenService:Create(Content, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                            Size = UDim2New(1, 0, 0, 0)
+                        })
+                        tw:Play()
+                        tw.Completed:Connect(function()
+                            if Section.Collapsed then
+                                Content.Visible = false
+                            end
+                        end)
+                    else
+                        Content.Visible = true
+                        Content.Size = UDim2New(1, 0, 0, 0)
+                        Content.AutomaticSize = Enum.AutomaticSize.Y
+                        local outline = Items["SectionOutline"].Instance
+                        TweenService:Create(outline, TweenInfo.new(0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
+                            BackgroundTransparency = 0.2
+                        }):Play()
+                        task.delay(0.22, function()
+                            if not Section.Collapsed then
+                                TweenService:Create(outline, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                                    BackgroundTransparency = 0.4
+                                }):Play()
+                            end
+                        end)
+                    end
                 end
 
                 local function ToggleCollapse()
@@ -3037,6 +3074,7 @@ local Library do
             function Toggle:Keybind(Data)
                 Data = Data or { }
 
+                local userCallback = Data.Callback or Data.callback
                 local Keybind = {
                     Window = Toggle.Window,
                     Page = Toggle.Page,
@@ -3044,8 +3082,13 @@ local Library do
 
                     Flag = Data.Flag or Data.flag or Library:NextFlag(),
                     Default = Data.Default or Data.default,
-                    Callback = Data.Callback or Data.callback or function() end,
-                    Mode = Data.Mode or Data.mode or "Toggle"
+                    Mode = Data.Mode or Data.mode or "Toggle",
+                    Callback = function(state)
+                        Toggle:Set(state)
+                        if userCallback then
+                            Library:SafeCall(userCallback, state)
+                        end
+                    end
                 }
 
                 local NewKeybind, KeybindItems = Library:CreateKeybind({
@@ -3066,6 +3109,21 @@ local Library do
             end)
 
             Toggle:Set(Toggle.Default)
+
+            Library:CreateWidgetContextMenu(Items["Toggle"], {
+                {
+                    Name = "Toggle State",
+                    Callback = function() Toggle:Set(not Toggle.Value) end
+                },
+                {
+                    Name = "Reset Default",
+                    Callback = function() Toggle:Set(Toggle.Default) end
+                },
+                {
+                    Name = "Copy Flag Name",
+                    Callback = function() if setclipboard then setclipboard(tostring(Toggle.Flag)) end end
+                }
+            })
 
             Library.SetFlags[Toggle.Flag] = function(Value)
                 Toggle:Set(Value)
@@ -3348,6 +3406,21 @@ local Library do
                 Slider:Set(Slider.Default)
             end
 
+            Library:CreateWidgetContextMenu(Items["Slider"], {
+                {
+                    Name = "Reset Default",
+                    Callback = function() Slider:Set(Slider.Default) end
+                },
+                {
+                    Name = "Copy Current Value",
+                    Callback = function() if setclipboard then setclipboard(tostring(Slider.Value)) end end
+                },
+                {
+                    Name = "Copy Flag Name",
+                    Callback = function() if setclipboard then setclipboard(tostring(Slider.Flag)) end end
+                }
+            })
+
             Library.SetFlags[Slider.Flag] = function(Value)
                 Slider:Set(Value)
             end
@@ -3542,6 +3615,12 @@ local Library do
                 Dropdown.IsOpen = Bool
 
                 Debounce = true
+
+                if Items["Icon"] and Items["Icon"].Instance then
+                    TweenService:Create(Items["Icon"].Instance, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                        Rotation = Dropdown.IsOpen and 180 or 0
+                    }):Play()
+                end
 
                 if Dropdown.IsOpen then
                     Items["OptionHolder"].Instance.Visible = true
@@ -3851,6 +3930,17 @@ local Library do
                 Dropdown:Set(Dropdown.Default)
             end
 
+            Library:CreateWidgetContextMenu(Items["Dropdown"], {
+                {
+                    Name = "Reset Default",
+                    Callback = function() if Dropdown.Default then Dropdown:Set(Dropdown.Default) end end
+                },
+                {
+                    Name = "Copy Flag Name",
+                    Callback = function() if setclipboard then setclipboard(tostring(Dropdown.Flag)) end end
+                }
+            })
+
             Library.SetFlags[Dropdown.Flag] = function(Value)
                 Dropdown:Set(Value)
             end
@@ -4130,6 +4220,21 @@ local Library do
             if Textbox.Default then
                 Textbox:Set(Textbox.Default)
             end
+
+            Library:CreateWidgetContextMenu(Items["Textbox"], {
+                {
+                    Name = "Clear Text",
+                    Callback = function() Textbox:Set("") end
+                },
+                {
+                    Name = "Reset Default",
+                    Callback = function() Textbox:Set(Textbox.Default or "") end
+                },
+                {
+                    Name = "Copy Flag Name",
+                    Callback = function() if setclipboard then setclipboard(tostring(Textbox.Flag)) end end
+                }
+            })
 
             Library.SetFlags[Textbox.Flag] = function(Value)
                 Textbox:Set(Value)
@@ -4676,7 +4781,16 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         for name, secs in pairs(tabSections) do
             for _, sec in ipairs(secs) do
                 if sec.Items and sec.Items["SectionOutline"] then
-                    sec.Items["SectionOutline"].Instance.Visible = (name == tabName)
+                    local frame = sec.Items["SectionOutline"].Instance
+                    if name == tabName then
+                        frame.Visible = true
+                        frame.Position = UDim2New(0, 0, 0, 8)
+                        TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+                            Position = UDim2New(0, 0, 0, 0)
+                        }):Play()
+                    else
+                        frame.Visible = false
+                    end
                 end
             end
         end
