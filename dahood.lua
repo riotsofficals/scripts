@@ -363,8 +363,12 @@ local Library do
 
             setmetatable(NewItem, Instances)
 
-            for Property, Value in NewItem.Properties do
-                NewItem.Instance[Property] = Value
+            if NewItem.Properties then
+                for Property, Value in pairs(NewItem.Properties) do
+                    pcall(function()
+                        NewItem.Instance[Property] = Value
+                    end)
+                end
             end
 
             return NewItem
@@ -697,9 +701,9 @@ local Library do
 
     Library.Holder = Instances:Create("ScreenGui", {
         Parent = gethui(),
-        Name = "\0",
+        Name = "Swatware_MainGui",
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
-        DisplayOrder = 2,
+        DisplayOrder = 100,
         ResetOnSpawn = false
     })
 
@@ -4645,7 +4649,13 @@ getgenv().Library = Library
 return Library
 end)()
 
+local Players = cloneref and cloneref(game:GetService("Players")) or game:GetService("Players")
 local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
+local RunService = cloneref and cloneref(game:GetService("RunService")) or game:GetService("RunService")
+local TweenService = cloneref and cloneref(game:GetService("TweenService")) or game:GetService("TweenService")
+local UserInputService = cloneref and cloneref(game:GetService("UserInputService")) or game:GetService("UserInputService")
+local Lighting = cloneref and cloneref(game:GetService("Lighting")) or game:GetService("Lighting")
+local HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
 
 local function getSafeGuiParent()
     local parent
@@ -4667,7 +4677,7 @@ local function getSafeGuiParent()
         return CoreGui
     end
 
-    local lp = Players.LocalPlayer or Players:GetPlayers()[1]
+    local lp = Players.LocalPlayer or (Players:GetPlayers() and Players:GetPlayers()[1])
     if lp then
         local pg = lp:FindFirstChild("PlayerGui") or lp:WaitForChild("PlayerGui", 5)
         if pg then return pg end
@@ -4678,13 +4688,6 @@ end
 local gethui = function()
     return getSafeGuiParent()
 end
-
-
-local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-local TweenService = game:GetService("TweenService")
-local UserInputService = game:GetService("UserInputService")
-local Lighting = game:GetService("Lighting")
 
 local WHITE = Color3.fromRGB(255, 255, 255)
 local BLACK = Color3.fromRGB(0, 0, 0)
@@ -4895,15 +4898,27 @@ local ICON_DEFAULT_SEC = "rbxassetid://127136375066593"
 local ICON_CHEVRON = "rbxassetid://10709790948"
 local ICON_SHIELD = "rbxassetid://127136375066593"
 
-local holderGui = Library.Holder.Instance
-pcall(function()
-    holderGui.DisplayOrder = 100
-end)
+local holderGui = Library.Holder and Library.Holder.Instance
+if holderGui then
+    pcall(function()
+        holderGui.DisplayOrder = 100
+        holderGui.Enabled = true
+        if not holderGui.Parent or holderGui.Parent == game then
+            holderGui.Parent = getSafeGuiParent()
+        end
+    end)
+end
 
 local Window = Library:Window({
     Name = "swatware",
     Logo = LOGO,
 })
+
+pcall(function()
+    if Window.Items and Window.Items["MainFrame"] and Window.Items["MainFrame"].Instance then
+        Window.Items["MainFrame"].Instance.Visible = true
+    end
+end)
 
 if Window.Items["OptsBtn"] then
     Window.Items["OptsBtn"].Instance.Visible = false
@@ -11695,3 +11710,15 @@ do
         end
     end)
 end
+
+pcall(function()
+    if Window and Window.SetOpen then
+        Window:SetOpen(true)
+    end
+    if Library.Holder and Library.Holder.Instance then
+        Library.Holder.Instance.Enabled = true
+    end
+    if Window and Window.Items and Window.Items["MainFrame"] and Window.Items["MainFrame"].Instance then
+        Window.Items["MainFrame"].Instance.Visible = true
+    end
+end)
