@@ -4574,15 +4574,7 @@ local combatState = {
     LastTriggerShot = 0,
 }
 
-local targetHudGroup = nil
-local hpBarFill = nil
-local hpText = nil
-local targetHudName = nil
-local targetHudUser = nil
-local targetHudMeta = nil
-local targetAvatar = nil
-local hsBadge = nil
-local hsBadgeText = nil
+-- Target HUD state managed in combatState and overlay controller
 
 local player = Players.LocalPlayer
 local localUserName = (player and player.Name) or "Player"
@@ -4766,6 +4758,7 @@ local ICON_THEME = "rbxassetid://73803440257131"
 local ICON_CONFIGS = "rbxassetid://74885853379841"
 local ICON_DEFAULT_SEC = "rbxassetid://127136375066593"
 local ICON_CHEVRON = "rbxassetid://10709790948"
+local ICON_SHIELD = "rbxassetid://127136375066593"
 
 local holderGui = Library.Holder.Instance
 pcall(function()
@@ -6708,7 +6701,7 @@ do
             sFovStroke.Transparency = outlineAlpha
 
             if Library.Flags["SilentAim_FOVSpin"] then
-                local speed = Library.Flags["SilentAim_SpinSpeed"] or 5
+                local speed = Library.Flags["SilentAim_FOVSpinSpeed"] or Library.Flags["SilentAim_SpinSpeed"] or 5
                 combatState.SilentFOVRotationAngle = ((combatState.SilentFOVRotationAngle or 0) + (speed * 40 * dt)) % 360
                 sFovCircleFrame.Rotation = combatState.SilentFOVRotationAngle
             else
@@ -6718,14 +6711,21 @@ do
             sFovCircleFrame.Visible = false
         end
 
+        if Library.Flags["SilentAim_Enable"] then
+            local sPlayer, sPart = getBestSilentTarget()
+            combatState.SilentTarget = sPlayer
+            combatState.SilentLocked = sPart
+        else
+            combatState.SilentTarget = nil
+            combatState.SilentLocked = nil
+        end
+
         local aimbotEnabled = Library.Flags["Combat_Aimbot"] == true
         if aimbotEnabled then
             local bestPlayer, targetPart = getBestAimbotTarget()
             if bestPlayer and targetPart then
                 combatState.AimbotTarget = bestPlayer
                 combatState.TargetLocked = bestPlayer.Character
-                if Library.Flags["Overlay_TargetHUD"] and Library.UpdateOverlays then
-                end
 
                 local targetPos = targetPart.Position
                 local targetVel = targetPart.AssemblyLinearVelocity or targetPart.Velocity or Vector3.zero
@@ -9865,6 +9865,48 @@ do
         if miscState.BHop and hum.FloorMaterial ~= Enum.Material.Air and hum.MoveDirection.Magnitude > 0 then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
         end
+
+        if miscState.Spinbot and hum.Health > 0 and not miscState.Fly then
+            local mode = miscState.AntiAimMode
+            if mode == "Spinbot" then
+                spinAngle = (spinAngle + (miscState.SpinSpeed * 30 * dt)) % 360
+                root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(spinAngle), 0)
+            elseif mode == "Jitter Yaw" then
+                local jitter = math.random(-180, 180)
+                root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(jitter), 0)
+            elseif mode == "Backwards" then
+                local cam = Workspace.CurrentCamera
+                if cam then
+                    local look = cam.CFrame.LookVector
+                    local yaw = math.atan2(-look.X, -look.Z) + math.pi
+                    if miscState.YawInverted then yaw = yaw + math.pi end
+                    root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, yaw, 0)
+                end
+            elseif mode == "Static Yaw" then
+                local yaw = miscState.YawInverted and math.pi or 0
+                root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, yaw, 0)
+            elseif mode == "Random Yaw" then
+                root.CFrame = CFrame.new(root.Position) * CFrame.Angles(0, math.rad(math.random(0, 360)), 0)
+            end
+        end
+
+        if Library.Flags["Misc_NoFallDamage"] and hum then
+            pcall(function()
+                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
+                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
+            end)
+        end
+
+        if Library.Flags["Misc_AntiStomp"] and hum and hum.Health < 15 and hum.Health > 0 then
+            pcall(function()
+                local myChar = Players.LocalPlayer.Character
+                if myChar then
+                    for _, tool in ipairs(myChar:GetChildren()) do
+                        if tool:IsA("Tool") then tool.Parent = Players.LocalPlayer.Backpack end
+                    end
+                end
+            end)
+        end
     end)
 
     Library:Connect(RunService.Stepped, function()
@@ -11044,6 +11086,7 @@ do
     wmLabel.AutomaticSize = Enum.AutomaticSize.X
     Library:AddToTheme(wmLabel, {TextColor3 = "Text"})
 
+    watermarkFrame.Visible = hudConfig.Master and hudConfig.Watermark
     makeDraggable(watermarkFrame)
 
     local keybindsFrame = Instance.new("Frame")
@@ -11112,6 +11155,7 @@ do
     kbListPad.PaddingBottom = UDim.new(0, 8)
     kbListPad.Parent = kbList
 
+    keybindsFrame.Visible = hudConfig.Master and hudConfig.Keybinds
     makeDraggable(keybindsFrame, kbHeader)
 
     local gameDataFrame = Instance.new("Frame")
@@ -11192,6 +11236,7 @@ do
     local gdPlayers = makeGdRow("Players: 1 / 1")
     local gdUptime = makeGdRow("Session: 00:00:00")
 
+    gameDataFrame.Visible = hudConfig.Master and hudConfig.GameData
     makeDraggable(gameDataFrame, gdHeader)
 
     local targetHudCard = Instance.new("Frame")
@@ -11302,7 +11347,26 @@ do
     thHealthText.TextXAlignment = Enum.TextXAlignment.Left
     Library:AddToTheme(thHealthText, {TextColor3 = "Text"})
 
+    targetHudCard.Visible = hudConfig.Master and hudConfig.TargetHUD
     makeDraggable(targetHudCard)
+
+    local function updateOverlaysVisibility()
+        local master = (hudConfig.Master ~= false)
+        if watermarkFrame then
+            watermarkFrame.Visible = master and (hudConfig.Watermark == true)
+        end
+        if keybindsFrame then
+            keybindsFrame.Visible = master and (hudConfig.Keybinds == true)
+        end
+        if gameDataFrame then
+            gameDataFrame.Visible = master and (hudConfig.GameData == true)
+        end
+        if targetHudCard then
+            targetHudCard.Visible = master and (hudConfig.TargetHUD == true)
+        end
+    end
+    Library.UpdateOverlays = updateOverlaysVisibility
+    updateOverlaysVisibility()
 
     local sessionStartTime = tick()
 
@@ -11406,8 +11470,9 @@ do
         return bestPlayer, bestChar, bestHum
     end
 
+    local lastAvatarUserId = nil
     local function refreshTargetHUD()
-        if not hudConfig.TargetHUD then return end
+        if not (hudConfig.Master and hudConfig.TargetHUD) then return end
 
         local targetPlayer, targetChar, targetHum = getActiveTarget()
         local lp = Players.LocalPlayer
@@ -11426,22 +11491,41 @@ do
             end
 
             local tool = targetChar:FindFirstChildOfClass("Tool")
-            local toolName = tool and tool.Name or "None"
+            local toolName = tool and tool.Name or "Holstered"
 
-            thName.Text = tostring(targetPlayer.DisplayName or targetPlayer.Name)
-            thUser.Text = "@" .. tostring(targetPlayer.Name) .. " - " .. dist .. " studs - [" .. toolName .. "]"
+            local dName = tostring(targetPlayer.DisplayName or targetPlayer.Name or "Unknown")
+            local uName = tostring(targetPlayer.Name or "Player")
+
+            thName.Text = dName
+            thUser.Text = "@" .. uName .. " • " .. dist .. " studs • [" .. toolName .. "]"
             thHealthText.Text = string.format("%d / %d HP (%d%%)", curHp, maxHp, math.floor(hpRatio * 100))
 
-            thHealthFill.Size = UDim2.new(hpRatio, 0, 1, 0)
-            thHealthFill.BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
-            thAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(targetPlayer.UserId) .. "&w=150&h=150&filters=0"
+            TweenService:Create(thHealthFill, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(hpRatio, 0, 1, 0),
+                BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
+            }):Play()
+
+            local uid = targetPlayer.UserId
+            if uid and uid ~= lastAvatarUserId then
+                lastAvatarUserId = uid
+                if tonumber(uid) and tonumber(uid) > 1 then
+                    thAvatar.Image = "rbxthumb://type=AvatarHeadShot&id=" .. tostring(uid) .. "&w=150&h=150&filters=0"
+                else
+                    thAvatar.Image = ""
+                end
+            end
         else
             thName.Text = "No Target Locked"
             thUser.Text = "Awaiting target acquisition..."
             thHealthText.Text = "0 / 0 HP (0%)"
-            thHealthFill.Size = UDim2.new(0, 0, 1, 0)
-            thHealthFill.BackgroundColor3 = Color3.fromRGB(60, 60, 75)
-            thAvatar.Image = ""
+            TweenService:Create(thHealthFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                Size = UDim2.new(0, 0, 1, 0),
+                BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+            }):Play()
+            if lastAvatarUserId ~= 0 then
+                lastAvatarUserId = 0
+                thAvatar.Image = ""
+            end
         end
     end
 
