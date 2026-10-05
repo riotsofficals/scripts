@@ -5145,21 +5145,19 @@ do
         brandGradient.Rotation = 0
 
         task.spawn(function()
-            while not unloaded and getgenv().AltHackGen == GEN do
-                local t = tick()
-                local accent = Library.Theme.Accent or Color3.fromRGB(139, 149, 246)
-                local white = Color3.fromRGB(255, 255, 255)
-
-                local wavePos = (math.sin(t * 2.2) + 1) * 0.5
-                brandGradient.Color = ColorSequence.new({
-                    ColorSequenceKeypoint.new(0, accent),
-                    ColorSequenceKeypoint.new(math.clamp(wavePos * 0.6 + 0.2, 0.01, 0.99), white),
-                    ColorSequenceKeypoint.new(1, accent)
-                })
-                brandGradient.Offset = Vector2.new(math.sin(t * 1.6) * 0.35, 0)
-                task.wait(0.03)
-            end
-        end)
+        while not unloaded and getgenv().AltHackGen == GEN do
+            local t = tick()
+            local accent = Library.Theme.Accent or Color3.fromRGB(139, 149, 246)
+            local white = Color3.fromRGB(255, 255, 255)
+            local wavePos = (math.sin(t * 2.2) + 1) * 0.5
+            brandGradient.Color = ColorSequence.new({
+                ColorSequenceKeypoint.new(0, accent),
+                ColorSequenceKeypoint.new(math.clamp(wavePos * 0.6 + 0.2, 0.01, 0.99), white),
+                ColorSequenceKeypoint.new(1, accent)
+            })
+            task.wait(0.06)
+        end
+    end)
     end
 end
 
@@ -6353,15 +6351,6 @@ do
         if hbColLabel then hbColLabel:SetVisibility(hAct) end
     end)
 
-    local combatState = {
-        AimbotActive = false,
-        AimbotTarget = nil,
-        SilentTarget = nil,
-        TriggerbotActive = false,
-        LastTriggerShot = 0,
-        TargetLocked = nil,
-        FOVRotationAngle = 0,
-    }
 
     local fovGui = Instance.new("ScreenGui")
     fovGui.Name = "Swatware_FOVOverlays"
@@ -6650,6 +6639,8 @@ do
             if bestPlayer and targetPart then
                 combatState.AimbotTarget = bestPlayer
                 combatState.TargetLocked = bestPlayer.Character
+                if Library.Flags["Overlay_TargetHUD"] and Library.UpdateOverlays then
+                end
 
                 local targetPos = targetPart.Position
                 local targetVel = targetPart.AssemblyLinearVelocity or targetPart.Velocity or Vector3.zero
@@ -6739,8 +6730,10 @@ do
 
     task.spawn(function()
         while not unloaded and getgenv().AltHackGen == GEN do
-            task.wait(0.02)
-            if Library.Flags["Triggerbot_Enable"] then
+            if not Library.Flags["Triggerbot_Enable"] then
+                task.wait(0.1)
+            else
+                task.wait(0.03)
                 local cam = Workspace.CurrentCamera
                 if cam then
                     local mousePos = UserInputService:GetMouseLocation()
@@ -6750,41 +6743,33 @@ do
                     rayParams.FilterDescendantsInstances = {Players.LocalPlayer.Character}
                     rayParams.IgnoreWater = true
 
-                    local maxDist = Library.Flags["Triggerbot_Distance"] or 500
-                    local hitResult = Workspace:Raycast(unitRay.Origin, unitRay.Direction * maxDist, rayParams)
+                    local result = Workspace:Raycast(unitRay.Origin, unitRay.Direction * 1000, rayParams)
+                    if result and result.Instance then
+                        local hitChar = result.Instance:FindFirstAncestorOfClass("Model")
+                        local hitPlayer = hitChar and Players:GetPlayerFromCharacter(hitChar)
+                        if hitPlayer and hitPlayer ~= Players.LocalPlayer then
+                            local hum = hitChar:FindFirstChildOfClass("Humanoid")
+                            local isAlive = hum and hum.Health > 0
+                            local teamPass = true
+                            if Library.Flags["Triggerbot_TeamCheck"] and hitPlayer.Team and Players.LocalPlayer.Team and hitPlayer.Team == Players.LocalPlayer.Team then
+                                teamPass = false
+                            end
 
-                    if hitResult and hitResult.Instance then
-                        local hitPart = hitResult.Instance
-                        local targetChar = hitPart:FindFirstAncestorOfClass("Model")
-                        local targetPlayer = targetChar and Players:GetPlayerFromCharacter(targetChar)
-
-                        if targetPlayer and targetPlayer ~= Players.LocalPlayer then
-                            local checks = {}
-                            if Library.Flags["Triggerbot_TeamCheck"] then table.insert(checks, "Team Check") end
-                            if Library.Flags["Triggerbot_WallCheck"] then table.insert(checks, "Wall Check") end
-                            table.insert(checks, "Dead Check")
-
-                            if validateTarget(targetPlayer, checks) then
-                                local headOnly = Library.Flags["Triggerbot_HeadOnly"]
-                                if not headOnly or hitPart.Name == "Head" then
-                                    local hitChance = Library.Flags["Triggerbot_HitChance"] or 100
-                                    if math.random(1, 100) <= hitChance then
-                                        local delayMs = Library.Flags["Triggerbot_Delay"] or 15
-                                        if delayMs > 0 then task.wait(delayMs / 1000) end
-
-                                        pcall(function()
-                                            if mouse1click then
-                                                mouse1click()
-                                            elseif mouse1press and mouse1release then
-                                                mouse1press()
-                                                task.wait(0.02)
-                                                mouse1release()
-                                            else
-                                                local tool = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChildOfClass("Tool")
-                                                if tool then tool:Activate() end
-                                            end
-                                        end)
-                                    end
+                            if isAlive and teamPass then
+                                local now = tick()
+                                local delaySec = (Library.Flags["Triggerbot_Delay"] or 0) / 1000
+                                local cooldownSec = (Library.Flags["Triggerbot_Cooldown"] or 150) / 1000
+                                if (now - combatState.LastTriggerShot) >= (delaySec + cooldownSec) then
+                                    combatState.LastTriggerShot = now
+                                    pcall(function()
+                                        if mouse1click then
+                                            mouse1click()
+                                        elseif mouse1press then
+                                            mouse1press()
+                                            task.wait(0.015)
+                                            mouse1release()
+                                        end
+                                    end)
                                 end
                             end
                         end
@@ -8049,133 +8034,25 @@ do
             return
         end
 
+        if not espConfig.ShowPreview or not previewFrame or not previewFrame.Visible then
+            return
+        end
+
         if syncPreviewPosition then
             syncPreviewPosition()
         end
 
-        if previewWindow and previewWindow.Visible and Window.IsOpen then
-                if espConfig.AutoRotatePreview then
-                    previewRotAngle = (previewRotAngle + (45 * espConfig.PreviewSpeed * dt)) % 360
-                end
-
-                if espConfig.GradientText then
-                    local gOffset = Vector2.new((tick() * 1.2) % 2 - 1, 0)
-                    previewNameGrad.Offset = gOffset
-                    previewDistGrad.Offset = gOffset
-                    previewWeaponGrad.Offset = gOffset
-                end
-
-                if previewCharModel and previewCharModel.PrimaryPart then
-                    local rotCF = CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(previewRotAngle), 0)
-                    previewCharModel:PivotTo(rotCF)
-
-                    if espConfig.Chams and espConfig.ChamsPulse then
-                        updatePreviewOverlay()
-                    end
-
-                    pcall(function()
-                        local head = previewCharModel:FindFirstChild("Head")
-                        local leftFoot = previewCharModel:FindFirstChild("LeftFoot") or previewCharModel:FindFirstChild("Left Leg") or previewCharModel:FindFirstChild("LeftLowerLeg")
-                        local rightFoot = previewCharModel:FindFirstChild("RightFoot") or previewCharModel:FindFirstChild("Right Leg") or previewCharModel:FindFirstChild("RightLowerLeg")
-                        local root = previewCharModel.PrimaryPart or previewCharModel:FindFirstChild("HumanoidRootPart") or head
-
-                        if head and root then
-                            local headTopPos = head.Position + Vector3.new(0, (head.Size.Y * 0.5) + 0.15, 0)
-                            local feetBotPos = (leftFoot and rightFoot and (((leftFoot.Position + rightFoot.Position) * 0.5) - Vector3.new(0, 0.9, 0)))
-                                or (leftFoot and (leftFoot.Position - Vector3.new(0, 0.9, 0)))
-                                or (root.Position - Vector3.new(0, 2.75, 0))
-                            local midPos = (headTopPos + feetBotPos) * 0.5
-
-                            local top2d, okTop = projectToPreview(headTopPos)
-                            local btm2d, okBtm = projectToPreview(feetBotPos)
-                            local mid2d, okMid = projectToPreview(midPos)
-
-                            if okTop and okBtm and okMid then
-                                local cardSize = previewCard.AbsoluteSize
-                                local cardW = (cardSize.X > 10) and cardSize.X or 214
-                                local cardH = (cardSize.Y > 10) and cardSize.Y or 258
-
-                                local boxH = math.max(30, math.abs(btm2d.Y - top2d.Y))
-                                local boxW = math.clamp(boxH * 0.52, 35, 110)
-
-                                previewBoxFrame.Position = UDim2.fromOffset(mid2d.X, top2d.Y)
-                                previewBoxFrame.Size = UDim2.fromOffset(boxW, boxH)
-
-                                if espConfig.Tracers and espConfig.MasterEnabled then
-                                    local startPos = Vector2.new(cardW * 0.5, cardH)
-                                    local endPos = Vector2.new(mid2d.X, btm2d.Y)
-                                    local tDx = endPos.X - startPos.X
-                                    local tDy = endPos.Y - startPos.Y
-                                    local tLen = math.sqrt(tDx * tDx + tDy * tDy)
-
-                                    previewTracer.Visible = true
-                                    previewTracer.Position = UDim2.fromOffset((startPos.X + endPos.X) * 0.5, (startPos.Y + endPos.Y) * 0.5)
-                                    previewTracer.Size = UDim2.fromOffset(tLen, 1.5)
-                                    previewTracer.Rotation = math.deg(math.atan2(tDy, tDx))
-                                else
-                                    previewTracer.Visible = false
-                                end
-
-                                if espConfig.Skeleton and espConfig.MasterEnabled then
-                                    local r6Pairs = {
-                                        {"Head", "Torso"},
-                                        {"Torso", "Left Arm"},
-                                        {"Torso", "Right Arm"},
-                                        {"Torso", "Left Leg"},
-                                        {"Torso", "Right Leg"},
-                                    }
-                                    local r15Pairs = {
-                                        {"Head", "UpperTorso"},
-                                        {"UpperTorso", "LowerTorso"},
-                                        {"UpperTorso", "LeftUpperArm"},
-                                        {"LeftUpperArm", "LeftLowerArm"},
-                                        {"LeftLowerArm", "LeftHand"},
-                                        {"UpperTorso", "RightUpperArm"},
-                                        {"RightUpperArm", "RightLowerArm"},
-                                        {"RightLowerArm", "RightHand"},
-                                        {"LowerTorso", "LeftUpperLeg"},
-                                        {"LeftUpperLeg", "LeftLowerLeg"},
-                                        {"LowerTorso", "RightUpperLeg"},
-                                        {"RightUpperLeg", "RightLowerLeg"},
-                                    }
-
-                                    local isR15 = previewCharModel:FindFirstChild("UpperTorso") ~= nil
-                                    local pairsList = isR15 and r15Pairs or r6Pairs
-
-                                    for idx, seg in ipairs(skelSegments) do
-                                        local pair = pairsList[idx]
-                                        if pair then
-                                            local p1 = previewCharModel:FindFirstChild(pair[1])
-                                            local p2 = previewCharModel:FindFirstChild(pair[2])
-                                            if p1 and p2 then
-                                                local v1, ok1 = projectToPreview(p1.Position)
-                                                local v2, ok2 = projectToPreview(p2.Position)
-                                                if ok1 and ok2 then
-                                                    local dx = v2.X - v1.X
-                                                    local dy = v2.Y - v1.Y
-                                                    local len = math.sqrt(dx*dx + dy*dy)
-                                                    seg.Visible = true
-                                                    seg.Size = UDim2.fromOffset(len, 1.5)
-                                                    seg.Position = UDim2.fromOffset((v1.X + v2.X) * 0.5, (v1.Y + v2.Y) * 0.5)
-                                                    seg.Rotation = math.deg(math.atan2(dy, dx))
-                                                else
-                                                    seg.Visible = false
-                                                end
-                                            else
-                                                seg.Visible = false
-                                            end
-                                        else
-                                            seg.Visible = false
-                                        end
-                                    end
-                                else
-                                    for _, seg in ipairs(skelSegments) do seg.Visible = false end
-                                end
-                            end
-                        end
-                    end)
-                end
+        if espConfig.AutoRotatePreview and previewViewport and previewModel then
+            previewRotAngle = (previewRotAngle + (dt * 45 * (espConfig.PreviewSpeed or 1.0))) % 360
+            local root = previewModel:FindFirstChild("HumanoidRootPart") or previewModel.PrimaryPart
+            if root then
+                local center = root.Position
+                local rad = math.rad(previewRotAngle)
+                local zoom = espConfig.PreviewZoom or 9.2
+                local camPos = center + Vector3.new(math.sin(rad) * zoom, 0.4, math.cos(rad) * zoom)
+                previewCam.CFrame = CFrame.new(camPos, center + Vector3.new(0, -0.2, 0))
             end
+        end
     end)
 
     if updatePreviewOverlay then
@@ -9903,50 +9780,15 @@ do
 
     Library:Connect(RunService.Stepped, function()
         if unloaded or getgenv().AltHackGen ~= GEN then return end
+        if not miscState.Noclip then return end
 
         local char = Players.LocalPlayer.Character
-        local root = char and char:FindFirstChild("HumanoidRootPart")
-        if not char or not root then return end
+        if not char then return end
 
-        if miscState.Noclip then
-            for _, p in ipairs(char:GetDescendants()) do
-                if p:IsA("BasePart") then
-                    p.CanCollide = false
-                end
+        for _, p in ipairs(char:GetChildren()) do
+            if p:IsA("BasePart") then
+                p.CanCollide = false
             end
-        end
-
-        if miscState.Spinbot then
-            spinAngle = (spinAngle + (miscState.SpinSpeed * 5)) % 360
-            local yaw = 0
-            if miscState.AntiAimMode == "Spinbot" then
-                yaw = math.rad(spinAngle)
-            elseif miscState.AntiAimMode == "Jitter Yaw" then
-                yaw = math.rad((tick() % 0.2 > 0.1) and 90 or -90)
-            elseif miscState.AntiAimMode == "Backwards" then
-                yaw = math.rad(180)
-            elseif miscState.AntiAimMode == "Static Yaw" then
-                yaw = math.rad(90)
-            elseif miscState.AntiAimMode == "Random Yaw" then
-                yaw = math.rad(math.random(0, 360))
-            end
-
-            if miscState.YawInverted then
-                yaw = yaw + math.pi
-            end
-
-            local pitch = 0
-            if miscState.PitchMode == "Look Down" then
-                pitch = math.rad(-89)
-            elseif miscState.PitchMode == "Look Up" then
-                pitch = math.rad(89)
-            elseif miscState.PitchMode == "Jitter Pitch" then
-                pitch = math.rad((tick() % 0.2 > 0.1) and 70 or -70)
-            elseif miscState.PitchMode == "Spin Pitch" then
-                pitch = math.rad(math.sin(tick() * 10) * 85)
-            end
-
-            root.CFrame = CFrame.new(root.Position) * CFrame.Angles(pitch, yaw, 0)
         end
     end)
 end
@@ -11071,40 +10913,6 @@ do
         end)
     end
 
-    local function addCloseBtn(headerParent, flagKey, configKey)
-        local closeBtn = Instance.new("TextButton")
-        closeBtn.Name = "CloseBtn"
-        closeBtn.Parent = headerParent
-        closeBtn.BackgroundTransparency = 1
-        closeBtn.Size = UDim2.fromOffset(18, 18)
-        closeBtn.AnchorPoint = Vector2.new(1, 0.5)
-        closeBtn.Position = UDim2.new(1, -6, 0.5, 0)
-        closeBtn.Text = "✕"
-        closeBtn.TextColor3 = Theme.Text
-        closeBtn.TextTransparency = 0.4
-        closeBtn.TextSize = 10
-        closeBtn.FontFace = Library.Font
-        closeBtn.BorderSizePixel = 0
-        closeBtn.AutoButtonColor = false
-        closeBtn.ZIndex = 12
-        Library:AddToTheme(closeBtn, {TextColor3 = "Text"})
-
-        closeBtn.MouseEnter:Connect(function()
-            closeBtn.TextTransparency = 0.0
-            closeBtn.TextColor3 = Color3.fromRGB(255, 90, 90)
-        end)
-        closeBtn.MouseLeave:Connect(function()
-            closeBtn.TextTransparency = 0.4
-            closeBtn.TextColor3 = Theme.Text
-        end)
-        closeBtn.MouseButton1Click:Connect(function()
-            hudConfig[configKey] = false
-            if Library.SetFlags and Library.SetFlags[flagKey] then
-                Library.SetFlags[flagKey](false)
-            end
-            if Library.UpdateOverlays then Library.UpdateOverlays() end
-        end)
-    end
 
     local watermarkFrame = Instance.new("Frame")
     watermarkFrame.Name = "WatermarkHUD"
@@ -11183,8 +10991,7 @@ do
     kbhCorner.CornerRadius = UDim.new(0, 8)
     kbhCorner.Parent = kbHeader
 
-    addCloseBtn(kbHeader, "Overlay_Keybinds", "Keybinds")
-
+    
     local kbTitle = Instance.new("TextLabel")
     kbTitle.Parent = kbHeader
     kbTitle.BackgroundTransparency = 1
@@ -11251,8 +11058,7 @@ do
     gdhCorner.CornerRadius = UDim.new(0, 8)
     gdhCorner.Parent = gdHeader
 
-    addCloseBtn(gdHeader, "Overlay_GameData", "GameData")
-
+    
     local gdTitle = Instance.new("TextLabel")
     gdTitle.Parent = gdHeader
     gdTitle.BackgroundTransparency = 1
@@ -11320,8 +11126,7 @@ do
     thStroke.Parent = targetHudCard
     Library:AddToTheme(thStroke, {Color = "Outline"})
 
-    addCloseBtn(targetHudCard, "Overlay_TargetHUD", "TargetHUD")
-
+    
     local thAvatar = Instance.new("ImageLabel")
     thAvatar.Name = "Avatar"
     thAvatar.Parent = targetHudCard
