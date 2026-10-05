@@ -5384,7 +5384,7 @@ do
     local tierStat = makeHomeStat("User Tier", string.upper(SwatwareAPI:GetTags(userName)[1] or "USER"), 6)
 
     ProfileSection:Label("Build: SWATWARE v2.4 (Enterprise)")
-    ProfileSection:Label("Status: Active // Premium")
+    ProfileSection:Label("Status: Active • Premium")
 
     local ActionSection = HomePage:Section({
         Name = "Quick Actions",
@@ -10473,6 +10473,16 @@ do
     end)
 end
 
+local hudConfig = {
+    Master = true,
+    Watermark = true,
+    Keybinds = true,
+    GameData = false,
+    TargetHUD = false,
+    AudioVisualizer = false
+}
+Library.HUDConfig = hudConfig
+
 do
     local SettingsPage = Window:Page({
         Name = "Settings",
@@ -10701,14 +10711,6 @@ do
         Side = 2,
     })
 
-    local hudConfig = {
-        Master = true,
-        Watermark = true,
-        Keybinds = true,
-        GameData = false,
-        TargetHUD = false,
-        AudioVisualizer = false
-    }
     Library.HUDConfig = hudConfig
 
     local masterHudToggle = OverlaysSection:Toggle({
@@ -11282,8 +11284,8 @@ do
 
     local function updateOverlaysVisibility()
         local master = hudConfig.Master ~= false
-        watermarkFrame.Visible = master and (hudConfig.Watermark == true)
-        keybindsFrame.Visible = master and (hudConfig.Keybinds == true)
+        watermarkFrame.Visible = master and (hudConfig.Watermark ~= false)
+        keybindsFrame.Visible = master and (hudConfig.Keybinds ~= false)
         gameDataFrame.Visible = master and (hudConfig.GameData == true)
         targetHudCard.Visible = master and (hudConfig.TargetHUD == true)
         audioFrame.Visible = master and (hudConfig.AudioVisualizer == true)
