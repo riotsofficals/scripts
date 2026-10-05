@@ -4519,6 +4519,41 @@ getgenv().Library = Library
 return Library
 end)()
 
+local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui")
+
+local function getSafeGuiParent()
+    local parent
+    pcall(function()
+        if getgenv and type(getgenv().gethui) == "function" then
+            parent = getgenv().gethui()
+        elseif type(gethui) == "function" then
+            parent = gethui()
+        end
+    end)
+    if parent then return parent end
+
+    local canUseCore = pcall(function()
+        local test = Instance.new("Folder")
+        test.Parent = CoreGui
+        test:Destroy()
+    end)
+    if canUseCore then
+        return CoreGui
+    end
+
+    local lp = Players.LocalPlayer or Players:GetPlayers()[1]
+    if lp then
+        local pg = lp:FindFirstChild("PlayerGui") or lp:WaitForChild("PlayerGui", 5)
+        if pg then return pg end
+    end
+    return CoreGui
+end
+
+local gethui = function()
+    return getSafeGuiParent()
+end
+
+
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local TweenService = game:GetService("TweenService")
@@ -4566,21 +4601,29 @@ local function makePageSubtabs(page, tabsList, defaultTab)
     local subtabHolder = Instance.new("Frame")
     subtabHolder.Name = "SubtabHolder_" .. page.Name
     subtabHolder.Parent = col1
-    subtabHolder.Size = UDim2.new(1, 0, 0, 32)
-    subtabHolder.BackgroundColor3 = Theme.Background
+    subtabHolder.Size = UDim2.new(1, 0, 0, 36)
+    subtabHolder.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
     subtabHolder.BorderSizePixel = 0
     subtabHolder.LayoutOrder = -100
-    Library:AddToTheme(subtabHolder, {BackgroundColor3 = "Background"})
+    Library:AddToTheme(subtabHolder, {BackgroundColor3 = "Element"})
 
     local sc = Instance.new("UICorner")
     sc.CornerRadius = UDim.new(0, 8)
     sc.Parent = subtabHolder
 
     local ss = Instance.new("UIStroke")
-    ss.Color = Theme.Outline
-    ss.Transparency = 0.4
+    ss.Color = Color3.fromRGB(30, 30, 42)
+    ss.Transparency = 0.3
+    ss.Thickness = 1
     ss.Parent = subtabHolder
     Library:AddToTheme(ss, {Color = "Outline"})
+
+    local sp = Instance.new("UIPadding")
+    sp.PaddingTop = UDim.new(0, 4)
+    sp.PaddingBottom = UDim.new(0, 4)
+    sp.PaddingLeft = UDim.new(0, 4)
+    sp.PaddingRight = UDim.new(0, 4)
+    sp.Parent = subtabHolder
 
     local sl = Instance.new("UIListLayout")
     sl.Parent = subtabHolder
@@ -4594,9 +4637,16 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         activeTab = tabName
         for name, btn in pairs(tabButtons) do
             local isAct = (name == tabName)
-            local bg = isAct and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or (Theme.Element or Color3.fromRGB(16, 16, 21))
-            local txt = isAct and (Theme.Background or Color3.fromRGB(7, 7, 9)) or (Theme.Text or Color3.fromRGB(235, 235, 245))
-            TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+            local bg = isAct and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(16, 16, 22)
+            local txt = isAct and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(160, 165, 185)
+            local stroke = btn:FindFirstChildOfClass("UIStroke")
+            if stroke then
+                TweenService:Create(stroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    Transparency = isAct and 0.2 or 0.8,
+                    Color = isAct and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(32, 32, 44)
+                }):Play()
+            end
+            TweenService:Create(btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 BackgroundColor3 = bg,
                 TextColor3 = txt
             }):Play()
@@ -4615,18 +4665,42 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         local btn = Instance.new("TextButton")
         btn.Name = "SubtabBtn_" .. tabName:gsub("%s+", "")
         btn.Parent = subtabHolder
-        btn.Size = UDim2.new(1 / numTabs, -4, 1, -6)
-        btn.BackgroundColor3 = (tabName == activeTab) and Theme.Accent or Theme.Element
+        btn.Size = UDim2.new(1 / numTabs, -4, 1, 0)
+        btn.BackgroundColor3 = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(16, 16, 22)
         btn.BorderSizePixel = 0
         btn.FontFace = Library.Font
         btn.Text = tabName
-        btn.TextColor3 = (tabName == activeTab) and Theme.Background or Theme.Text
-        btn.TextSize = 10
+        btn.TextColor3 = (tabName == activeTab) and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(160, 165, 185)
+        btn.TextSize = 11
         btn.AutoButtonColor = false
 
         local bc = Instance.new("UICorner")
         bc.CornerRadius = UDim.new(0, 6)
         bc.Parent = btn
+
+        local bs = Instance.new("UIStroke")
+        bs.Thickness = 1
+        bs.Color = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(32, 32, 44)
+        bs.Transparency = (tabName == activeTab) and 0.2 or 0.8
+        bs.Parent = btn
+
+        btn.MouseEnter:Connect(function()
+            if tabName ~= activeTab then
+                TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = Color3.fromRGB(24, 24, 34),
+                    TextColor3 = Color3.fromRGB(225, 230, 245)
+                }):Play()
+            end
+        end)
+
+        btn.MouseLeave:Connect(function()
+            if tabName ~= activeTab then
+                TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
+                    BackgroundColor3 = Color3.fromRGB(16, 16, 22),
+                    TextColor3 = Color3.fromRGB(160, 165, 185)
+                }):Play()
+            end
+        end)
 
         btn.MouseButton1Click:Connect(function()
             updateTabVisibility(tabName)
@@ -5465,12 +5539,74 @@ do
         Side = 2,
     })
 
-    NewsSection:Label("• Multi-Game Hub Loader Engine")
-    NewsSection:Label("• Complete Combat Engine & Prediction")
-    NewsSection:Label("• 3D Viewport Live ESP & Gradient Animations")
-    NewsSection:Label("• Precision Sliders (0-100%) & Clean 2-Row Stack")
-    NewsSection:Label("• Centered Top Accent Lines with Shimmer Glow")
-    NewsSection:Label("• Real Audio Visualizer & Tactical HUD")
+    local changelogData = {
+        ["v2.4 (Current)"] = {
+            "Multi-Game Hub Loader Engine & Fast Execution",
+            "Unified Ultra-Smooth FOV Circles (Aimbot & Silent)",
+            "Zero-Default Safe Startup Configuration",
+            "Modern Pill Subtab Navigation Bar",
+            "Tactical Screen HUD Overlays with Real-Time Audio",
+            "Dynamic Multi-Version Interactive Changelogs"
+        },
+        ["v2.3 (Tactical Engine)"] = {
+            "Real-Time Sound Visualizer HUD (All In-Game Audio)",
+            "Keybinds Monitor & Target Profile HUD Cards",
+            "Movement Prediction Engine (Ground & Air Tracking)",
+            "Sticky Aim Lock & Dynamic Hitpart Resolver",
+            "Hitbox Expander with Custom Transparency",
+            "RGB & Monochrome Wave ESP Gradient Styling"
+        },
+        ["v2.2 (Visuals Overhaul)"] = {
+            "3D Interactive Viewport ESP Character Preview",
+            "Dynamic Atmospheric Fog & Celestial Body Controls",
+            "High-Definition Custom Skybox Texture Engine",
+            "Enhanced Health Bar Gradients & Distance Tags",
+            "Offscreen Indicator Arrows with Custom Radius",
+            "Custom Cham Highlights with AlwaysOnTop Support"
+        },
+        ["v2.1 (Performance)"] = {
+            "Unlocked Maximum Frame Rate (240+ FPS Cap)",
+            "Optimized RenderStepped Pipelines & Low CPU Usage",
+            "Custom Config Profile Import, Export & Deletion",
+            "Instant Server Hop & Auto Reconnect Utilities",
+            "Discord Integration & Job ID Sharing",
+            "Executor Level Safety & Anti-Detection Layer"
+        },
+        ["v2.0 (Core Engine)"] = {
+            "Brand New SWATWARE Sleek Dark Theming Engine",
+            "Universal Game Compatibility Architecture",
+            "Fast Loadstring Executor Bridge API",
+            "Responsive Dual-Column UI Layout System",
+            "Interactive Theming Color Pickers & Live Updates",
+            "Complete Client Protection & Clean Unload System"
+        }
+    }
+
+    local logLabels = {}
+    for i = 1, 6 do
+        logLabels[i] = NewsSection:Label(changelogData["v2.4 (Current)"][i] or "")
+    end
+
+    NewsSection:Dropdown({
+        Name = "Select Version",
+        Flag = "Home_ChangelogVersion",
+        Items = {
+            "v2.4 (Current)",
+            "v2.3 (Tactical Engine)",
+            "v2.2 (Visuals Overhaul)",
+            "v2.1 (Performance)",
+            "v2.0 (Core Engine)"
+        },
+        Default = "v2.4 (Current)",
+        Callback = function(selectedVer)
+            local entries = changelogData[selectedVer] or changelogData["v2.4 (Current)"]
+            for i = 1, 6 do
+                if logLabels[i] then
+                    logLabels[i]:SetText(entries[i] or "")
+                end
+            end
+        end
+    })
 
     task.spawn(function()
         while not unloaded and getgenv().AltHackGen == GEN do
@@ -5557,7 +5693,7 @@ do
     smoothToggle = AimbotMainSection:Toggle({
         Name = "Use Smoothing",
         Flag = "Combat_UseSmoothing",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if smoothSlider then smoothSlider:SetVisibility(val and Library.Flags["Combat_Aimbot"] == true) end
         end,
@@ -5575,7 +5711,7 @@ do
     easeToggle = AimbotMainSection:Toggle({
         Name = "Use Easing",
         Flag = "Combat_UseEasing",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if easeDropdown then easeDropdown:SetVisibility(val and Library.Flags["Combat_Aimbot"] == true) end
         end,
@@ -5591,7 +5727,7 @@ do
     predToggle = AimbotMainSection:Toggle({
         Name = "Use Movement Prediction",
         Flag = "Combat_UsePrediction",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if predXSlider then predXSlider:SetVisibility(val and Library.Flags["Combat_Aimbot"] == true) end
             if predYSlider then predYSlider:SetVisibility(val and Library.Flags["Combat_Aimbot"] == true) end
@@ -5659,7 +5795,7 @@ do
     stickyToggle = AimbotMainSection:Toggle({
         Name = "Sticky Aim",
         Flag = "Combat_StickyAim",
-        Default = true,
+        Default = false,
     })
 
     checksDropdown = AimbotMainSection:Dropdown({
@@ -5761,7 +5897,7 @@ do
     local useFovToggle = AimbotFOVSection:Toggle({
         Name = "Use FOV Limit",
         Flag = "Combat_UseFOV",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if drawFovToggle then drawFovToggle:SetVisibility(val) end
             if fovSizeSlider then fovSizeSlider:SetVisibility(val) end
@@ -5902,7 +6038,7 @@ do
     sPredToggle = SilentAimMainSection:Toggle({
         Name = "Use Prediction",
         Flag = "SilentAim_UsePrediction",
-        Default = true,
+        Default = false,
         Callback = function(val)
             local sAct = Library.Flags["SilentAim_Enable"] == true
             if sPredSlider then sPredSlider:SetVisibility(val and sAct) end
@@ -5970,7 +6106,7 @@ do
     local sUseFovToggle = SilentAimFOVSection:Toggle({
         Name = "Use FOV Limit",
         Flag = "SilentAim_UseFOV",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if sDrawFov then sDrawFov:SetVisibility(val) end
             if sFovSize then sFovSize:SetVisibility(val) end
@@ -6131,13 +6267,13 @@ do
     trigTeamCheck = TriggerbotSection:Toggle({
         Name = "Team Check",
         Flag = "Triggerbot_TeamCheck",
-        Default = true,
+        Default = false,
     })
 
     trigWallCheck = TriggerbotSection:Toggle({
         Name = "Wall / Vis Check",
         Flag = "Triggerbot_WallCheck",
-        Default = true,
+        Default = false,
     })
 
     local HitboxSection = CombatPage:Section({
@@ -6224,10 +6360,7 @@ do
     fovGui.DisplayOrder = 999
     fovGui.IgnoreGuiInset = true
     pcall(function()
-        if gethui then fovGui.Parent = gethui()
-        elseif syn and syn.protect_gui then syn.protect_gui(fovGui); fovGui.Parent = game:GetService("CoreGui")
-        elseif game:GetService("CoreGui"):FindFirstChild("RobloxGui") then fovGui.Parent = game:GetService("CoreGui")
-        else fovGui.Parent = Players.LocalPlayer:WaitForChild("PlayerGui") end
+        fovGui.Parent = getSafeGuiParent()
     end)
 
     local fovCircleFrame = Instance.new("Frame")
@@ -6246,6 +6379,23 @@ do
     fovStroke.Thickness = 1.5
     fovStroke.Color = Theme.Accent or Color3.fromRGB(139, 149, 246)
     fovStroke.Parent = fovCircleFrame
+
+    local sFovCircleFrame = Instance.new("Frame")
+    sFovCircleFrame.Name = "SilentAimFOVCircle"
+    sFovCircleFrame.Parent = fovGui
+    sFovCircleFrame.BackgroundTransparency = 0.85
+    sFovCircleFrame.BorderSizePixel = 0
+    sFovCircleFrame.AnchorPoint = Vector2.new(0.5, 0.5)
+    sFovCircleFrame.Visible = false
+
+    local sFovCorner = Instance.new("UICorner")
+    sFovCorner.CornerRadius = UDim.new(1, 0)
+    sFovCorner.Parent = sFovCircleFrame
+
+    local sFovStroke = Instance.new("UIStroke")
+    sFovStroke.Thickness = 1.5
+    sFovStroke.Color = Color3.fromRGB(255, 75, 95)
+    sFovStroke.Parent = sFovCircleFrame
 
     local function getTargetHitpart(char, hitpartName)
         if not char then return nil end
@@ -6427,9 +6577,10 @@ do
         local cam = Workspace.CurrentCamera
         if not cam then return end
 
-        local drawFOV = Library.Flags["Combat_DrawFOV"] == true and Library.Flags["Combat_UseFOV"] == true
-        if drawFOV then
-            local fovOrigin = getFOVOrigin(Library.Flags["Combat_FOVPlacement"] or "Middle")
+        local aimDraw = Library.Flags["Combat_DrawFOV"] == true
+        if aimDraw then
+            local placement = Library.Flags["Combat_FOVPlacement"] or "Middle"
+            local fovOrigin = getFOVOrigin(placement)
             local fovRadius = Library.Flags["Combat_FOVRadius"] or 140
             local outlineAlpha = (Library.Flags["Combat_FOVOutlineAlpha"] or 0) / 100
             local fillAlpha = (Library.Flags["Combat_FOVFillAlpha"] or 85) / 100
@@ -6453,6 +6604,35 @@ do
             end
         else
             fovCircleFrame.Visible = false
+        end
+
+        local silentDraw = Library.Flags["SilentAim_DrawFOV"] == true
+        if silentDraw then
+            local placement = Library.Flags["SilentAim_FOVPlacement"] or "Middle"
+            local fovOrigin = getFOVOrigin(placement)
+            local fovRadius = Library.Flags["SilentAim_FOVSize"] or 180
+            local outlineAlpha = (Library.Flags["SilentAim_FOVOutlineAlpha"] or 0) / 100
+            local fillAlpha = (Library.Flags["SilentAim_FOVFillAlpha"] or 90) / 100
+            local fovColor = Library.Flags["SilentAim_FOVColor"] or Color3.fromRGB(255, 75, 95)
+            local fovFillColor = Library.Flags["SilentAim_FOVFillColor"] or fovColor
+
+            sFovCircleFrame.Visible = true
+            sFovCircleFrame.Position = UDim2.fromOffset(fovOrigin.X, fovOrigin.Y)
+            sFovCircleFrame.Size = UDim2.fromOffset(fovRadius * 2, fovRadius * 2)
+            sFovCircleFrame.BackgroundColor3 = fovFillColor
+            sFovCircleFrame.BackgroundTransparency = fillAlpha
+            sFovStroke.Color = fovColor
+            sFovStroke.Transparency = outlineAlpha
+
+            if Library.Flags["SilentAim_FOVSpin"] then
+                local speed = Library.Flags["SilentAim_SpinSpeed"] or 5
+                combatState.SilentFOVRotationAngle = ((combatState.SilentFOVRotationAngle or 0) + (speed * 40 * dt)) % 360
+                sFovCircleFrame.Rotation = combatState.SilentFOVRotationAngle
+            else
+                sFovCircleFrame.Rotation = 0
+            end
+        else
+            sFovCircleFrame.Visible = false
         end
 
         local aimbotEnabled = Library.Flags["Combat_Aimbot"] == true
@@ -6620,36 +6800,36 @@ do
 
     local espConfig = {
         MasterEnabled = false,
-        ThemeSync = true,
-        ShowPreview = true,
-        AutoRotatePreview = true,
+        ThemeSync = false,
+        ShowPreview = false,
+        AutoRotatePreview = false,
         PreviewSpeed = 1.0,
         PreviewZoom = 9.2,
 
-        Box = true,
+        Box = false,
         BoxStyle = "Corner Box",
         BoxColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
 
-        Name = true,
+        Name = false,
         NameColor = Color3.fromRGB(255, 255, 255),
 
-        Health = true,
+        Health = false,
         HealthColor = Color3.fromRGB(56, 239, 125),
         HealthBarWidth = 2,
         HealthBarMode = "Gradient (Green-Red)",
-        HealthText = true,
+        HealthText = false,
 
         HeadDot = false,
         HeadDotColor = Color3.fromRGB(255, 255, 255),
         HeadDotSize = 5,
 
-        Distance = true,
+        Distance = false,
         DistanceColor = Color3.fromRGB(180, 190, 210),
 
-        Weapon = true,
+        Weapon = false,
         WeaponColor = Color3.fromRGB(255, 215, 0),
 
-        GradientText = true,
+        GradientText = false,
         GradientMode = "Static Dual Color",
         GradientColor1 = Color3.fromRGB(255, 255, 255),
         GradientColor2 = Theme.Accent or Color3.fromRGB(139, 149, 246),
@@ -6761,7 +6941,7 @@ do
     PlayerESPSection:Toggle({
         Name = "Sync ESP Colors with Theme",
         Flag = "Visuals_ThemeSyncESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.ThemeSync = val
             if val and Library.Theme.Accent then
@@ -6778,7 +6958,7 @@ do
     local boxToggle = PlayerESPSection:Toggle({
         Name = "Box ESP",
         Flag = "Visuals_BoxESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.Box = val
             if boxStyleDropdown then boxStyleDropdown:SetVisibility(val) end
@@ -6808,7 +6988,7 @@ do
     local nameToggle = PlayerESPSection:Toggle({
         Name = "Name ESP",
         Flag = "Visuals_NameESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.Name = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -6826,7 +7006,7 @@ do
     local gradToggle = PlayerESPSection:Toggle({
         Name = "Gradient ESP Text",
         Flag = "Visuals_GradientText",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.GradientText = val
             if gradStyleDropdown then gradStyleDropdown:SetVisibility(val) end
@@ -6864,7 +7044,7 @@ do
     local healthToggle = PlayerESPSection:Toggle({
         Name = "Health Bar & Number",
         Flag = "Visuals_HealthESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.Health = val
             if healthBarWidthSlider then healthBarWidthSlider:SetVisibility(val) end
@@ -6909,7 +7089,7 @@ do
     healthTextToggle = PlayerESPSection:Toggle({
         Name = "Show Health Number",
         Flag = "Visuals_HealthText",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.HealthText = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -6948,7 +7128,7 @@ do
     local distToggle = PlayerESPSection:Toggle({
         Name = "Distance ESP",
         Flag = "Visuals_DistanceESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.Distance = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -6966,7 +7146,7 @@ do
     local weaponToggle = PlayerESPSection:Toggle({
         Name = "Equipped Weapon ESP",
         Flag = "Visuals_WeaponESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.Weapon = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -7137,7 +7317,7 @@ do
     chamsThroughWallsToggle = ChamsSection:Toggle({
         Name = "Through Walls (AlwaysOnTop)",
         Flag = "Visuals_ChamsThroughWalls",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.ChamsThroughWalls = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -7996,7 +8176,7 @@ do
     PreviewSection:Toggle({
         Name = "Show ESP Preview Window",
         Flag = "Visuals_ShowESPPreview",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.ShowPreview = val
             if syncPreviewPosition then
@@ -8008,7 +8188,7 @@ do
     PreviewSection:Toggle({
         Name = "Theme Sync Preview",
         Flag = "Visuals_ThemeSyncESPPreview",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.ThemeSync = val
             if val and Library.Theme.Accent then
@@ -8036,7 +8216,7 @@ do
     PreviewSection:Toggle({
         Name = "Auto-Rotate 3D Character",
         Flag = "Visuals_AutoRotatePreview",
-        Default = true,
+        Default = false,
         Callback = function(val)
             espConfig.AutoRotatePreview = val
         end,
@@ -8280,7 +8460,7 @@ do
     CelestialSection:Toggle({
         Name = "Celestial Bodies Visible",
         Flag = "World_CelestialVisible",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if skyboxData.SkyInstance then
                 pcall(function() skyboxData.SkyInstance.CelestialBodiesShown = val end)
@@ -9601,7 +9781,7 @@ do
     UtilitiesSection:Toggle({
         Name = "Unlock Max FPS",
         Flag = "Misc_UnlockFPS",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if setfpscap then
                 setfpscap(val and (Library.Flags["Misc_MaxFPS"] or 240) or 60)
@@ -10474,9 +10654,9 @@ do
 end
 
 local hudConfig = {
-    Master = true,
-    Watermark = true,
-    Keybinds = true,
+    Master = false,
+    Watermark = false,
+    Keybinds = false,
     GameData = false,
     TargetHUD = false,
     AudioVisualizer = false
@@ -10541,7 +10721,7 @@ do
     ThemingSection:Toggle({
         Name = "Recolor ESP with Theme",
         Flag = "Theme_SyncESP",
-        Default = true,
+        Default = false,
         Callback = function(val)
             if Library.ESPConfig then
                 Library.ESPConfig.ThemeSync = val
@@ -10716,7 +10896,7 @@ do
     local masterHudToggle = OverlaysSection:Toggle({
         Name = "Master Overlays Toggle",
         Flag = "Overlay_Master",
-        Default = true,
+        Default = false,
         Callback = function(val)
             hudConfig.Master = val
             if Library.UpdateOverlays then Library.UpdateOverlays() end
@@ -10730,7 +10910,7 @@ do
     OverlaysSection:Toggle({
         Name = "Watermark Overlay",
         Flag = "Overlay_Watermark",
-        Default = true,
+        Default = false,
         Callback = function(val)
             hudConfig.Watermark = val
             if Library.UpdateOverlays then Library.UpdateOverlays() end
@@ -10740,7 +10920,7 @@ do
     OverlaysSection:Toggle({
         Name = "Keybind List Overlay",
         Flag = "Overlay_Keybinds",
-        Default = true,
+        Default = false,
         Callback = function(val)
             hudConfig.Keybinds = val
             if Library.UpdateOverlays then Library.UpdateOverlays() end
