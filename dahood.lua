@@ -2340,35 +2340,50 @@ local Library do
             end
 
             function Window:SetCenter()
-                local CenterPosition = Items["MainFrame"].Instance.AbsolutePosition
-                task.wait()
-                Items["MainFrame"].Instance.AnchorPoint = Vector2New(0, 0)
-                Items["MainFrame"].Instance.Position = UDim2New(0, CenterPosition.X, 0, CenterPosition.Y)
+                local MainFrame = Items["MainFrame"] and Items["MainFrame"].Instance
+                if MainFrame then
+                    MainFrame.AnchorPoint = Vector2New(0.5, 0.5)
+                    MainFrame.Position = UDim2New(0.5, 0, 0.5, 0)
+                end
             end
 
             function Window:SetOpen(Bool)
                 Window.IsOpen = not not Bool
-
-                if Window.IsOpen then
-                    Items["MainFrame"].Instance.Visible = true
+                local MainFrame = Items["MainFrame"] and Items["MainFrame"].Instance
+                if MainFrame and MainFrame.Parent then
+                    MainFrame.Visible = Window.IsOpen
                 end
-
-                task.delay(0.2, function()
-                    local MainFrame = Items["MainFrame"].Instance
-                    if MainFrame and MainFrame.Parent then
-                        MainFrame.Visible = Window.IsOpen
-                    end
-                end)
+                if applyMenuVisuals then
+                    applyMenuVisuals(Window.IsOpen)
+                end
+                if syncPreviewPosition then
+                    syncPreviewPosition()
+                end
             end
 
-            Library:Connect(UserInputService.InputBegan, function(Input)
-                if tostring(Input.KeyCode) == Library.MenuKeybind or tostring(Input.UserInputType) == Library.MenuKeybind then
+            Library:Connect(UserInputService.InputBegan, function(Input, gameProcessed)
+                if gameProcessed and Input.UserInputType == Enum.UserInputType.Keyboard then
+                    local focused = UserInputService:GetFocusedTextBox()
+                    if focused then return end
+                end
+
+                local inputCode = Input.KeyCode
+                local inputType = Input.UserInputType
+                local bind = Library.MenuKeybind
+
+                local matches = false
+                if typeof(bind) == "EnumItem" then
+                    matches = (inputCode == bind or inputType == bind)
+                elseif type(bind) == "string" then
+                    matches = (tostring(inputCode) == bind or inputCode.Name == bind or tostring(inputType) == bind or inputType.Name == bind or bind:find(inputCode.Name))
+                end
+
+                if matches then
                     Window:SetOpen(not Window.IsOpen)
                 end
             end)
 
             Window:SetCenter()
-            task.wait()
             Window:SetOpen(true)
             return setmetatable(Window, Library)
         end
@@ -4871,14 +4886,17 @@ function Window:SetOpen(v)
     end
 
     if v then
-        uiScale.Scale = 0.93
-        TweenService:Create(uiScale, TweenInfo.new(0.4, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
-
-        local pos = mainFrame.Position
-        mainFrame.Position = pos + UDim2.new(0, 0, 0, 28)
-        TweenService:Create(mainFrame, TweenInfo.new(0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {Position = pos}):Play()
+        mainFrame.Visible = true
+        uiScale.Scale = 0.95
+        TweenService:Create(uiScale, TweenInfo.new(0.3, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {Scale = 1}):Play()
     else
-        TweenService:Create(uiScale, TweenInfo.new(0.22, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {Scale = 0.95}):Play()
+        local tw = TweenService:Create(uiScale, TweenInfo.new(0.18, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {Scale = 0.95})
+        tw:Play()
+        tw.Completed:Connect(function()
+            if not menuOpenState and mainFrame and mainFrame.Parent then
+                mainFrame.Visible = false
+            end
+        end)
     end
 end
 
@@ -9759,7 +9777,7 @@ do
         Default = false,
         Callback = function(val)
             if setfpscap then
-                setfpscap(val and (Library.Flags["Misc_MaxFPS"] or 240) or 60)
+                setfpscap(val and (Library.Flags["Misc_MaxFPS"] or 240) or 0)
             end
         end,
     })
