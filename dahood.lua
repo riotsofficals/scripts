@@ -2111,18 +2111,20 @@ local Library do
                     Name = "TabsList",
                     BackgroundTransparency = 1,
                     BorderSizePixel = 0,
-                    Size = UDim2New(1, -240, 1, 0),
+                    Size = UDim2New(1, -220, 1, 0),
                     CanvasSize = UDim2New(0, 0, 0, 0),
                     AutomaticCanvasSize = Enum.AutomaticSize.X,
                     ScrollBarThickness = 0,
                     ClipsDescendants = true,
-                    LayoutOrder = 2,
+                    LayoutOrder = 3,
                     ZIndex = 15
                 })
 
-                local PagesFlex = Instance.new("UIFlexItem")
-                PagesFlex.FlexMode = Enum.UIFlexMode.Fill
-                PagesFlex.Parent = Items["Pages"].Instance
+                pcall(function()
+                    local PagesFlex = Instance.new("UIFlexItem")
+                    PagesFlex.FlexMode = Enum.UIFlexMode.Fill
+                    PagesFlex.Parent = Items["Pages"].Instance
+                end)
 
                 Instances:Create("UIListLayout", {
                     Parent = Items["Pages"].Instance,
@@ -2705,6 +2707,14 @@ local Library do
                     CornerRadius = UDimNew(0, 9)
                 })
 
+                Instances:Create("UIListLayout", {
+                    Parent = Items["Section"].Instance,
+                    Name = "\0",
+                    FillDirection = Enum.FillDirection.Vertical,
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    Padding = UDimNew(0, 0)
+                })
+
                 Items["Top"] = Instances:Create("TextButton", {
                     Parent = Items["Section"].Instance,
                     Name = "Header",
@@ -2713,6 +2723,7 @@ local Library do
                     Text = "",
                     BorderSizePixel = 0,
                     Size = UDim2New(1, 0, 0, 36),
+                    LayoutOrder = 1,
                     ZIndex = 6,
                     Active = true
                 })
@@ -2786,10 +2797,11 @@ local Library do
                     Name = "Content",
                     BorderColor3 = FromRGB(0, 0, 0),
                     BackgroundTransparency = 1,
-                    Position = UDim2New(0, 0, 0, 36),
+                    Position = UDim2New(0, 0, 0, 0),
                     Size = UDim2New(1, 0, 0, 0),
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.Y,
+                    LayoutOrder = 2,
                     ZIndex = 5
                 })
 
@@ -11720,5 +11732,18 @@ pcall(function()
     end
     if Window and Window.Items and Window.Items["MainFrame"] and Window.Items["MainFrame"].Instance then
         Window.Items["MainFrame"].Instance.Visible = true
+    end
+    if Window and Window.Pages and #Window.Pages > 0 then
+        local activeFound = false
+        for _, page in ipairs(Window.Pages) do
+            if page.Active then
+                activeFound = true
+                page:Turn(true)
+                break
+            end
+        end
+        if not activeFound then
+            Window.Pages[1]:Turn(true)
+        end
     end
 end)
