@@ -1978,7 +1978,6 @@ local Library do
                     ApplyStrokeMode = Enum.ApplyStrokeMode.Border
                 }):AddToTheme({Color = 'Outline'})
 
-                -- Top navigation bar
                 Items["TopBar"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
                     Name = "TopBar",
@@ -1995,7 +1994,6 @@ local Library do
                     CornerRadius = UDimNew(0, 14)
                 })
 
-                -- Grain texture overlay
                 local Grain = Instances:Create("ImageLabel", {
                     Parent = Items["TopBar"].Instance,
                     Name = "GrainOverlay",
@@ -2014,7 +2012,6 @@ local Library do
                     CornerRadius = UDimNew(0, 14)
                 })
 
-                -- Square the bottom edge while preserving the rounded top corners.
                 Instances:Create("Frame", {
                     Parent = Items["TopBar"].Instance,
                     Name = "TopBarBottomFill",
@@ -2026,7 +2023,6 @@ local Library do
                     ZIndex = 6
                 }):AddToTheme({BackgroundColor3 = 'Inline'})
 
-                -- Bottom divider line for top bar
                 Instances:Create("Frame", {
                     Parent = Items["TopBar"].Instance,
                     Name = "TopBarBorder",
@@ -2039,7 +2035,6 @@ local Library do
                     ZIndex = 7
                 }):AddToTheme({BackgroundColor3 = 'Outline'})
 
-                -- Top Bar Flex Container
                 Items["TopContainer"] = Instances:Create("Frame", {
                     Parent = Items["TopBar"].Instance,
                     Name = "TopContainer",
@@ -2063,9 +2058,6 @@ local Library do
                     PaddingRight = UDimNew(0, 14)
                 })
 
-                -- Home is a normal auto-sized tab, placed before the title.
-
-                -- App title and drag handle.
                 Items["TitleArea"] = Instances:Create("TextButton", {
                     Parent = Items["TopContainer"].Instance,
                     Name = "TitleArea",
@@ -2116,7 +2108,6 @@ local Library do
                     ZIndex = 12
                 }):AddToTheme({TextColor3 = 'Text'})
 
-                -- Tabs container directly next to the title text
                 Items["Pages"] = Instances:Create("ScrollingFrame", {
                     Parent = Items["TopContainer"].Instance,
                     Name = "TabsList",
@@ -2150,7 +2141,6 @@ local Library do
                     PaddingBottom = UDimNew(0, 4)
                 })
 
-                -- 3. FAR RIGHT: Status Bubble / Key Info
                 Items["TopRight"] = Instances:Create("Frame", {
                     Parent = Items["TopContainer"].Instance,
                     Name = "TopRight",
@@ -2170,7 +2160,6 @@ local Library do
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
 
-                -- Key bubble container
                 Items["KeyBubble"] = Instances:Create("Frame", {
                     Parent = Items["TopRight"].Instance,
                     Name = "KeyBubble",
@@ -2209,7 +2198,6 @@ local Library do
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
 
-                -- Glowing circle dot
                 Items["GlowDot"] = Instances:Create("Frame", {
                     Parent = Items["KeyBubble"].Instance,
                     Name = "GlowDot",
@@ -2258,7 +2246,6 @@ local Library do
                     ZIndex = 17
                 }):AddToTheme({TextColor3 = 'Text'})
 
-                -- Settings button
                 Items["OptsBtn"] = Instances:Create("TextButton", {
                     Parent = Items["TopRight"].Instance,
                     Name = "OptsBtn",
@@ -2296,7 +2283,6 @@ local Library do
                     ZIndex = 17
                 }):AddToTheme({ImageColor3 = 'Text'})
 
-                -- Lower Content Area
                 Items["Content"] = Instances:Create("Frame", {
                     Parent = Items["MainFrame"].Instance,
                     Name = "Content",
@@ -2406,7 +2392,7 @@ local Library do
             Page.Window._NavCounter = (Page.Window._NavCounter or 0) + 1
 
             local Items = { } do
-                -- Tab button in the TopBar (Clean pill with icon and text)
+
                 Items["Inactive"] = Instances:Create("TextButton", {
                     Parent = Page.Window.Items["Pages"].Instance,
                     Name = Page.Name,
@@ -2476,7 +2462,6 @@ local Library do
                     ZIndex = 21
                 }):AddToTheme({TextColor3 = 'Text'})
 
-                -- Main container for this page's contents
                 Items["Page"] = Instances:Create("Frame", {
                     Parent = Library.UnusedHolder.Instance,
                     Name = Page.Name .. "_Container",
@@ -2682,7 +2667,6 @@ local Library do
                     CornerRadius = UDimNew(0, 9)
                 })
 
-                -- Clickable Header to Collapse/Expand
                 Items["Top"] = Instances:Create("TextButton", {
                     Parent = Items["Section"].Instance,
                     Name = "Header",
@@ -2745,7 +2729,6 @@ local Library do
                     LayoutOrder = 3
                 }).Instance
 
-                -- Collapse arrow indicator
                 Items["Arrow"] = Instances:Create("ImageLabel", {
                     Parent = Items["Top"].Instance,
                     Name = "Chevron",
@@ -2760,7 +2743,6 @@ local Library do
                     ZIndex = 7
                 }):AddToTheme({ImageColor3 = 'Text'})
 
-                -- Content Frame holding controls
                 Items["Content"] = Instances:Create("Frame", {
                     Parent = Items["Section"].Instance,
                     Name = "Content",
@@ -2789,7 +2771,6 @@ local Library do
                     SortOrder = Enum.SortOrder.LayoutOrder
                 })
 
-                -- Collapse / Expand Handler
                 function Section:SetCollapsed(collapsed)
                     collapsed = not not collapsed
                     Section.Collapsed = collapsed
@@ -3195,7 +3176,6 @@ local Library do
                     BorderSizePixel = 0
                 })
 
-                -- Top Row: Label (Left) and Value (Right)
                 Items["Text"] = Instances:Create("TextLabel", {
                     Parent = Items["Slider"].Instance,
                     Name = "\0",
@@ -3227,7 +3207,6 @@ local Library do
                     TextSize = 12
                 }):AddToTheme({TextColor3 = 'Text'})
 
-                -- Bottom Row: Slider Bar
                 Items["RealSlider"] = Instances:Create("TextButton", {
                     Parent = Items["Slider"].Instance,
                     Name = "\0",
@@ -4582,7 +4561,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
     local activeTab = defaultTab or tabsList[1]
     local tabButtons = {}
     local tabSections = {}
-    
+
     local col1 = page.Columns and page.Columns[1] and page.Columns[1].Instance
     local subtabHolder = Instance.new("Frame")
     subtabHolder.Name = "SubtabHolder_" .. page.Name
@@ -4592,24 +4571,24 @@ local function makePageSubtabs(page, tabsList, defaultTab)
     subtabHolder.BorderSizePixel = 0
     subtabHolder.LayoutOrder = -100
     Library:AddToTheme(subtabHolder, {BackgroundColor3 = "Background"})
-    
+
     local sc = Instance.new("UICorner")
     sc.CornerRadius = UDim.new(0, 8)
     sc.Parent = subtabHolder
-    
+
     local ss = Instance.new("UIStroke")
     ss.Color = Theme.Outline
     ss.Transparency = 0.4
     ss.Parent = subtabHolder
     Library:AddToTheme(ss, {Color = "Outline"})
-    
+
     local sl = Instance.new("UIListLayout")
     sl.Parent = subtabHolder
     sl.FillDirection = Enum.FillDirection.Horizontal
     sl.HorizontalAlignment = Enum.HorizontalAlignment.Center
     sl.VerticalAlignment = Enum.VerticalAlignment.Center
     sl.Padding = UDim.new(0, 4)
-    
+
     local numTabs = #tabsList
     local function updateTabVisibility(tabName)
         activeTab = tabName
@@ -4630,7 +4609,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
             end
         end
     end
-    
+
     for _, tabName in ipairs(tabsList) do
         tabSections[tabName] = {}
         local btn = Instance.new("TextButton")
@@ -4644,17 +4623,17 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         btn.TextColor3 = (tabName == activeTab) and Theme.Background or Theme.Text
         btn.TextSize = 10
         btn.AutoButtonColor = false
-        
+
         local bc = Instance.new("UICorner")
         bc.CornerRadius = UDim.new(0, 6)
         bc.Parent = btn
-        
+
         btn.MouseButton1Click:Connect(function()
             updateTabVisibility(tabName)
         end)
         tabButtons[tabName] = btn
     end
-    
+
     local function registerSection(tabName, section)
         if not tabSections[tabName] then tabSections[tabName] = {} end
         table.insert(tabSections[tabName], section)
@@ -4662,7 +4641,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
             section.Items["SectionOutline"].Instance.Visible = (tabName == activeTab)
         end
     end
-    
+
     return registerSection, updateTabVisibility
 end
 
@@ -4844,11 +4823,8 @@ do
     end)
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- SWATWARE USER & TAGS DATABASE API SYSTEM (GitHub RAW Live Fetch)
--- ────────────────────────────────────────────────────────────────────────────
 local SwatwareAPI = {
-    Users = {}, -- [lowercase_username] = { Raw = "5fovtraceboss", Tags = {"admin", "media", ...} }
+    Users = {},
     Loaded = false,
     Url = "https://swatware-api.avgavg193.workers.dev/users.txt",
     TagColors = {
@@ -4943,7 +4919,6 @@ function SwatwareAPI:Fetch()
     end)
 end
 
--- Initialize API fetch and periodic refresh
 SwatwareAPI:AutoRegister()
 SwatwareAPI:Fetch()
 task.spawn(function()
@@ -5036,9 +5011,6 @@ local BUILT_IN_THEMES = {
     }
 }
 
--- ────────────────────────────────────────────────────────────────────────────
--- Title & TopBar Wave Animation System (No Icon, Smooth Wave Shimmer)
--- ────────────────────────────────────────────────────────────────────
 do
     local oldLogo = Window.Items["Logo"]
     if oldLogo and oldLogo.Instance then
@@ -5073,7 +5045,6 @@ do
         titleLayout.Padding = UDim.new(0, 8)
         titleLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-        -- Animated SWATWARE Label with Continuous Wave Shimmer (Icon Removed)
         local brandLabel = Instance.new("TextLabel")
         brandLabel.Name = "BrandLabel"
         brandLabel.Parent = titleGroup
@@ -5090,7 +5061,6 @@ do
         brandGradient.Parent = brandLabel
         brandGradient.Rotation = 0
 
-        -- Smooth Wave Gradient Animation Loop
         task.spawn(function()
             while not unloaded and getgenv().AltHackGen == GEN do
                 local t = tick()
@@ -5110,31 +5080,309 @@ do
     end
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- 0. HOME TAB (USER INFO, MEMBERSHIP, CHANGELOG & QUICK ACTIONS)
--- ────────────────────────────────────────────────────────────────────────────
 do
     local HomePage = Window:Page({
         Name = "Home",
         Icon = ICON_CROWN,
     })
 
-    -- Left Column: User Profile & Subscription
     local ProfileSection = HomePage:Section({
-        Name = "User Membership",
+        Name = "Operator & Identity",
         Icon = ICON_CROWN,
         Side = 1,
     })
 
     local lp = Players.LocalPlayer
-    local uName = lp and lp.Name or "Unknown"
-    local uDisplay = lp and lp.DisplayName or uName
-    local uId = lp and lp.UserId or 0
-    local execName = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Executor"
+    local userName = lp and lp.Name or "Unknown"
+    local displayName = lp and lp.DisplayName or userName
+    local userId = lp and lp.UserId or 0
+    local accountAge = lp and lp.AccountAge or 0
+    local execName = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Native x64"
+    local profileContent = ProfileSection.Items["Content"].Instance
 
-    ProfileSection:Label("User: " .. uDisplay .. " (@" .. uName .. ")")
-    ProfileSection:Label("Account ID: " .. tostring(uId))
-    ProfileSection:Label("Executor: " .. execName)
+    local profileCard = Instance.new("Frame")
+    profileCard.Name = "HomeProfileCard"
+    profileCard.Parent = profileContent
+    profileCard.Size = UDim2.new(1, 0, 0, 108)
+    profileCard.BackgroundColor3 = Theme.Element
+    profileCard.BorderSizePixel = 0
+    profileCard.ClipsDescendants = true
+    profileCard.LayoutOrder = -2
+    Library:AddToTheme(profileCard, {BackgroundColor3 = "Element"})
+
+    local profileCorner = Instance.new("UICorner")
+    profileCorner.CornerRadius = UDim.new(0, 10)
+    profileCorner.Parent = profileCard
+
+    local profileStroke = Instance.new("UIStroke")
+    profileStroke.Color = Theme.Outline
+    profileStroke.Transparency = 0.35
+    profileStroke.Thickness = 1
+    profileStroke.Parent = profileCard
+    Library:AddToTheme(profileStroke, {Color = "Outline"})
+
+    local avatarContainer = Instance.new("Frame")
+    avatarContainer.Name = "AvatarWrap"
+    avatarContainer.Parent = profileCard
+    avatarContainer.BackgroundTransparency = 1
+    avatarContainer.AnchorPoint = Vector2.new(0, 0.5)
+    avatarContainer.Position = UDim2.new(0, 12, 0.5, 0)
+    avatarContainer.Size = UDim2.fromOffset(72, 72)
+
+    local avatar = Instance.new("ImageLabel")
+    avatar.Name = "ProfileHeadshot"
+    avatar.Parent = avatarContainer
+    avatar.BackgroundColor3 = Theme.Background
+    avatar.BackgroundTransparency = 0
+    avatar.BorderSizePixel = 0
+    avatar.ClipsDescendants = true
+    avatar.Size = UDim2.fromScale(1, 1)
+    avatar.ScaleType = Enum.ScaleType.Crop
+    avatar.Image = ""
+
+    local avatarCorner = Instance.new("UICorner")
+    avatarCorner.CornerRadius = UDim.new(0, 12)
+    avatarCorner.Parent = avatar
+
+    local avatarStroke = Instance.new("UIStroke")
+    avatarStroke.Color = Theme.Accent
+    avatarStroke.Thickness = 1.8
+    avatarStroke.Parent = avatar
+    Library:AddToTheme(avatarStroke, {Color = "Accent"})
+
+    local avatarDot = Instance.new("Frame")
+    avatarDot.Name = "ActiveDot"
+    avatarDot.Parent = avatarContainer
+    avatarDot.BackgroundColor3 = Color3.fromRGB(56, 239, 125)
+    avatarDot.BorderSizePixel = 0
+    avatarDot.AnchorPoint = Vector2.new(1, 1)
+    avatarDot.Position = UDim2.new(1, 2, 1, 2)
+    avatarDot.Size = UDim2.fromOffset(12, 12)
+    avatarDot.ZIndex = 5
+
+    local dotCorner = Instance.new("UICorner")
+    dotCorner.CornerRadius = UDim.new(1, 0)
+    dotCorner.Parent = avatarDot
+
+    local dotStroke = Instance.new("UIStroke")
+    dotStroke.Color = Theme.Element
+    dotStroke.Thickness = 2
+    dotStroke.Parent = avatarDot
+    Library:AddToTheme(dotStroke, {Color = "Element"})
+
+    local profileName = Instance.new("TextLabel")
+    profileName.Name = "DisplayName"
+    profileName.Parent = profileCard
+    profileName.BackgroundTransparency = 1
+    profileName.Position = UDim2.new(0, 96, 0, 14)
+    profileName.Size = UDim2.new(1, -108, 0, 22)
+    profileName.FontFace = Library.Font
+    profileName.Text = displayName
+    profileName.TextColor3 = Theme.Text
+    profileName.TextSize = 16
+    profileName.TextXAlignment = Enum.TextXAlignment.Left
+    profileName.TextTruncate = Enum.TextTruncate.AtEnd
+    Library:AddToTheme(profileName, {TextColor3 = "Text"})
+
+    local profileHandle = Instance.new("TextLabel")
+    profileHandle.Name = "Username"
+    profileHandle.Parent = profileCard
+    profileHandle.BackgroundTransparency = 1
+    profileHandle.Position = UDim2.new(0, 96, 0, 36)
+    profileHandle.Size = UDim2.new(1, -108, 0, 16)
+    profileHandle.FontFace = Library.Font
+    profileHandle.Text = "@" .. userName
+    profileHandle.TextColor3 = Theme.Accent
+    profileHandle.TextSize = 12
+    profileHandle.TextXAlignment = Enum.TextXAlignment.Left
+    profileHandle.TextTruncate = Enum.TextTruncate.AtEnd
+    Library:AddToTheme(profileHandle, {TextColor3 = "Accent"})
+
+    local badgesRow = Instance.new("Frame")
+    badgesRow.Name = "BadgesRow"
+    badgesRow.Parent = profileCard
+    badgesRow.BackgroundTransparency = 1
+    badgesRow.Position = UDim2.new(0, 96, 0, 58)
+    badgesRow.Size = UDim2.new(1, -108, 0, 20)
+
+    local brLayout = Instance.new("UIListLayout")
+    brLayout.Parent = badgesRow
+    brLayout.FillDirection = Enum.FillDirection.Horizontal
+    brLayout.VerticalAlignment = Enum.VerticalAlignment.Center
+    brLayout.Padding = UDim.new(0, 6)
+
+    local function updateHomeProfileBadges()
+        for _, c in ipairs(badgesRow:GetChildren()) do
+            if c:IsA("Frame") then
+                c:Destroy()
+            end
+        end
+
+        local execBadge = Instance.new("Frame")
+        execBadge.Name = "ExecBadge"
+        execBadge.Parent = badgesRow
+        execBadge.BackgroundColor3 = Color3.fromRGB(15, 25, 35)
+        execBadge.BorderSizePixel = 0
+        execBadge.Size = UDim2.new(0, 0, 0, 18)
+        execBadge.AutomaticSize = Enum.AutomaticSize.X
+
+        local ebCorner = Instance.new("UICorner")
+        ebCorner.CornerRadius = UDim.new(0, 4)
+        ebCorner.Parent = execBadge
+
+        local ebStroke = Instance.new("UIStroke")
+        ebStroke.Color = Color3.fromRGB(40, 120, 180)
+        ebStroke.Thickness = 1
+        ebStroke.Transparency = 0.3
+        ebStroke.Parent = execBadge
+
+        local ebPad = Instance.new("UIPadding")
+        ebPad.PaddingLeft = UDim.new(0, 6)
+        ebPad.PaddingRight = UDim.new(0, 6)
+        ebPad.Parent = execBadge
+
+        local ebLabel = Instance.new("TextLabel")
+        ebLabel.Parent = execBadge
+        ebLabel.BackgroundTransparency = 1
+        ebLabel.FontFace = Library.Font
+        ebLabel.Text = "EXECUTOR: " .. string.upper(tostring(execName))
+        ebLabel.TextColor3 = Color3.fromRGB(120, 210, 255)
+        ebLabel.TextSize = 9
+        ebLabel.Size = UDim2.new(0, 0, 1, 0)
+        ebLabel.AutomaticSize = Enum.AutomaticSize.X
+
+        local myTags = SwatwareAPI:GetTags(userName)
+        for _, rawTag in ipairs(myTags) do
+            local tagStyle = SwatwareAPI:GetTagStyle(rawTag)
+            local badge = Instance.new("Frame")
+            badge.Name = "TagBadge_" .. tostring(rawTag)
+            badge.Parent = badgesRow
+            badge.BackgroundColor3 = tagStyle.Bg
+            badge.BorderSizePixel = 0
+            badge.Size = UDim2.new(0, 0, 0, 18)
+            badge.AutomaticSize = Enum.AutomaticSize.X
+
+            local bc = Instance.new("UICorner")
+            bc.CornerRadius = UDim.new(0, 4)
+            bc.Parent = badge
+
+            local bs = Instance.new("UIStroke")
+            bs.Color = tagStyle.Border
+            bs.Thickness = 1
+            bs.Transparency = 0.2
+            bs.Parent = badge
+
+            local bp = Instance.new("UIPadding")
+            bp.PaddingLeft = UDim.new(0, 6)
+            bp.PaddingRight = UDim.new(0, 6)
+            bp.Parent = badge
+
+            local bl = Instance.new("TextLabel")
+            bl.Parent = badge
+            bl.BackgroundTransparency = 1
+            bl.FontFace = Library.Font
+            bl.Text = string.upper(tostring(rawTag))
+            bl.TextColor3 = tagStyle.Text
+            bl.TextSize = 9
+            bl.Size = UDim2.new(0, 0, 1, 0)
+            bl.AutomaticSize = Enum.AutomaticSize.X
+        end
+    end
+
+    updateHomeProfileBadges()
+    task.spawn(function()
+        while not unloaded and getgenv().AltHackGen == GEN do
+            task.wait(4)
+            pcall(updateHomeProfileBadges)
+        end
+    end)
+
+    task.spawn(function()
+        local success, image = pcall(function()
+            return Players:GetUserThumbnailAsync(
+                userId,
+                Enum.ThumbnailType.HeadShot,
+                Enum.ThumbnailSize.Size150x150
+            )
+        end)
+        if success and avatar.Parent then
+            avatar.Image = image
+        end
+    end)
+
+    local sessionStats = Instance.new("Frame")
+    sessionStats.Name = "SessionStats"
+    sessionStats.Parent = profileContent
+    sessionStats.BackgroundTransparency = 1
+    sessionStats.Size = UDim2.new(1, 0, 0, 100)
+    sessionStats.BorderSizePixel = 0
+    sessionStats.LayoutOrder = -1
+
+    local statsLayout = Instance.new("UIGridLayout")
+    statsLayout.Parent = sessionStats
+    statsLayout.CellSize = UDim2.new(1 / 3, -4, 0, 46)
+    statsLayout.CellPadding = UDim2.new(0, 6, 0, 6)
+    statsLayout.FillDirectionMaxCells = 3
+    statsLayout.SortOrder = Enum.SortOrder.LayoutOrder
+
+    local function makeHomeStat(title, value, order)
+        local tile = Instance.new("Frame")
+        tile.Name = title:gsub("%s+", "") .. "Stat"
+        tile.Parent = sessionStats
+        tile.Size = UDim2.new(1 / 3, -4, 0, 46)
+        tile.BackgroundColor3 = Theme.Element
+        tile.BorderSizePixel = 0
+        tile.ClipsDescendants = true
+        tile.LayoutOrder = order
+        Library:AddToTheme(tile, {BackgroundColor3 = "Element"})
+
+        local corner = Instance.new("UICorner")
+        corner.CornerRadius = UDim.new(0, 8)
+        corner.Parent = tile
+
+        local stroke = Instance.new("UIStroke")
+        stroke.Color = Theme.Outline
+        stroke.Transparency = 0.5
+        stroke.Thickness = 1
+        stroke.Parent = tile
+        Library:AddToTheme(stroke, {Color = "Outline"})
+
+        local titleLabel = Instance.new("TextLabel")
+        titleLabel.Parent = tile
+        titleLabel.BackgroundTransparency = 1
+        titleLabel.Position = UDim2.new(0, 8, 0, 6)
+        titleLabel.Size = UDim2.new(1, -16, 0, 12)
+        titleLabel.FontFace = Library.Font
+        titleLabel.Text = string.upper(title)
+        titleLabel.TextColor3 = Theme.Text
+        titleLabel.TextTransparency = 0.4
+        titleLabel.TextSize = 9
+        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
+        titleLabel.TextTruncate = Enum.TextTruncate.AtEnd
+        Library:AddToTheme(titleLabel, {TextColor3 = "Text"})
+
+        local valueLabel = Instance.new("TextLabel")
+        valueLabel.Parent = tile
+        valueLabel.BackgroundTransparency = 1
+        valueLabel.Position = UDim2.new(0, 8, 0, 20)
+        valueLabel.Size = UDim2.new(1, -16, 0, 20)
+        valueLabel.FontFace = Library.Font
+        valueLabel.Text = tostring(value)
+        valueLabel.TextColor3 = Theme.Accent
+        valueLabel.TextSize = 13
+        valueLabel.TextXAlignment = Enum.TextXAlignment.Left
+        valueLabel.TextTruncate = Enum.TextTruncate.AtEnd
+        Library:AddToTheme(valueLabel, {TextColor3 = "Accent"})
+        return valueLabel
+    end
+
+    local accountStat = makeHomeStat("Account age", accountAge .. " days", 1)
+    local userIdStat = makeHomeStat("User ID", userId, 2)
+    local execStat = makeHomeStat("Executor", execName, 3)
+    local fpsStat = makeHomeStat("Client FPS", tostring(fps or 60) .. " FPS", 4)
+    local pingStat = makeHomeStat("Server Ping", tostring(getPing()) .. " ms", 5)
+    local tierStat = makeHomeStat("User Tier", string.upper(SwatwareAPI:GetTags(userName)[1] or "USER"), 6)
+
     ProfileSection:Label("Build: SWATWARE v2.4 (Enterprise)")
     ProfileSection:Label("Status: Active // Premium")
 
@@ -5155,15 +5403,62 @@ do
     })
 
     ActionSection:Button({
-        Name = "Rejoin Current Server",
+        Name = "Copy Server Job ID",
+        Callback = function()
+            if setclipboard then
+                setclipboard(tostring(game.JobId))
+                Library:Notify("Server Job ID copied!")
+            end
+        end,
+    })
+
+    ActionSection:Button({
+        Name = "Quick Server Hop",
         Callback = function()
             pcall(function()
-                game:GetService("TeleportService"):TeleportToPlaceInstance(game.PlaceId, game.JobId, Players.LocalPlayer)
+                local HttpService = game:GetService("HttpService")
+                local TeleportService = game:GetService("TeleportService")
+                local placeId = game.PlaceId
+                local servers = HttpService:JSONDecode(game:HttpGet(
+                    "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=50"
+                ))
+                for _, s in ipairs(servers.data or {}) do
+                    if s.id ~= game.JobId and s.playing < s.maxPlayers then
+                        TeleportService:TeleportToPlaceInstance(placeId, s.id, Players.LocalPlayer)
+                        break
+                    end
+                end
             end)
         end,
     })
 
-    -- Right Column: Changelog & Announcements
+    ActionSection:Button({
+        Name = "Rejoin Current Server",
+        Callback = function()
+            pcall(function()
+                game:GetService("TeleportService"):TeleportToPlaceInstance(
+                    game.PlaceId,
+                    game.JobId,
+                    Players.LocalPlayer
+                )
+            end)
+        end,
+    })
+
+    local SessionSection = HomePage:Section({
+        Name = "Live Server & Game",
+        Icon = ICON_CLOCK,
+        Side = 2,
+    })
+    SessionSection:Label("Experience: " .. tostring(game.Name))
+    SessionSection:Label("Place ID: " .. tostring(game.PlaceId))
+    SessionSection:Label("Place Version: " .. tostring(game.PlaceVersion))
+    local serverId = game.JobId ~= "" and string.sub(game.JobId, 1, 8) or "Studio"
+    SessionSection:Label("Server Job ID: " .. serverId)
+    local playersStat = SessionSection:Label(
+        string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
+    )
+
     local NewsSection = HomePage:Section({
         Name = "Updates & Changelog",
         Icon = ICON_SPARKLES,
@@ -5176,11 +5471,27 @@ do
     NewsSection:Label("• Precision Sliders (0-100%) & Clean 2-Row Stack")
     NewsSection:Label("• Centered Top Accent Lines with Shimmer Glow")
     NewsSection:Label("• Real Audio Visualizer & Tactical HUD")
+
+    task.spawn(function()
+        while not unloaded and getgenv().AltHackGen == GEN do
+            task.wait(0.5)
+            pcall(function()
+                accountStat.Text = tostring(accountAge) .. " days"
+                userIdStat.Text = tostring(userId)
+                tierStat.Text = string.upper(SwatwareAPI:GetTags(userName)[1] or "USER")
+                playersStat:SetText(
+                    string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
+                )
+                fpsStat.Text = tostring(fps or 60) .. " FPS"
+                local stats = game:GetService("Stats")
+                local pingVal = stats.Network.ServerStatsItem["Data Ping"]:GetValueString()
+                local pingNum = math.floor(tonumber(pingVal:match("%d+")) or 0)
+                pingStat.Text = tostring(pingNum) .. " ms"
+            end)
+        end
+    end)
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- 1. COMBAT TAB (SUBTABS: AIMBOT, SILENT AIM, TRIGGERBOT / HITBOX)
--- ────────────────────────────────────────────────────────────────────────────
 do
     local CombatPage = Window:Page({
         Name = "Combat",
@@ -5193,10 +5504,6 @@ do
         "Aimbot"
     )
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- SUBTAB 1: AIMBOT (MAIN, HUMANIZATION, FOV)
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 1: Main Aimbot (Side 1)
     local AimbotMainSection = CombatPage:Section({
         Name = "Main Aimbot",
         Icon = ICON_COMBAT,
@@ -5363,7 +5670,6 @@ do
         Default = {"Team Check", "Wall Check", "Dead Check"},
     })
 
-    -- Section 2: Humanization (Side 2)
     local HumanizationSection = CombatPage:Section({
         Name = "Aimbot Humanization",
         Icon = ICON_BOT,
@@ -5443,7 +5749,6 @@ do
         Max = 100,
     })
 
-    -- Section 3: FOV Settings (Side 2)
     local AimbotFOVSection = CombatPage:Section({
         Name = "Aimbot FOV",
         Icon = ICON_SCANEYE,
@@ -5542,7 +5847,6 @@ do
         Default = "Middle",
     })
 
-    -- Initialize initial visibility for Aimbot controls
     task.spawn(function()
         local aActive = Library.Flags["Combat_Aimbot"] == true
         if aimbotGroundDropdown then aimbotGroundDropdown:SetVisibility(aActive) end
@@ -5567,9 +5871,6 @@ do
         if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(Library.Flags["Combat_FOVSpin"] == true) end
     end)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- SUBTAB 2: SILENT AIM
-    -- ────────────────────────────────────────────────────────────────────────
     local SilentAimMainSection = CombatPage:Section({
         Name = "Silent Aim Main",
         Icon = ICON_SPARKLES,
@@ -5657,7 +5958,6 @@ do
         Default = {"Team Check", "Wall Check"},
     })
 
-    -- Silent Aim FOV (Side 2)
     local SilentAimFOVSection = CombatPage:Section({
         Name = "Silent Aim FOV",
         Icon = ICON_SCANEYE,
@@ -5768,9 +6068,6 @@ do
         if sSpinSpeed then sSpinSpeed:SetVisibility(Library.Flags["SilentAim_FOVSpin"] == true) end
     end)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- SUBTAB 3: TRIGGERBOT / HITBOX
-    -- ────────────────────────────────────────────────────────────────────────
     local TriggerbotSection = CombatPage:Section({
         Name = "Triggerbot",
         Icon = ICON_FLAME,
@@ -5910,9 +6207,7 @@ do
         if hbTrans then hbTrans:SetVisibility(hAct) end
         if hbColLabel then hbColLabel:SetVisibility(hAct) end
     end)
-    -- ────────────────────────────────────────────────────────────────────────
-    -- COMBAT RUNTIME LOGIC ENGINE (AIMBOT, SILENT AIM, TRIGGERBOT, HITBOX EXPANDER)
-    -- ────────────────────────────────────────────────────────────────────────
+
     local combatState = {
         AimbotActive = false,
         AimbotTarget = nil,
@@ -5923,7 +6218,6 @@ do
         FOVRotationAngle = 0,
     }
 
-    -- FOV Drawing / Screen Overlay
     local fovGui = Instance.new("ScreenGui")
     fovGui.Name = "Swatware_FOVOverlays"
     fovGui.ResetOnSpawn = false
@@ -5953,7 +6247,6 @@ do
     fovStroke.Color = Theme.Accent or Color3.fromRGB(139, 149, 246)
     fovStroke.Parent = fovCircleFrame
 
-    -- Helper to get hitpart for a target character
     local function getTargetHitpart(char, hitpartName)
         if not char then return nil end
         if hitpartName == "Random" then
@@ -5968,7 +6261,6 @@ do
         return char:FindFirstChild(hitpartName) or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
     end
 
-    -- Target Check Validator
     local function validateTarget(p, checksList)
         if not p or p == Players.LocalPlayer then return false end
         local char = p.Character
@@ -5985,37 +6277,31 @@ do
             return false
         end
 
-        -- Dead check
         if hasCheck("Dead Check") and hum.Health <= 0 then
             return false
         end
 
-        -- Team check
         if hasCheck("Team Check") then
             if p.Team ~= nil and Players.LocalPlayer.Team ~= nil and p.Team == Players.LocalPlayer.Team then
                 return false
             end
         end
 
-        -- ForceField check
         if hasCheck("ForceField Check") and char:FindFirstChildOfClass("ForceField") then
             return false
         end
 
-        -- Knocked check
         if hasCheck("Knocked Check") then
             local isKnocked = char:FindFirstChild("Knocked") or char:FindFirstChild("KO") or char:GetAttribute("Knocked") or (hum.PlatformStand and hum.Health < 25)
             if isKnocked then return false end
         end
 
-        -- Ignore SWATWARE users
         if hasCheck("Ignore Swatware Users") or hasCheck("Ignore Users - Swatware Users") then
             if p:GetAttribute("SwatwareUser") or p:FindFirstChild("SwatwareUser") then
                 return false
             end
         end
 
-        -- Wall / Vis Check
         if hasCheck("Wall Check") or hasCheck("Wall / Vis Check") then
             local cam = Workspace.CurrentCamera
             if cam then
@@ -6036,12 +6322,11 @@ do
         return true
     end
 
-    -- Get Screen FOV Center Position
     local function getFOVOrigin(placementMode)
         local cam = Workspace.CurrentCamera
         if not cam then return Vector2.zero end
         local screenCenter = Vector2.new(cam.ViewportSize.X * 0.5, cam.ViewportSize.Y * 0.5)
-        
+
         if placementMode == "Mouse" then
             local mouseLoc = UserInputService:GetMouseLocation()
             return mouseLoc
@@ -6059,7 +6344,6 @@ do
         return screenCenter
     end
 
-    -- Find Best Target for Aimbot
     local function getBestAimbotTarget()
         local cam = Workspace.CurrentCamera
         if not cam then return nil, nil end
@@ -6069,7 +6353,6 @@ do
         local useFOV = Library.Flags["Combat_UseFOV"] ~= false
         local checks = Library.Flags["Combat_Checks"] or {"Team Check", "Wall Check", "Dead Check"}
 
-        -- Sticky aim preservation
         if Library.Flags["Combat_StickyAim"] and combatState.TargetLocked and combatState.TargetLocked.Parent then
             local p = Players:GetPlayerFromCharacter(combatState.TargetLocked)
             if p and validateTarget(p, checks) then
@@ -6119,7 +6402,6 @@ do
         return bestPlayer, bestPart
     end
 
-    -- Camera Easing Function
     local function applyEasing(alpha, style)
         if style == "Sine" then
             return math.sin(alpha * (math.pi / 2))
@@ -6135,18 +6417,16 @@ do
             return (alpha == 0) and 0 or math.pow(2, 10 * (alpha - 1))
         elseif style == "Circular" then
             return 1 - math.sqrt(1 - math.pow(alpha, 2))
-        else -- "Linear"
+        else
             return alpha
         end
     end
 
-    -- Main Combat Render Loop
     Library:Connect(RunService.RenderStepped, function(dt)
         if unloaded or getgenv().AltHackGen ~= GEN then return end
         local cam = Workspace.CurrentCamera
         if not cam then return end
 
-        -- 1. FOV Visual Circle
         local drawFOV = Library.Flags["Combat_DrawFOV"] == true and Library.Flags["Combat_UseFOV"] == true
         if drawFOV then
             local fovOrigin = getFOVOrigin(Library.Flags["Combat_FOVPlacement"] or "Middle")
@@ -6175,7 +6455,6 @@ do
             fovCircleFrame.Visible = false
         end
 
-        -- 2. Aimbot Logic
         local aimbotEnabled = Library.Flags["Combat_Aimbot"] == true
         if aimbotEnabled then
             local bestPlayer, targetPart = getBestAimbotTarget()
@@ -6186,14 +6465,12 @@ do
                 local targetPos = targetPart.Position
                 local targetVel = targetPart.AssemblyLinearVelocity or targetPart.Velocity or Vector3.zero
 
-                -- Prediction calculation (sliders 0 to 100)
                 if Library.Flags["Combat_UsePrediction"] then
                     local predX = (Library.Flags["Combat_PredictionX"] or 13.5) / 100
                     local predY = (Library.Flags["Combat_PredictionY"] or 12.0) / 100
                     targetPos = targetPos + Vector3.new(targetVel.X * predX, targetVel.Y * predY, targetVel.Z * predX)
                 end
 
-                -- Custom Offsets
                 if Library.Flags["Combat_UseOffsets"] then
                     local offX = (Library.Flags["Combat_OffsetX"] or 0) / 10
                     local offY = (Library.Flags["Combat_OffsetY"] or 0) / 10
@@ -6203,14 +6480,12 @@ do
                     targetPos = targetPos + Vector3.new(offX, offY + airOffY, 0)
                 end
 
-                -- Humanization Pull Resolution
                 if Library.Flags["Combat_PullResToggle"] then
                     local rx = (Library.Flags["Combat_PullResX"] or 10) / 50
                     local ry = (Library.Flags["Combat_PullResY"] or 10) / 50
                     targetPos = targetPos + Vector3.new(math.sin(tick() * 10) * rx, math.cos(tick() * 10) * ry, 0)
                 end
 
-                -- Aim Camera
                 local camPos = cam.CFrame.Position
                 local targetCF = CFrame.new(camPos, targetPos)
 
@@ -6235,7 +6510,6 @@ do
             combatState.TargetLocked = nil
         end
 
-        -- 3. Hitbox Expander Runtime Loop
         if Library.Flags["Hitbox_Enable"] then
             local hbSizeVal = Library.Flags["Hitbox_Size"] or 10
             local hbPartName = Library.Flags["Hitbox_Part"] or "Head"
@@ -6274,7 +6548,6 @@ do
         end
     end)
 
-    -- Triggerbot Runtime Task
     task.spawn(function()
         while not unloaded and getgenv().AltHackGen == GEN do
             task.wait(0.02)
@@ -6333,10 +6606,6 @@ do
     end)
 end
 
-
--- ────────────────────────────────────────────────────────────────────────────
--- 2. VISUALS TAB & REAL 3D VIEWPORT ESP PREVIEW BOX + IN-GAME ESP SYSTEM
--- ────────────────────────────────────────────────────────────────────
 do
     local VisualsPage = Window:Page({
         Name = "Visuals",
@@ -6349,55 +6618,54 @@ do
         "Player ESP"
     )
 
-    -- Live ESP Configuration State
     local espConfig = {
         MasterEnabled = false,
-        ThemeSync = true, -- Automatically sync ESP colors with chosen Theme
+        ThemeSync = true,
         ShowPreview = true,
         AutoRotatePreview = true,
         PreviewSpeed = 1.0,
-        PreviewZoom = 9.2, -- Balanced framing so avatar is not too big
-        
+        PreviewZoom = 9.2,
+
         Box = true,
         BoxStyle = "Corner Box",
         BoxColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
-        
+
         Name = true,
         NameColor = Color3.fromRGB(255, 255, 255),
-        
+
         Health = true,
         HealthColor = Color3.fromRGB(56, 239, 125),
         HealthBarWidth = 2,
-        HealthBarMode = "Gradient (Green-Red)", -- "Gradient (Green-Red)", "Theme Accent", "Solid Health Color"
+        HealthBarMode = "Gradient (Green-Red)",
         HealthText = true,
-        
+
         HeadDot = false,
         HeadDotColor = Color3.fromRGB(255, 255, 255),
         HeadDotSize = 5,
-        
+
         Distance = true,
         DistanceColor = Color3.fromRGB(180, 190, 210),
-        
+
         Weapon = true,
         WeaponColor = Color3.fromRGB(255, 215, 0),
-        
+
         GradientText = true,
-        GradientMode = "Static Dual Color", -- "Static Dual Color", "Monochrome Wave", "Rainbow Wave", "Theme Shimmer"
+        GradientMode = "Static Dual Color",
         GradientColor1 = Color3.fromRGB(255, 255, 255),
         GradientColor2 = Theme.Accent or Color3.fromRGB(139, 149, 246),
         AnimatedGradientText = false,
-        
+
         Skeleton = false,
         SkeletonColor = Color3.fromRGB(255, 255, 255),
-        
+
         Tracers = false,
         TracerColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
         TracerOrigin = "Bottom Screen",
-        
+
         Offscreen = false,
         OffscreenColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
         OffscreenRadius = 220,
-        
+
         Chams = false,
         ChamsColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
         ChamsOutlineColor = Color3.fromRGB(255, 255, 255),
@@ -6406,7 +6674,7 @@ do
         ChamsOutlineTransparency = 0.1,
         ChamsThroughWalls = true,
         ChamsPulse = false,
-        
+
         TeamCheck = true,
         MaxDistance = 2500
     }
@@ -6439,7 +6707,7 @@ do
                 ColorSequenceKeypoint.new(0.8, Color3.fromRGB(180, 80, 255)),
                 ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 80, 80)),
             })
-        else -- "Static Dual Color"
+        else
             return ColorSequence.new({
                 ColorSequenceKeypoint.new(0.0, c1),
                 ColorSequenceKeypoint.new(1.0, c2),
@@ -6453,7 +6721,6 @@ do
     local buildOrUpdatePreviewAvatar = nil
     local syncPreviewPosition = nil
 
-    -- Auto Theme Sync Hook
     Library.OnThemeChanged = function(themeKey, newColor)
         if themeKey == "Accent" and espConfig.ThemeSync then
             espConfig.BoxColor = newColor
@@ -6467,9 +6734,6 @@ do
         end
     end
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Left Column: Player ESP Settings
-    -- ────────────────────────────────────────────────────────────────────────
     local PlayerESPSection = VisualsPage:Section({
         Name = "Player ESP",
         Icon = ICON_VISUALS,
@@ -6793,9 +7057,6 @@ do
         end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Chams / Highlights Advanced Section
-    -- ────────────────────────────────────────────────────────────────────────
     local ChamsSection = VisualsPage:Section({
         Name = "Chams & Materials",
         Icon = ICON_SHIELD,
@@ -6908,9 +7169,6 @@ do
         if chamsPulseToggle then chamsPulseToggle:SetVisibility(espConfig.Chams) end
     end)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Right Column: 3D ESP PREVIEW BOX (HARD STUCK DOCKED TO TOP RIGHT OF MENU)
-    -- ────────────────────────────────────────────────────────────────────────
     local PreviewSection = VisualsPage:Section({
         Name = "3D ESP Preview System",
         Icon = ICON_SCANEYE,
@@ -6919,7 +7177,6 @@ do
     registerVisualsSubtab("Player ESP", PreviewSection)
     PreviewSection.Items["SectionOutline"].Instance.LayoutOrder = -10
 
-    -- Create ESP Preview Window Docked to Main Menu Window
     local previewWindow = Instance.new("Frame")
     previewWindow.Name = "Swatware_DockedESPPreview"
     previewWindow.Parent = holderGui
@@ -6942,7 +7199,6 @@ do
     pwStroke.Parent = previewWindow
     Library:AddToTheme(pwStroke, {Color = "Outline"})
 
-    -- Top Header Bar (Attached / Locked)
     local pwHeader = Instance.new("Frame")
     pwHeader.Name = "HeaderBar"
     pwHeader.Parent = previewWindow
@@ -6956,7 +7212,6 @@ do
     pwHeaderCorner.CornerRadius = UDim.new(0, 8)
     pwHeaderCorner.Parent = pwHeader
 
-    -- Header Border Separator Line
     local pwHeaderLine = Instance.new("Frame")
     pwHeaderLine.Name = "BottomLine"
     pwHeaderLine.Parent = pwHeader
@@ -7055,7 +7310,6 @@ do
     pwBadgeText.ZIndex = 54
     Library:AddToTheme(pwBadgeText, {TextColor3 = "Accent"})
 
-    -- Mathematical Docking System to Main Menu Frame
     local mainFrame = Window.Items["MainFrame"] and Window.Items["MainFrame"].Instance
     syncPreviewPosition = function()
         if mainFrame and previewWindow then
@@ -7069,9 +7323,14 @@ do
             end
         end
     end
+    if mainFrame then
+        mainFrame:GetPropertyChangedSignal("Position"):Connect(syncPreviewPosition)
+        mainFrame:GetPropertyChangedSignal("AbsolutePosition"):Connect(syncPreviewPosition)
+        mainFrame:GetPropertyChangedSignal("Size"):Connect(syncPreviewPosition)
+        mainFrame:GetPropertyChangedSignal("AbsoluteSize"):Connect(syncPreviewPosition)
+    end
     syncPreviewPosition()
 
-    -- Viewport Card Container inside Preview Window
     local previewCard = Instance.new("Frame")
     previewCard.Name = "ViewportContainer"
     previewCard.Parent = previewWindow
@@ -7094,7 +7353,6 @@ do
     pCardStroke.Parent = previewCard
     Library:AddToTheme(pCardStroke, {Color = "Outline"})
 
-    -- Grid / Crosshair background guide lines
     local gridLayer = Instance.new("Frame")
     gridLayer.Name = "GridDecor"
     gridLayer.Parent = previewCard
@@ -7117,7 +7375,6 @@ do
     makeGuide(UDim2.new(0.5, -60, 0.5, 0), UDim2.new(0, 120, 0, 1))
     makeGuide(UDim2.new(0.5, 0, 0.5, -60), UDim2.new(0, 1, 0, 120))
 
-    -- Real ViewportFrame
     local viewportFrame = Instance.new("ViewportFrame")
     viewportFrame.Name = "Player3DViewport"
     viewportFrame.Parent = previewCard
@@ -7135,11 +7392,9 @@ do
     viewportCamera.CFrame = CFrame.lookAt(Vector3.new(0, -0.4, espConfig.PreviewZoom), Vector3.new(0, -0.4, 0))
     viewportFrame.CurrentCamera = viewportCamera
 
-    -- WorldModel inside ViewportFrame
     local worldModel = Instance.new("WorldModel")
     worldModel.Parent = viewportFrame
 
-    -- Mathematical 3D-to-2D Viewport Projection Function (100% Exact to ViewportFrame)
     local function projectToPreview(pos)
         local cardSize = previewCard.AbsoluteSize
         local w = (cardSize.X > 10) and cardSize.X or 214
@@ -7164,13 +7419,11 @@ do
         return Vector2.new(screenX, screenY), true, z
     end
 
-    -- Model Container for Player Character
     local previewCharModel = nil
     local originalPartMaterials = {}
     local originalPartColors = {}
     local originalPartTrans = {}
 
-    -- 2D Overlay Container for ESP elements over Viewport
     local overlayContainer = Instance.new("Frame")
     overlayContainer.Name = "ESPOverlayCanvas"
     overlayContainer.Parent = previewCard
@@ -7178,7 +7431,6 @@ do
     overlayContainer.BackgroundTransparency = 1
     overlayContainer.ZIndex = 60
 
-    -- Projected ESP Box Frame (AnchorPoint centered)
     local previewBoxFrame = Instance.new("Frame")
     previewBoxFrame.Name = "PreviewBoxFrame"
     previewBoxFrame.Parent = overlayContainer
@@ -7189,7 +7441,6 @@ do
     previewBoxFrame.Size = UDim2.new(0, 80, 0, 160)
     previewBoxFrame.ZIndex = 62
 
-    -- Clean Outer 1px Black Outline for Full 2D Box (Zero inside artifacts)
     local previewBoxOuterStroke = Instance.new("UIStroke")
     previewBoxOuterStroke.Name = "BoxOuterStroke"
     previewBoxOuterStroke.Thickness = 1.0
@@ -7198,7 +7449,6 @@ do
     previewBoxOuterStroke.Color = Color3.fromRGB(0, 0, 0)
     previewBoxOuterStroke.Parent = previewBoxFrame
 
-    -- Clean Inner 1px Colored Box Stroke
     local previewBoxInner = Instance.new("Frame")
     previewBoxInner.Name = "InnerStrokeFrame"
     previewBoxInner.Parent = previewBoxFrame
@@ -7215,7 +7465,6 @@ do
     previewBoxStroke.Color = espConfig.BoxColor
     previewBoxStroke.Parent = previewBoxInner
 
-    -- Corner Brackets Group (Clean zero-inside-outline construction)
     local cornerGroup = Instance.new("Frame")
     cornerGroup.Name = "CornerGroup"
     cornerGroup.Parent = previewBoxFrame
@@ -7236,7 +7485,7 @@ do
             hb.Position = hPos
             hb.Size = hSize
             hb.ZIndex = 64
-            
+
             local hf = Instance.new("Frame")
             hf.Parent = cornerGroup
             hf.BackgroundColor3 = col
@@ -7244,7 +7493,7 @@ do
             hf.Position = hForePos
             hf.Size = hForeSize
             hf.ZIndex = 65
-            
+
             local vb = Instance.new("Frame")
             vb.Parent = cornerGroup
             vb.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -7252,7 +7501,7 @@ do
             vb.Position = vPos
             vb.Size = vSize
             vb.ZIndex = 64
-            
+
             local vf = Instance.new("Frame")
             vf.Parent = cornerGroup
             vf.BackgroundColor3 = col
@@ -7262,28 +7511,27 @@ do
             vf.ZIndex = 65
         end
 
-        -- Top-Left
         addCorner(
             UDim2.new(0, -1, 0, -1), UDim2.new(0, -1, 0, -1),
             UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2),
             UDim2.new(0, 0, 0, 0), UDim2.new(0, 0, 0, 0),
             UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L)
         )
-        -- Top-Right
+
         addCorner(
             UDim2.new(1, -L - 1, 0, -1), UDim2.new(1, -2, 0, -1),
             UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2),
             UDim2.new(1, -L, 0, 0), UDim2.new(1, -1, 0, 0),
             UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L)
         )
-        -- Bottom-Left
+
         addCorner(
             UDim2.new(0, -1, 1, -2), UDim2.new(0, -1, 1, -L - 1),
             UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2),
             UDim2.new(0, 0, 1, -1), UDim2.new(0, 0, 1, -L),
             UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L)
         )
-        -- Bottom-Right
+
         addCorner(
             UDim2.new(1, -L - 1, 1, -2), UDim2.new(1, -2, 1, -L - 1),
             UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2),
@@ -7293,7 +7541,6 @@ do
     end
     rebuildPreviewCorners()
 
-    -- Health Bar with 1px Clean Black Outline & Giant size support
     local previewHealthBg = Instance.new("Frame")
     previewHealthBg.Name = "HealthBg"
     previewHealthBg.Parent = previewBoxFrame
@@ -7335,7 +7582,6 @@ do
     previewHealthNum.TextXAlignment = Enum.TextXAlignment.Right
     previewHealthNum.ZIndex = 66
 
-    -- Text Overlays with 1px Crisp Black Outlines and Monochrome Metallic Gradients
     local function makePreviewLabel(name, pos, anchor, size, text, col, txtSize)
         local lbl = Instance.new("TextLabel")
         lbl.Name = name
@@ -7365,7 +7611,6 @@ do
     local previewDistLabel, previewDistGrad = makePreviewLabel("DistLabel", UDim2.new(0.5, 0, 1, 3), Vector2.new(0.5, 0), UDim2.new(0, 110, 0, 11), "[ 24 studs ]", espConfig.DistanceColor, 9)
     local previewWeaponLabel, previewWeaponGrad = makePreviewLabel("WeaponLabel", UDim2.new(0.5, 0, 1, 15), Vector2.new(0.5, 0), UDim2.new(0, 130, 0, 11), "SWAT M4A1 [30/90]", espConfig.WeaponColor, 9)
 
-    -- Tracer Line with Outline
     local previewTracer = Instance.new("Frame")
     previewTracer.Name = "Tracer"
     previewTracer.Parent = overlayContainer
@@ -7381,7 +7626,6 @@ do
     tracerStroke.Thickness = 0.8
     tracerStroke.Parent = previewTracer
 
-    -- Skeleton Lines with Thin Black Stroke Outline
     local previewSkelLines = Instance.new("Frame")
     previewSkelLines.Name = "SkelLines"
     previewSkelLines.Parent = overlayContainer
@@ -7410,7 +7654,6 @@ do
         table.insert(skelSegments, makeSkelLine())
     end
 
-    -- Update Preview Elements & Real-Time Chams
     updatePreviewOverlay = function()
         previewWindow.Visible = espConfig.ShowPreview and Window.IsOpen
         if not previewWindow.Visible then return end
@@ -7457,7 +7700,6 @@ do
             l.BackgroundColor3 = espConfig.SkeletonColor
         end
 
-        -- Apply Chams / Material styles to Cloned Preview Avatar
         if previewCharModel then
             local pulse = espConfig.ChamsPulse and ((math.sin(tick() * 4) + 1) / 2) or 0
             local effectiveFillTrans = math.clamp(espConfig.ChamsFillTransparency + (pulse * 0.4), 0, 1)
@@ -7494,7 +7736,6 @@ do
         end
     end
 
-    -- Character Model Builder Function
     buildOrUpdatePreviewAvatar = function()
         if previewCharModel then
             pcall(function() previewCharModel:Destroy() end)
@@ -7516,7 +7757,6 @@ do
             end
         end
 
-        -- Fallback if clone failed or no character
         if not clone then
             clone = Instance.new("Model")
             clone.Name = "FallbackRig"
@@ -7544,7 +7784,7 @@ do
             local hum = Instance.new("Humanoid")
             hum.Parent = clone
         else
-            -- Clean real character clone
+
             for _, desc in ipairs(clone:GetDescendants()) do
                 if desc:IsA("LuaSourceContainer") or desc:IsA("Sound") or desc:IsA("BillboardGui") or desc:IsA("SurfaceGui") or desc:IsA("ScreenGui") or desc:IsA("Highlight") then
                     desc:Destroy()
@@ -7599,7 +7839,6 @@ do
         end
     end
 
-    -- Listen for player avatar updates/respawn
     Players.LocalPlayer.CharacterAdded:Connect(function()
         task.wait(0.5)
         buildOrUpdatePreviewAvatar()
@@ -7610,21 +7849,26 @@ do
     end)
     task.spawn(buildOrUpdatePreviewAvatar)
 
-    -- 3D Auto-Rotation, Docking Sync & Real Projection Loop
     local previewRotAngle = 0
-    task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
-            if syncPreviewPosition then
-                syncPreviewPosition()
+    local previewRenderConn = nil
+    previewRenderConn = RunService.RenderStepped:Connect(function(dt)
+        if unloaded or getgenv().AltHackGen ~= GEN then
+            if previewRenderConn then
+                previewRenderConn:Disconnect()
+                previewRenderConn = nil
             end
+            return
+        end
 
-            if previewWindow.Visible and Window.IsOpen then
-                local dt = 0.03
+        if syncPreviewPosition then
+            syncPreviewPosition()
+        end
+
+        if previewWindow and previewWindow.Visible and Window.IsOpen then
                 if espConfig.AutoRotatePreview then
                     previewRotAngle = (previewRotAngle + (45 * espConfig.PreviewSpeed * dt)) % 360
                 end
 
-                -- Animate Gradient Shimmer Wave
                 if espConfig.GradientText then
                     local gOffset = Vector2.new((tick() * 1.2) % 2 - 1, 0)
                     previewNameGrad.Offset = gOffset
@@ -7636,12 +7880,10 @@ do
                     local rotCF = CFrame.new(0, 0, 0) * CFrame.Angles(0, math.rad(previewRotAngle), 0)
                     previewCharModel:PivotTo(rotCF)
 
-                    -- Live Pulse update if active
                     if espConfig.Chams and espConfig.ChamsPulse then
                         updatePreviewOverlay()
                     end
 
-                    -- Project 3D bounds onto ViewportFrame coordinates strictly locked on the avatar
                     pcall(function()
                         local head = previewCharModel:FindFirstChild("Head")
                         local leftFoot = previewCharModel:FindFirstChild("LeftFoot") or previewCharModel:FindFirstChild("Left Leg") or previewCharModel:FindFirstChild("LeftLowerLeg")
@@ -7670,7 +7912,6 @@ do
                                 previewBoxFrame.Position = UDim2.fromOffset(mid2d.X, top2d.Y)
                                 previewBoxFrame.Size = UDim2.fromOffset(boxW, boxH)
 
-                                -- Connect Tracer Line
                                 if espConfig.Tracers and espConfig.MasterEnabled then
                                     local startPos = Vector2.new(cardW * 0.5, cardH)
                                     local endPos = Vector2.new(mid2d.X, btm2d.Y)
@@ -7686,7 +7927,6 @@ do
                                     previewTracer.Visible = false
                                 end
 
-                                -- Connect Skeleton Joints
                                 if espConfig.Skeleton and espConfig.MasterEnabled then
                                     local r6Pairs = {
                                         {"Head", "Torso"},
@@ -7747,16 +7987,12 @@ do
                     end)
                 end
             end
-            task.wait(0.03)
-        end
     end)
 
-    -- Force initial overlay update
     if updatePreviewOverlay then
         updatePreviewOverlay()
     end
 
-    -- Controls in Visuals Tab for the ESP Preview Box
     PreviewSection:Toggle({
         Name = "Show ESP Preview Window",
         Flag = "Visuals_ShowESPPreview",
@@ -7818,9 +8054,6 @@ do
         end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- SUBTAB 2: WORLD VISUALS (SKYBOX, AMBIENCE, FOG, ATMOSPHERE, CELESTIAL)
-    -- ────────────────────────────────────────────────────────────────────────
     local skyboxData = {
         Active = false,
         Preset = "Synthwave Sunset",
@@ -7908,14 +8141,14 @@ do
                 end
                 return
             end
-            
+
             if not skyboxData.SkyInstance then
                 local s = Instance.new("Sky")
                 s.Name = "Swatware_Sky"
                 s.Parent = Lighting
                 skyboxData.SkyInstance = s
             end
-            
+
             local preset = skyboxPresets[skyboxData.Preset]
             local bk = (preset and preset.Bk) or skyboxData.CustomBk
             local dn = (preset and preset.Dn) or skyboxData.CustomDn
@@ -7923,7 +8156,7 @@ do
             local lf = (preset and preset.Lf) or skyboxData.CustomLf
             local rt = (preset and preset.Rt) or skyboxData.CustomRt
             local up = (preset and preset.Up) or skyboxData.CustomUp
-            
+
             skyboxData.SkyInstance.SkyboxBk = bk
             skyboxData.SkyInstance.SkyboxDn = dn
             skyboxData.SkyInstance.SkyboxFt = ft
@@ -7938,7 +8171,6 @@ do
         end)
     end
 
-    -- Continuous Skybox Spin Loop
     task.spawn(function()
         while not unloaded and getgenv().AltHackGen == GEN do
             if skyboxData.Active and skyboxData.Spin and skyboxData.SkyInstance then
@@ -7954,7 +8186,6 @@ do
         end
     end)
 
-    -- Section 1: Skybox Changer (Side 1)
     local SkyboxSection = VisualsPage:Section({
         Name = "Skybox Changer",
         Icon = ICON_CLOUD,
@@ -8011,7 +8242,6 @@ do
         end,
     })
 
-    -- Section 2: Sun & Moon Settings (Side 1)
     local CelestialSection = VisualsPage:Section({
         Name = "Sun & Moon Modifiers",
         Icon = ICON_SUN,
@@ -8058,7 +8288,6 @@ do
         end,
     })
 
-    -- Section 3: Ambience & Lighting Modifiers (Side 2)
     local AmbienceSection = VisualsPage:Section({
         Name = "Ambience & Lighting",
         Icon = ICON_LIGHTBULB,
@@ -8163,7 +8392,6 @@ do
         end,
     })
 
-    -- Section 4: Atmosphere & Fog Modifiers (Side 2)
     local AtmosphereFogSection = VisualsPage:Section({
         Name = "Atmosphere & Fog",
         Icon = ICON_WAND,
@@ -8277,9 +8505,6 @@ do
         end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- 🚀 FULL IN-GAME ESP RENDERING ENGINE (ScreenGui & Highlight Based)
-    -- ────────────────────────────────────────────────────────────────────────
     local InGameESPHolder = Instance.new("ScreenGui")
     InGameESPHolder.Name = "Swatware_InGameESP"
     InGameESPHolder.Parent = gethui()
@@ -8316,7 +8541,6 @@ do
             Visible = false
         }
 
-        -- 2D Box Frame
         local box = Instance.new("Frame")
         box.Name = "ESP_Box"
         box.Parent = InGameESPHolder
@@ -8324,7 +8548,6 @@ do
         box.BorderSizePixel = 0
         box.Visible = false
 
-        -- Clean 1px Colored Stroke
         local boxStroke = Instance.new("UIStroke")
         boxStroke.Name = "Stroke"
         boxStroke.Thickness = 1.0
@@ -8335,7 +8558,6 @@ do
         data.Box = box
         data.BoxStroke = boxStroke
 
-        -- Corner Brackets Group
         local corners = Instance.new("Frame")
         corners.Name = "Corners"
         corners.Parent = box
@@ -8343,7 +8565,6 @@ do
         corners.BackgroundTransparency = 1
         data.Corners = corners
 
-        -- Health Bar with 1px Clean Black Outline & Giant Width support
         local hpBg = Instance.new("Frame")
         hpBg.Name = "HP_Bg"
         hpBg.Parent = InGameESPHolder
@@ -8381,7 +8602,6 @@ do
         hpNum.Visible = false
         data.HealthNum = hpNum
 
-        -- Head Dot
         local hd = Instance.new("Frame")
         hd.Name = "Head_Dot"
         hd.Parent = InGameESPHolder
@@ -8400,7 +8620,6 @@ do
         hdStroke.Parent = hd
         data.HeadDot = hd
 
-        -- Offscreen Arrow
         local arrow = Instance.new("ImageLabel")
         arrow.Name = "Offscreen_Arrow"
         arrow.Parent = InGameESPHolder
@@ -8412,7 +8631,6 @@ do
         arrow.Visible = false
         data.OffscreenArrow = arrow
 
-        -- Text Labels with 1px Black Outline & Animated Monochrome Gradient
         local function makeText(name, size, xalign)
             local lbl = Instance.new("TextLabel")
             lbl.Name = name
@@ -8438,7 +8656,6 @@ do
         data.DistLabel, data.DistGrad = makeText("Dist_Label", 10)
         data.WeaponLabel, data.WeaponGrad = makeText("Weapon_Label", 10)
 
-        -- Tracer Line
         local tr = Instance.new("Frame")
         tr.Name = "Tracer_Line"
         tr.Parent = InGameESPHolder
@@ -8451,7 +8668,6 @@ do
         trStroke.Parent = tr
         data.TracerLine = tr
 
-        -- Skeleton Lines (12 connection segments)
         for i = 1, 12 do
             local sl = Instance.new("Frame")
             sl.Name = "Skel_" .. i
@@ -8466,7 +8682,6 @@ do
             table.insert(data.SkeletonLines, sl)
         end
 
-        -- In-Game Highlight for Chams (Parented to InGameESPHolder to prevent script wiping)
         local hl = Instance.new("Highlight")
         hl.Name = "ESP_Cham_" .. p.Name
         hl.Enabled = false
@@ -8531,7 +8746,6 @@ do
 
     Players.PlayerRemoving:Connect(removePlayerESP)
 
-    -- In-game ESP Main Render Loop
     Library:Connect(RunService.RenderStepped, function()
         if not espConfig.MasterEnabled or unloaded or getgenv().AltHackGen ~= GEN then
             for _, data in pairs(playerESPCache) do
@@ -8557,7 +8771,7 @@ do
                 local data = playerESPCache[p] or createPlayerESP(p)
                 local char = p.Character
 
-                local passTeam = not espConfig.TeamCheck 
+                local passTeam = not espConfig.TeamCheck
                     or (p.Team == nil or Players.LocalPlayer.Team == nil or p.Team ~= Players.LocalPlayer.Team)
 
                 if char and passTeam then
@@ -8599,7 +8813,6 @@ do
                                 local boxX = math.floor(root2d.X - (boxW * 0.5))
                                 local boxY = math.floor(top2d.Y)
 
-                                -- 1. Box ESP (Sharp Orthogonal 1px Corner Box)
                                 if espConfig.Box then
                                     data.Box.Visible = true
                                     data.Box.Position = UDim2.fromOffset(boxX, boxY)
@@ -8611,7 +8824,7 @@ do
                                     if data.Corners.Visible then
                                         local col = espConfig.BoxColor
                                         local L = math.clamp(math.floor(boxW * 0.28), 6, 18)
-                                        
+
                                         local function syncCorner(cName, hPos, vPos, hSize, vSize, hfPos, vfPos, hfSize, vfSize)
                                             local c = data.Corners:FindFirstChild(cName)
                                             if not c then
@@ -8657,7 +8870,6 @@ do
                                             c.VF.BackgroundColor3 = col
                                         end
 
-                                        -- Top-Left
                                         syncCorner(
                                             "TL",
                                             UDim2.new(0, -1, 0, -1), UDim2.new(0, -1, 0, -1),
@@ -8665,7 +8877,7 @@ do
                                             UDim2.new(0, 0, 0, 0), UDim2.new(0, 0, 0, 0),
                                             UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L)
                                         )
-                                        -- Top-Right
+
                                         syncCorner(
                                             "TR",
                                             UDim2.new(1, -L - 1, 0, -1), UDim2.new(1, -2, 0, -1),
@@ -8673,7 +8885,7 @@ do
                                             UDim2.new(1, -L, 0, 0), UDim2.new(1, -1, 0, 0),
                                             UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L)
                                         )
-                                        -- Bottom-Left
+
                                         syncCorner(
                                             "BL",
                                             UDim2.new(0, -1, 1, -2), UDim2.new(0, -1, 1, -L - 1),
@@ -8681,7 +8893,7 @@ do
                                             UDim2.new(0, 0, 1, -1), UDim2.new(0, 0, 1, -L),
                                             UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L)
                                         )
-                                        -- Bottom-Right
+
                                         syncCorner(
                                             "BR",
                                             UDim2.new(1, -L - 1, 1, -2), UDim2.new(1, -2, 1, -L - 1),
@@ -8694,7 +8906,6 @@ do
                                     data.Box.Visible = false
                                 end
 
-                                -- 2. Health Bar (Giant / Customizable Width & Gradient Modes)
                                 if espConfig.Health then
                                     local hpPct = math.clamp(hum.Health / math.max(hum.MaxHealth, 1), 0, 1)
                                     local barW = espConfig.HealthBarWidth or 2
@@ -8733,7 +8944,6 @@ do
                                     data.HealthNum.Visible = false
                                 end
 
-                                -- 3. Head Dot ESP
                                 if espConfig.HeadDot then
                                     local head2d, headOn = cam:WorldToViewportPoint(head.Position)
                                     if headOn and head2d.Z > 0 then
@@ -8749,7 +8959,6 @@ do
                                     data.HeadDot.Visible = false
                                 end
 
-                                -- 4. Name Tag
                                 if espConfig.Name then
                                     data.NameLabel.Visible = true
                                     data.NameLabel.Text = p.DisplayName .. " (@" .. p.Name .. ")"
@@ -8765,7 +8974,6 @@ do
                                     data.NameLabel.Visible = false
                                 end
 
-                                -- 5. Distance Tag
                                 if espConfig.Distance then
                                     data.DistLabel.Visible = true
                                     data.DistLabel.Text = string.format("[ %.0f studs ]", dist)
@@ -8781,7 +8989,6 @@ do
                                     data.DistLabel.Visible = false
                                 end
 
-                                -- 6. Weapon In Hand
                                 if espConfig.Weapon then
                                     local tool = char:FindFirstChildOfClass("Tool")
                                     data.WeaponLabel.Visible = true
@@ -8798,7 +9005,6 @@ do
                                     data.WeaponLabel.Visible = false
                                 end
 
-                                -- 7. Tracers
                                 if espConfig.Tracers then
                                     local origin = (espConfig.TracerOrigin == "Center Screen" and Vector2.new(screenW/2, screenH/2))
                                         or (espConfig.TracerOrigin == "Mouse Position" and UserInputService:GetMouseLocation())
@@ -8818,7 +9024,6 @@ do
                                     data.TracerLine.Visible = false
                                 end
 
-                                -- 8. Skeleton Lines
                                 if espConfig.Skeleton then
                                     local r6Bones = {
                                         {"Head", "Torso"},
@@ -8872,7 +9077,6 @@ do
                                     for _, sl in ipairs(data.SkeletonLines) do sl.Visible = false end
                                 end
 
-                                -- 9. Chams Highlight & Materials (Applying to actual in-game players)
                                 if espConfig.Chams then
                                     local pulse = espConfig.ChamsPulse and ((math.sin(tick() * 4) + 1) / 2) or 0
                                     local effectiveFillTrans = math.clamp(espConfig.ChamsFillTransparency + (pulse * 0.4), 0, 1)
@@ -8889,12 +9093,11 @@ do
                                         end
                                         restorePlayerMaterials(p)
                                     else
-                                        -- Hide Highlight fill so it does not block the real material
+
                                         if data.Highlight then
                                             data.Highlight.Enabled = false
                                         end
 
-                                        -- Apply real material shader directly to character limbs
                                         if not playerMaterialCache[p] then
                                             playerMaterialCache[p] = {}
                                             for _, desc in ipairs(char:GetDescendants()) do
@@ -8977,24 +9180,18 @@ do
     end)
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- ────────────────────────────────────────────────────────────────────────────
--- 3. MISC TAB (FULL MISC, RAGE, ANTI-AIM, VOID HIDE & UTILITIES)
--- ────────────────────────────────────────────────────────────────────
 do
     local MiscPage = Window:Page({
         Name = "Misc",
         Icon = ICON_SETTINGS,
     })
 
-    -- Ensure camera is free and never locked in first person
     pcall(function()
         Players.LocalPlayer.CameraMode = Enum.CameraMode.Classic
         Players.LocalPlayer.CameraMinZoomDistance = 0.5
         Players.LocalPlayer.CameraMaxZoomDistance = 128
     end)
 
-    -- Misc State & Runtime Cache
     local miscState = {
         Fly = false,
         FlySpeed = 50,
@@ -9014,9 +9211,6 @@ do
         ClickTPActive = false,
     }
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Left Column: Movement & Physics Mods
-    -- ────────────────────────────────────────────────────────────────────────
     local MovementSection = MiscPage:Section({
         Name = "Movement & Physics",
         Icon = ICON_MOVE,
@@ -9169,9 +9363,6 @@ do
         end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Left Column: Anti-Aim & Spinbot System
-    -- ────────────────────────────────────────────────────────────────────────
     local AntiAimSection = MiscPage:Section({
         Name = "Anti-Aim & Spinbot",
         Icon = ICON_SPARKLES,
@@ -9275,9 +9466,6 @@ do
         if desyncTicksSlider then desyncTicksSlider:SetVisibility(aaAct and Library.Flags["Misc_Desync"] == true) end
     end)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Right Column: Rage & Survival Features
-    -- ────────────────────────────────────────────────────────────────────────
     local RageSection = MiscPage:Section({
         Name = "Rage & Survival Mods",
         Icon = ICON_SKULL,
@@ -9294,7 +9482,7 @@ do
                 local char = Players.LocalPlayer.Character
                 local root = char and char:FindFirstChild("HumanoidRootPart")
                 if not root then return end
-                
+
                 if val then
                     miscState.VoidSavedCF = root.CFrame
                     if not miscState.VoidPlatform then
@@ -9369,9 +9557,6 @@ do
         Callback = function(val) end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Right Column: Client & Server Utilities
-    -- ────────────────────────────────────────────────────────────────────────
     local UtilitiesSection = MiscPage:Section({
         Name = "Client & Server Utilities",
         Icon = ICON_TROLL,
@@ -9480,9 +9665,6 @@ do
         end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- REAL MISC BACKGROUND RUNTIME LOOPS (Fly, Noclip, Spinbot, Anti-Fling, BHop)
-    -- ────────────────────────────────────────────────────────────────────────
     local spinAngle = 0
     Library:Connect(RunService.Heartbeat, function(dt)
         if unloaded or getgenv().AltHackGen ~= GEN then return end
@@ -9492,7 +9674,6 @@ do
         local hum = char and char:FindFirstChildOfClass("Humanoid")
         if not root or not hum then return end
 
-        -- 1. Fly Mode Runtime
         if miscState.Fly and hum.Health > 0 then
             local cam = Workspace.CurrentCamera
             if cam then
@@ -9512,7 +9693,6 @@ do
             end
         end
 
-        -- 2. Anti-Fling Runtime
         if miscState.AntiFling then
             for _, p in ipairs(Players:GetPlayers()) do
                 if p ~= Players.LocalPlayer and p.Character then
@@ -9527,13 +9707,11 @@ do
             end
         end
 
-        -- 3. Bunny Hop (Auto Jump)
         if miscState.BHop and hum.FloorMaterial ~= Enum.Material.Air and hum.MoveDirection.Magnitude > 0 then
             hum:ChangeState(Enum.HumanoidStateType.Jumping)
         end
     end)
 
-    -- Stepped Loop for Noclip & Anti-Aim
     Library:Connect(RunService.Stepped, function()
         if unloaded or getgenv().AltHackGen ~= GEN then return end
 
@@ -9541,7 +9719,6 @@ do
         local root = char and char:FindFirstChild("HumanoidRootPart")
         if not char or not root then return end
 
-        -- Noclip Loop
         if miscState.Noclip then
             for _, p in ipairs(char:GetDescendants()) do
                 if p:IsA("BasePart") then
@@ -9550,7 +9727,6 @@ do
             end
         end
 
-        -- Anti-Aim / Spinbot Loop
         if miscState.Spinbot then
             spinAngle = (spinAngle + (miscState.SpinSpeed * 5)) % 360
             local yaw = 0
@@ -9586,9 +9762,6 @@ do
     end)
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- 4. PLAYERLIST TAB (WITH LOCAL PLAYERS & SWATWARE USERS SUBTABS)
--- ────────────────────────────────────────────────────────────────────────────
 do
     local PlayerlistPage = Window:Page({
         Name = "Playerlist",
@@ -9597,9 +9770,8 @@ do
 
     local selectedTarget = nil
     local searchQuery = ""
-    local activeSubtab = "local" -- "local" or "swatware"
+    local activeSubtab = "local"
 
-    -- Helper to create styled tag badges
     local function createTagBadge(parent, rawTag)
         local tagStyle = SwatwareAPI:GetTagStyle(rawTag)
         local badge = Instance.new("Frame")
@@ -9637,7 +9809,6 @@ do
         return badge
     end
 
-    -- Left Column: Players & Swatware Users Explorer
     local PlayersListSection = PlayerlistPage:Section({
         Name = "Player Explorer",
         Icon = ICON_CLIENT,
@@ -9646,7 +9817,6 @@ do
 
     local leftContent = PlayersListSection.Items["Content"].Instance
 
-    -- Subtab Switcher Container
     local subtabContainer = Instance.new("Frame")
     subtabContainer.Name = "SubtabSwitcher"
     subtabContainer.Parent = leftContent
@@ -9789,7 +9959,6 @@ do
     plLayout.Padding = UDim.new(0, 6)
     plLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
-    -- Right Column: Target Details & Action Controls
     local TargetDetailsSection = PlayerlistPage:Section({
         Name = "Target Details & Controls",
         Icon = ICON_COMBAT,
@@ -9878,7 +10047,6 @@ do
     targetInfoLabel.TextXAlignment = Enum.TextXAlignment.Left
     Library:AddToTheme(targetInfoLabel, {TextColor3 = "Text"})
 
-    -- Target Badges Row
     local targetBadgesRow = Instance.new("Frame")
     targetBadgesRow.Name = "TargetBadgesRow"
     targetBadgesRow.Parent = targetCard
@@ -9909,7 +10077,7 @@ do
 
         targetNameLabel.Text = selectedTarget.DisplayName or selectedTarget.Name
         targetUserLabel.Text = "@" .. selectedTarget.Name .. (selectedTarget.UserId and (" (ID: " .. selectedTarget.UserId .. ")") or "")
-        
+
         if selectedTarget.Player and selectedTarget.Player.Character then
             local myRoot = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
             local tRoot = selectedTarget.Player.Character:FindFirstChild("HumanoidRootPart")
@@ -9923,7 +10091,6 @@ do
             targetInfoLabel.Text = "Swatware Database Registry • Offline / Other Server"
         end
 
-        -- Render all assigned tags for selected target
         local tags = selectedTarget.Tags or SwatwareAPI:GetTags(selectedTarget.Name)
         for _, tag in ipairs(tags) do
             createTagBadge(targetBadgesRow, tag)
@@ -9941,7 +10108,6 @@ do
         end
     end
 
-    -- Action Buttons
     TargetDetailsSection:Button({
         Name = "Teleport to Player",
         Callback = function()
@@ -10016,7 +10182,6 @@ do
         end,
     })
 
-    -- Function to refresh and populate player items
     refreshPlayerListUI = function()
         if not playerListContainer.Parent then return end
 
@@ -10027,10 +10192,10 @@ do
         end
 
         if activeSubtab == "local" then
-            -- Live Server Players
+
             local allPlayers = Players:GetPlayers()
             for _, p in ipairs(allPlayers) do
-                local matches = searchQuery == "" 
+                local matches = searchQuery == ""
                     or string.find(string.lower(p.Name), searchQuery, 1, true)
                     or string.find(string.lower(p.DisplayName), searchQuery, 1, true)
 
@@ -10104,7 +10269,6 @@ do
                     pUser.Size = UDim2.new(1, -140, 0, 14)
                     pUser.TextXAlignment = Enum.TextXAlignment.Left
 
-                    -- Tag Badge Container
                     local pTagWrap = Instance.new("Frame")
                     pTagWrap.Name = "TagWrap"
                     pTagWrap.Parent = row
@@ -10141,7 +10305,7 @@ do
                 end
             end
         else
-            -- Swatware Registered Users Database
+
             local count = 0
             for lowerU, uData in pairs(SwatwareAPI.Users) do
                 local rawName = uData.Raw or lowerU
@@ -10154,7 +10318,7 @@ do
                     end
                 end
 
-                local matches = searchQuery == "" 
+                local matches = searchQuery == ""
                     or string.find(lowerU, searchQuery, 1, true)
                     or tagMatch
 
@@ -10245,7 +10409,6 @@ do
                     pStatus.Size = UDim2.new(1, -150, 0, 14)
                     pStatus.TextXAlignment = Enum.TextXAlignment.Left
 
-                    -- Tag Badge Container
                     local pTagWrap = Instance.new("Frame")
                     pTagWrap.Name = "TagWrap"
                     pTagWrap.Parent = row
@@ -10310,413 +10473,12 @@ do
     end)
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- 5. HOME TAB (OPERATOR PROFILE & LIVE SERVER)
--- ────────────────────────────────────────────────────────────────────────────
-do
-    local HomePage = Window:Page({
-        Name = "Home",
-        Icon = ICON_GAUGE,
-    })
-
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 1: Tactical Operator Identity & Profile (Side 1 - Left)
-    -- ────────────────────────────────────────────────────────────────────────
-    local UserStatsSection = HomePage:Section({
-        Name = "Operator & Identity",
-        Icon = ICON_GAUGE,
-        Side = 1,
-    })
-
-    local lp = Players.LocalPlayer
-    local userName = lp and lp.Name or "Unknown"
-    local displayName = lp and lp.DisplayName or userName
-    local userId = lp and lp.UserId or 0
-    local accountAge = lp and lp.AccountAge or 0
-    local execName = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Native x64"
-    local profileContent = UserStatsSection.Items["Content"].Instance
-
-    -- High-Fidelity Tactical Profile Card
-    local profileCard = Instance.new("Frame")
-    profileCard.Name = "HomeProfileCard"
-    profileCard.Parent = profileContent
-    profileCard.Size = UDim2.new(1, 0, 0, 108)
-    profileCard.BackgroundColor3 = Theme.Element
-    profileCard.BorderSizePixel = 0
-    profileCard.ClipsDescendants = true
-    profileCard.LayoutOrder = -2
-    Library:AddToTheme(profileCard, {BackgroundColor3 = "Element"})
-
-    local profileCorner = Instance.new("UICorner")
-    profileCorner.CornerRadius = UDim.new(0, 10)
-    profileCorner.Parent = profileCard
-
-    local profileStroke = Instance.new("UIStroke")
-    profileStroke.Color = Theme.Outline
-    profileStroke.Transparency = 0.35
-    profileStroke.Thickness = 1
-    profileStroke.Parent = profileCard
-    Library:AddToTheme(profileStroke, {Color = "Outline"})
-
-    -- Avatar Headshot with Glowing Status Outline
-    local avatarContainer = Instance.new("Frame")
-    avatarContainer.Name = "AvatarWrap"
-    avatarContainer.Parent = profileCard
-    avatarContainer.BackgroundTransparency = 1
-    avatarContainer.AnchorPoint = Vector2.new(0, 0.5)
-    avatarContainer.Position = UDim2.new(0, 12, 0.5, 0)
-    avatarContainer.Size = UDim2.fromOffset(72, 72)
-
-    local avatar = Instance.new("ImageLabel")
-    avatar.Name = "ProfileHeadshot"
-    avatar.Parent = avatarContainer
-    avatar.BackgroundColor3 = Theme.Background
-    avatar.BackgroundTransparency = 0
-    avatar.BorderSizePixel = 0
-    avatar.ClipsDescendants = true
-    avatar.Size = UDim2.fromScale(1, 1)
-    avatar.ScaleType = Enum.ScaleType.Crop
-    avatar.Image = ""
-
-    local avatarCorner = Instance.new("UICorner")
-    avatarCorner.CornerRadius = UDim.new(0, 12)
-    avatarCorner.Parent = avatar
-
-    local avatarStroke = Instance.new("UIStroke")
-    avatarStroke.Color = Theme.Accent
-    avatarStroke.Thickness = 1.8
-    avatarStroke.Parent = avatar
-    Library:AddToTheme(avatarStroke, {Color = "Accent"})
-
-    local avatarDot = Instance.new("Frame")
-    avatarDot.Name = "ActiveDot"
-    avatarDot.Parent = avatarContainer
-    avatarDot.BackgroundColor3 = Color3.fromRGB(56, 239, 125)
-    avatarDot.BorderSizePixel = 0
-    avatarDot.AnchorPoint = Vector2.new(1, 1)
-    avatarDot.Position = UDim2.new(1, 2, 1, 2)
-    avatarDot.Size = UDim2.fromOffset(12, 12)
-    avatarDot.ZIndex = 5
-
-    local dotCorner = Instance.new("UICorner")
-    dotCorner.CornerRadius = UDim.new(1, 0)
-    dotCorner.Parent = avatarDot
-
-    local dotStroke = Instance.new("UIStroke")
-    dotStroke.Color = Theme.Element
-    dotStroke.Thickness = 2
-    dotStroke.Parent = avatarDot
-    Library:AddToTheme(dotStroke, {Color = "Element"})
-
-    local profileName = Instance.new("TextLabel")
-    profileName.Name = "DisplayName"
-    profileName.Parent = profileCard
-    profileName.BackgroundTransparency = 1
-    profileName.Position = UDim2.new(0, 96, 0, 14)
-    profileName.Size = UDim2.new(1, -108, 0, 22)
-    profileName.FontFace = Library.Font
-    profileName.Text = displayName
-    profileName.TextColor3 = Theme.Text
-    profileName.TextSize = 16
-    profileName.TextXAlignment = Enum.TextXAlignment.Left
-    profileName.TextTruncate = Enum.TextTruncate.AtEnd
-    Library:AddToTheme(profileName, {TextColor3 = "Text"})
-
-    local profileHandle = Instance.new("TextLabel")
-    profileHandle.Name = "Username"
-    profileHandle.Parent = profileCard
-    profileHandle.BackgroundTransparency = 1
-    profileHandle.Position = UDim2.new(0, 96, 0, 36)
-    profileHandle.Size = UDim2.new(1, -108, 0, 16)
-    profileHandle.FontFace = Library.Font
-    profileHandle.Text = "@" .. userName
-    profileHandle.TextColor3 = Theme.Accent
-    profileHandle.TextSize = 12
-    profileHandle.TextXAlignment = Enum.TextXAlignment.Left
-    profileHandle.TextTruncate = Enum.TextTruncate.AtEnd
-    Library:AddToTheme(profileHandle, {TextColor3 = "Accent"})
-
-    -- Badges Row
-    local badgesRow = Instance.new("Frame")
-    badgesRow.Name = "BadgesRow"
-    badgesRow.Parent = profileCard
-    badgesRow.BackgroundTransparency = 1
-    badgesRow.Position = UDim2.new(0, 96, 0, 58)
-    badgesRow.Size = UDim2.new(1, -108, 0, 20)
-
-    local brLayout = Instance.new("UIListLayout")
-    brLayout.Parent = badgesRow
-    brLayout.FillDirection = Enum.FillDirection.Horizontal
-    brLayout.VerticalAlignment = Enum.VerticalAlignment.Center
-    brLayout.Padding = UDim.new(0, 6)
-
-    local function updateHomeProfileBadges()
-        for _, c in ipairs(badgesRow:GetChildren()) do
-            if c:IsA("Frame") then
-                c:Destroy()
-            end
-        end
-
-        -- 1. Executor Badge
-        local execBadge = Instance.new("Frame")
-        execBadge.Name = "ExecBadge"
-        execBadge.Parent = badgesRow
-        execBadge.BackgroundColor3 = Color3.fromRGB(15, 25, 35)
-        execBadge.BorderSizePixel = 0
-        execBadge.Size = UDim2.new(0, 0, 0, 18)
-        execBadge.AutomaticSize = Enum.AutomaticSize.X
-
-        local ebCorner = Instance.new("UICorner")
-        ebCorner.CornerRadius = UDim.new(0, 4)
-        ebCorner.Parent = execBadge
-
-        local ebStroke = Instance.new("UIStroke")
-        ebStroke.Color = Color3.fromRGB(40, 120, 180)
-        ebStroke.Thickness = 1
-        ebStroke.Transparency = 0.3
-        ebStroke.Parent = execBadge
-
-        local ebPad = Instance.new("UIPadding")
-        ebPad.PaddingLeft = UDim.new(0, 6)
-        ebPad.PaddingRight = UDim.new(0, 6)
-        ebPad.Parent = execBadge
-
-        local ebLabel = Instance.new("TextLabel")
-        ebLabel.Parent = execBadge
-        ebLabel.BackgroundTransparency = 1
-        ebLabel.FontFace = Library.Font
-        ebLabel.Text = "EXECUTOR: " .. string.upper(tostring(execName))
-        ebLabel.TextColor3 = Color3.fromRGB(120, 210, 255)
-        ebLabel.TextSize = 9
-        ebLabel.Size = UDim2.new(0, 0, 1, 0)
-        ebLabel.AutomaticSize = Enum.AutomaticSize.X
-
-        -- 2. Dynamic Tag Badges from SwatwareAPI
-        local myTags = SwatwareAPI:GetTags(userName)
-        for _, rawTag in ipairs(myTags) do
-            local tagStyle = SwatwareAPI:GetTagStyle(rawTag)
-            local badge = Instance.new("Frame")
-            badge.Name = "TagBadge_" .. tostring(rawTag)
-            badge.Parent = badgesRow
-            badge.BackgroundColor3 = tagStyle.Bg
-            badge.BorderSizePixel = 0
-            badge.Size = UDim2.new(0, 0, 0, 18)
-            badge.AutomaticSize = Enum.AutomaticSize.X
-
-            local bc = Instance.new("UICorner")
-            bc.CornerRadius = UDim.new(0, 4)
-            bc.Parent = badge
-
-            local bs = Instance.new("UIStroke")
-            bs.Color = tagStyle.Border
-            bs.Thickness = 1
-            bs.Transparency = 0.2
-            bs.Parent = badge
-
-            local bp = Instance.new("UIPadding")
-            bp.PaddingLeft = UDim.new(0, 6)
-            bp.PaddingRight = UDim.new(0, 6)
-            bp.Parent = badge
-
-            local bl = Instance.new("TextLabel")
-            bl.Parent = badge
-            bl.BackgroundTransparency = 1
-            bl.FontFace = Library.Font
-            bl.Text = string.upper(tostring(rawTag))
-            bl.TextColor3 = tagStyle.Text
-            bl.TextSize = 9
-            bl.Size = UDim2.new(0, 0, 1, 0)
-            bl.AutomaticSize = Enum.AutomaticSize.X
-        end
-    end
-
-    updateHomeProfileBadges()
-    task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
-            task.wait(4)
-            pcall(updateHomeProfileBadges)
-        end
-    end)
-
-    task.spawn(function()
-        local success, image = pcall(function()
-            return Players:GetUserThumbnailAsync(
-                userId,
-                Enum.ThumbnailType.HeadShot,
-                Enum.ThumbnailSize.Size150x150
-            )
-        end)
-        if success and avatar.Parent then
-            avatar.Image = image
-        end
-    end)
-
-    -- 6-Card Session & System Metrics Grid
-    local sessionStats = Instance.new("Frame")
-    sessionStats.Name = "SessionStats"
-    sessionStats.Parent = profileContent
-    sessionStats.BackgroundTransparency = 1
-    sessionStats.Size = UDim2.new(1, 0, 0, 100)
-    sessionStats.BorderSizePixel = 0
-    sessionStats.LayoutOrder = -1
-
-    local statsLayout = Instance.new("UIGridLayout")
-    statsLayout.Parent = sessionStats
-    statsLayout.CellSize = UDim2.new(1 / 3, -4, 0, 46)
-    statsLayout.CellPadding = UDim2.new(0, 6, 0, 6)
-    statsLayout.FillDirectionMaxCells = 3
-    statsLayout.SortOrder = Enum.SortOrder.LayoutOrder
-
-    local function makeHomeStat(title, value, order)
-        local tile = Instance.new("Frame")
-        tile.Name = title:gsub("%s+", "") .. "Stat"
-        tile.Parent = sessionStats
-        tile.Size = UDim2.new(1 / 3, -4, 0, 46)
-        tile.BackgroundColor3 = Theme.Element
-        tile.BorderSizePixel = 0
-        tile.ClipsDescendants = true
-        tile.LayoutOrder = order
-        Library:AddToTheme(tile, {BackgroundColor3 = "Element"})
-
-        local corner = Instance.new("UICorner")
-        corner.CornerRadius = UDim.new(0, 8)
-        corner.Parent = tile
-
-        local stroke = Instance.new("UIStroke")
-        stroke.Color = Theme.Outline
-        stroke.Transparency = 0.5
-        stroke.Thickness = 1
-        stroke.Parent = tile
-        Library:AddToTheme(stroke, {Color = "Outline"})
-
-        local titleLabel = Instance.new("TextLabel")
-        titleLabel.Parent = tile
-        titleLabel.BackgroundTransparency = 1
-        titleLabel.Position = UDim2.new(0, 8, 0, 6)
-        titleLabel.Size = UDim2.new(1, -16, 0, 12)
-        titleLabel.FontFace = Library.Font
-        titleLabel.Text = string.upper(title)
-        titleLabel.TextColor3 = Theme.Text
-        titleLabel.TextTransparency = 0.4
-        titleLabel.TextSize = 9
-        titleLabel.TextXAlignment = Enum.TextXAlignment.Left
-        titleLabel.TextTruncate = Enum.TextTruncate.AtEnd
-        Library:AddToTheme(titleLabel, {TextColor3 = "Text"})
-
-        local valueLabel = Instance.new("TextLabel")
-        valueLabel.Parent = tile
-        valueLabel.BackgroundTransparency = 1
-        valueLabel.Position = UDim2.new(0, 8, 0, 20)
-        valueLabel.Size = UDim2.new(1, -16, 0, 20)
-        valueLabel.FontFace = Library.Font
-        valueLabel.Text = tostring(value)
-        valueLabel.TextColor3 = Theme.Accent
-        valueLabel.TextSize = 13
-        valueLabel.TextXAlignment = Enum.TextXAlignment.Left
-        valueLabel.TextTruncate = Enum.TextTruncate.AtEnd
-        Library:AddToTheme(valueLabel, {TextColor3 = "Accent"})
-        return valueLabel
-    end
-
-    local accountStat = makeHomeStat("Account age", accountAge .. " days", 1)
-    local userIdStat = makeHomeStat("User ID", userId, 2)
-    local execStat = makeHomeStat("Executor", execName, 3)
-    local fpsStat = makeHomeStat("Client FPS", tostring(fps or 60) .. " FPS", 4)
-    local pingStat = makeHomeStat("Server Ping", tostring(getPing()) .. " ms", 5)
-    local tierStat = makeHomeStat("User Tier", string.upper(SwatwareAPI:GetTags(userName)[1] or "USER"), 6)
-
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 2: Live Experience & Server Details (Side 2 - Right)
-    -- ────────────────────────────────────────────────────────────────────────
-    local SessionSection = HomePage:Section({
-        Name = "Live Server & Game",
-        Icon = ICON_CLOCK,
-        Side = 2,
-    })
-    SessionSection.Items["SectionOutline"].Instance.LayoutOrder = 1
-    SessionSection:Label("Experience: " .. tostring(game.Name))
-    SessionSection:Label("Place ID: " .. tostring(game.PlaceId))
-    SessionSection:Label("Place Version: " .. tostring(game.PlaceVersion))
-    local serverId = game.JobId ~= "" and string.sub(game.JobId, 1, 8) or "Studio"
-    SessionSection:Label("Server Job ID: " .. serverId)
-    local playersStat = SessionSection:Label(
-        string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
-    )
-
-    SessionSection:Button({
-        Name = "Copy Server Job ID",
-        Callback = function()
-            if setclipboard then
-                setclipboard(tostring(game.JobId))
-            end
-        end,
-    })
-
-    SessionSection:Button({
-        Name = "Quick Server Hop",
-        Callback = function()
-            pcall(function()
-                local HttpService = game:GetService("HttpService")
-                local TeleportService = game:GetService("TeleportService")
-                local placeId = game.PlaceId
-                local servers = HttpService:JSONDecode(game:HttpGet(
-                    "https://games.roblox.com/v1/games/" .. placeId .. "/servers/Public?sortOrder=Asc&limit=50"
-                ))
-                for _, s in ipairs(servers.data or {}) do
-                    if s.id ~= game.JobId and s.playing < s.maxPlayers then
-                        TeleportService:TeleportToPlaceInstance(placeId, s.id, Players.LocalPlayer)
-                        break
-                    end
-                end
-            end)
-        end,
-    })
-
-    SessionSection:Button({
-        Name = "Rejoin Current Server",
-        Callback = function()
-            pcall(function()
-                game:GetService("TeleportService"):TeleportToPlaceInstance(
-                    game.PlaceId,
-                    game.JobId,
-                    Players.LocalPlayer
-                )
-            end)
-        end,
-    })
-
-    task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
-            task.wait(0.5)
-            pcall(function()
-                accountStat.Text = tostring(accountAge) .. " days"
-                userIdStat.Text = tostring(userId)
-                tierStat.Text = string.upper(SwatwareAPI:GetTags(userName)[1] or "USER")
-                playersStat:SetText(
-                    string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
-                )
-                fpsStat.Text = tostring(fps or 60) .. " FPS"
-                local stats = game:GetService("Stats")
-                local pingVal = stats.Network.ServerStatsItem["Data Ping"]:GetValueString()
-                local pingNum = math.floor(tonumber(pingVal:match("%d+")) or 0)
-                pingStat.Text = tostring(pingNum) .. " ms"
-            end)
-        end
-    end)
-end
-
--- ────────────────────────────────────────────────────────────────────────────
--- 6. SETTINGS TAB (THEMES, CONFIGS, OVERLAYS & MENU SETTINGS)
--- ────────────────────────────────────────────────────────────────────────────
 do
     local SettingsPage = Window:Page({
         Name = "Settings",
         Icon = ICON_SETTINGS,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 1: Themes & Colors (Side 1 - Left)
-    -- ────────────────────────────────────────────────────────────────────────
     local ThemingSection = SettingsPage:Section({
         Name = "Themes & Colors",
         Icon = ICON_THEME,
@@ -10846,9 +10608,6 @@ do
         end
     end)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 2: Configs & Profiles (Side 1 - Left)
-    -- ────────────────────────────────────────────────────────────────────────
     local ConfigsSection = SettingsPage:Section({
         Name = "Configs & Profiles",
         Icon = ICON_CONFIGS,
@@ -10936,16 +10695,12 @@ do
 
     Library:RefreshConfigsList(ConfigsDropdown)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 3: Screen & Tactical HUD Overlays (Side 2 - Right)
-    -- ────────────────────────────────────────────────────────────────────────
     local OverlaysSection = SettingsPage:Section({
         Name = "Tactical Screen Overlays",
         Icon = ICON_CAMERA,
         Side = 2,
     })
 
-    -- Overlay State Flags
     local hudConfig = {
         Master = true,
         Watermark = true,
@@ -10970,7 +10725,6 @@ do
         Default = Enum.KeyCode.F11,
     })
 
-    -- Overlay Toggles
     OverlaysSection:Toggle({
         Name = "Watermark Overlay",
         Flag = "Overlay_Watermark",
@@ -11021,9 +10775,6 @@ do
         end,
     })
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Section 4: Menu & Window Settings (Side 2 - Right)
-    -- ────────────────────────────────────────────────────────────────────────
     local MenuSection = SettingsPage:Section({
         Name = "Menu Settings",
         Icon = ICON_DEFAULT_SEC,
@@ -11096,9 +10847,6 @@ do
     })
 end
 
--- ────────────────────────────────────────────────────────────────────────────
--- 7. REFINED TACTICAL SCREEN OVERLAYS ENGINE (WATERMARK, KEYBINDS, GAME DATA, TARGET HUD, REAL AUDIO VISUALIZER)
--- ────────────────────────────────────────────────────────────────────────────
 do
     local overlayGui = Instance.new("ScreenGui")
     overlayGui.Name = "Swatware_TacticalHUDOverlays"
@@ -11142,7 +10890,6 @@ do
         end)
     end
 
-    -- Helper to attach close button to overlay cards
     local function addCloseBtn(headerParent, flagKey, configKey)
         local closeBtn = Instance.new("TextButton")
         closeBtn.Name = "CloseBtn"
@@ -11178,9 +10925,6 @@ do
         end)
     end
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Overlay 1: Watermark HUD (Top-Left / Custom, No Top Bar)
-    -- ────────────────────────────────────────────────────────────────────────
     local watermarkFrame = Instance.new("Frame")
     watermarkFrame.Name = "WatermarkHUD"
     watermarkFrame.Parent = overlayGui
@@ -11224,9 +10968,6 @@ do
 
     makeDraggable(watermarkFrame)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Overlay 2: Keybind List HUD (No Top Bar)
-    -- ────────────────────────────────────────────────────────────────────────
     local keybindsFrame = Instance.new("Frame")
     keybindsFrame.Name = "KeybindsHUD"
     keybindsFrame.Parent = overlayGui
@@ -11296,9 +11037,6 @@ do
 
     makeDraggable(keybindsFrame, kbHeader)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Overlay 3: Game Data HUD (No Top Bar)
-    -- ────────────────────────────────────────────────────────────────────────
     local gameDataFrame = Instance.new("Frame")
     gameDataFrame.Name = "GameDataHUD"
     gameDataFrame.Parent = overlayGui
@@ -11380,9 +11118,6 @@ do
 
     makeDraggable(gameDataFrame, gdHeader)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Overlay 4: High-Fidelity Target HUD (No Top Bar)
-    -- ────────────────────────────────────────────────────────────────────────
     local targetHudCard = Instance.new("Frame")
     targetHudCard.Name = "TargetHUD"
     targetHudCard.Parent = overlayGui
@@ -11494,16 +11229,13 @@ do
 
     makeDraggable(targetHudCard)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Overlay 5: Pure Floating Sound & Audio Frequency Wave Visualizer HUD (No Background)
-    -- ────────────────────────────────────────────────────────────────────────
     local audioFrame = Instance.new("Frame")
     audioFrame.Name = "AudioVisualizerHUD"
     audioFrame.Parent = overlayGui
     audioFrame.Size = UDim2.new(0, 220, 0, 40)
     audioFrame.AnchorPoint = Vector2.new(0.5, 1)
     audioFrame.Position = UDim2.new(0.5, 0, 1, -45)
-    audioFrame.BackgroundTransparency = 1 -- PURE FLOATING (NO BG)
+    audioFrame.BackgroundTransparency = 1
     audioFrame.BorderSizePixel = 0
 
     local afBarsContainer = Instance.new("Frame")
@@ -11548,9 +11280,6 @@ do
 
     makeDraggable(audioFrame)
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Overlays Visibility & Live Refresh Logic
-    -- ────────────────────────────────────────────────────────────────────────
     local function updateOverlaysVisibility()
         local master = hudConfig.Master ~= false
         watermarkFrame.Visible = master and (hudConfig.Watermark == true)
@@ -11562,7 +11291,6 @@ do
     Library.UpdateOverlays = updateOverlaysVisibility
     updateOverlaysVisibility()
 
-    -- Live Keybinds Refresh
     local trackedBinds = {
         { Name = "Combat Aimbot", Flag = "Combat_Aimbot", Key = "E", Mode = "Hold" },
         { Name = "Triggerbot", Flag = "Combat_Triggerbot", Key = "F", Mode = "Hold" },
@@ -11636,7 +11364,6 @@ do
         end
     end
 
-    -- Target HUD Tracker (Follows nearest player or selected target)
     local targetThumbCache = {}
     local function refreshTargetHUD()
         if not hudConfig.TargetHUD then return end
@@ -11665,7 +11392,7 @@ do
             thName.Text = bestPlayer.DisplayName
             thUser.Text = "@" .. bestPlayer.Name .. " • " .. math.floor(bestDist) .. " studs"
             thHealthText.Text = string.format("%d / %d HP (%d%%)", curHp, maxHp, math.floor(hpRatio * 100))
-            
+
             TweenService:Create(thHealthFill, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Size = UDim2.new(hpRatio, 0, 1, 0),
                 BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
@@ -11691,9 +11418,6 @@ do
         end
     end
 
-    -- ────────────────────────────────────────────────────────────────────────
-    -- Universal Dynamic Audio Listener Engine (Captures ALL sounds in game)
-    -- ────────────────────────────────────────────────────────────────────────
     local sessionStartTime = tick()
     local soundCache = {}
     local soundActivityEnergy = 0
@@ -11716,7 +11440,6 @@ do
         end)
     end
 
-    -- Initial scan of all existing Sound instances across entire game
     task.spawn(function()
         pcall(function()
             for _, s in ipairs(game:GetDescendants()) do
@@ -11727,7 +11450,6 @@ do
         end)
     end)
 
-    -- Dynamic listener for any newly created sound (gunshots, footsteps, hits, voice, ambient)
     pcall(function()
         game.DescendantAdded:Connect(function(desc)
             if desc:IsA("Sound") then
@@ -11736,7 +11458,6 @@ do
         end)
     end)
 
-    -- Real-time Audio Spectrum Equalizer Loop
     task.spawn(function()
         local smoothedLoudness = 0
 
@@ -11746,7 +11467,6 @@ do
                 local totalLoudness = 0
                 local playingCount = 0
 
-                -- Scan active sounds for playback loudness and playing states
                 for idx = #soundCache, 1, -1 do
                     local sound = soundCache[idx]
                     if not sound or not sound.Parent then
@@ -11768,7 +11488,6 @@ do
                     end
                 end
 
-                -- Decay / sustain energy impulse
                 if playingCount > 0 then
                     soundActivityEnergy = math.min(soundActivityEnergy + (playingCount * 0.15), 1.0)
                 else
@@ -11778,7 +11497,6 @@ do
                 local activeEnergy = math.clamp((totalLoudness / 200) + (soundActivityEnergy * 0.8), 0, 1.0)
                 smoothedLoudness = smoothedLoudness + (activeEnergy - smoothedLoudness) * 0.4
 
-                -- Animate frequency equalizer wave bars
                 local t = tick() * 8.0
                 for i, bar in ipairs(audioBars) do
                     local normPos = i / numBars
@@ -11787,7 +11505,6 @@ do
                     local wave2 = math.cos(t * 1.7 - freqOffset * 1.5) * 0.5 + 0.5
                     local combinedWave = (wave1 * 0.6 + wave2 * 0.4)
 
-                    -- Center bell curve + stereo bounce
                     local bellCurve = math.sin(normPos * math.pi)
                     local barHeight
 
@@ -11795,7 +11512,7 @@ do
                         local dynamicPeak = (combinedWave * 26 * smoothedLoudness * (0.5 + bellCurve * 0.9)) + (math.random(0, 8) * smoothedLoudness)
                         barHeight = math.floor(4 + dynamicPeak)
                     else
-                        -- Subtle ambient pulse
+
                         barHeight = math.floor(3 + combinedWave * 6 * (0.4 + bellCurve * 0.6))
                     end
 
@@ -11808,7 +11525,6 @@ do
         end
     end)
 
-    -- Periodic HUD Data Refresh (Watermark, Game Data, Keybinds, Target HUD)
     task.spawn(function()
         while not unloaded and getgenv().AltHackGen == GEN do
             task.wait(0.25)
@@ -11818,21 +11534,17 @@ do
                 local pingNum = math.floor(tonumber(pingVal:match("%d+")) or 0)
                 local timeStr = os.date("%X")
 
-                -- Formatted session uptime
                 local elapsedSec = math.floor(tick() - sessionStartTime)
                 local hours = math.floor(elapsedSec / 3600)
                 local mins = math.floor((elapsedSec % 3600) / 60)
                 local secs = elapsedSec % 60
                 local uptimeStr = string.format("%02d:%02d:%02d", hours, mins, secs)
 
-                -- Watermark text
                 wmLabel.Text = string.format("swatware  |  %s  |  %d FPS  |  %d ms  |  %s", userName, fps or 60, pingNum, timeStr)
 
-                -- Game Data
                 gdPlayers.Text = string.format("Players: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
                 gdUptime.Text = "Session: " .. uptimeStr
 
-                -- Keybinds & Target HUD
                 refreshKeybindsHUD()
                 refreshTargetHUD()
             end)
