@@ -1,5 +1,6 @@
 getgenv().AcheronGen = (tonumber(getgenv().AcheronGen) or 0) + 1
 local GEN = getgenv().AcheronGen
+print("[ACHERON] gui.lua build 2 (candidates fix) loaded")
 
 pcall(function()
     getgenv().debugInfo = false
@@ -7703,14 +7704,6 @@ do
         Default = false,
         Callback = function(val)
             espConfig.MasterEnabled = val
-            if val then
-                if not (espConfig.Box or espConfig.Name or espConfig.Health or espConfig.Distance) then
-                    espConfig.Box = true
-                    espConfig.Name = true
-                    espConfig.Health = true
-                    espConfig.Distance = true
-                end
-            end
             if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
@@ -9846,6 +9839,9 @@ do
     end
 
     _W.applyWeatherAtmosphere = function(weatherName)
+        if not Library.Flags["World_WeatherAtmosphere"] then
+            return
+        end
         _W.saveOriginalLighting()
         local color = Color3.fromRGB(255, 255, 255)
         local density, fogEnd, haze = 0.42, 2000, 3.5
@@ -10273,6 +10269,22 @@ do
     local rainToggle, snowToggle, cherryToggle
     local rainRateSlider, rainSpeedSlider, rainSizeSlider, rainWidthSlider, rainAreaSlider, rainSplashToggle
     local snowRateSlider, snowSpeedSlider, snowSizeSlider, snowAreaSlider
+
+    local weatherAtmoToggle = WeatherSection:Toggle({
+        Name = "Weather Fog & Atmosphere",
+        Flag = "World_WeatherAtmosphere",
+        Default = false,
+        Callback = function(val)
+            if not val then
+                _W.restoreOriginalLighting()
+            else
+                if _W.rainRunning then _W.applyWeatherAtmosphere("Rain")
+                elseif _W.snowRunning then _W.applyWeatherAtmosphere("Snow")
+                elseif _W.cherryRunning then _W.applyWeatherAtmosphere("Cherry")
+                end
+            end
+        end,
+    })
 
     rainToggle = WeatherSection:Toggle({
         Name = "Enable Rain",
@@ -10994,7 +11006,7 @@ do
             end)
         end
 
-        local masterOn = espConfig.MasterEnabled or espConfig.Box or espConfig.Name or espConfig.Health or espConfig.Distance or espConfig.Weapon or espConfig.Tracers or espConfig.Skeleton or espConfig.Chams or espConfig.HeadDot or espConfig.Offscreen
+        local masterOn = espConfig.MasterEnabled
         if not masterOn or unloaded or getgenv().AcheronGen ~= GEN then
             for _, data in pairs(playerESPCache) do
                 hidePlayerESP(data)
@@ -11512,10 +11524,12 @@ do
 
     local isHeadless = false
     local isKorblox = false
+    local _korbloxRestore = {}
 
     local function updateCosmeticParts(char)
         char = char or Players.LocalPlayer.Character
         if not char then return end
+        local hum = char:FindFirstChildOfClass("Humanoid")
 
         pcall(function()
             if isHeadless then
@@ -11528,19 +11542,85 @@ do
                         end
                     end
                 end
-            end
-
-            if isKorblox then
-                local rightLegParts = {"RightLeg", "RightLowerLeg", "RightUpperLeg", "RightFoot"}
-                for _, partName in ipairs(rightLegParts) do
-                    local part = char:FindFirstChild(partName)
-                    if part and part:IsA("BasePart") then
-                        part.Transparency = 1
+            else
+                local head = char:FindFirstChild("Head")
+                if head then
+                    head.Transparency = 0
+                    for _, child in ipairs(head:GetChildren()) do
+                        if child:IsA("Decal") or child:IsA("SpecialMesh") then
+                            child.Transparency = 0
+                        end
                     end
                 end
-                local rightMesh = char:FindFirstChild("Right Leg")
-                if rightMesh and rightMesh:IsA("CharacterMesh") then
-                    rightMesh:Destroy()
+            end
+
+            if isKorblox and hum then
+                if hum.RigType == Enum.HumanoidRigType.R15 then
+                    local limbs = {
+                        {"RightLowerLeg", "rbxassetid://902942093", true},
+                        {"RightUpperLeg", "rbxassetid://902942096", false, "rbxassetid://902843398"},
+                        {"RightFoot", "rbxassetid://902942089", true}
+                    }
+                    for _, info in ipairs(limbs) do
+                        local p = char:FindFirstChild(info[1])
+                        if p and p:IsA("MeshPart") then
+                            if not _korbloxRestore[info[1]] then
+                                _korbloxRestore[info[1]] = {
+                                    MeshId = p.MeshId,
+                                    TextureID = p.TextureID,
+                                    Transparency = p.Transparency
+                                }
+                            end
+                            p.MeshId = info[2]
+                            if info[3] then p.Transparency = 1 end
+                            if info[4] then p.TextureID = info[4] end
+                        end
+                    end
+                else
+                    local base = char:FindFirstChild("Right Leg")
+                    if base and base:IsA("BasePart") then
+                        base.Transparency = 1
+                        local oldShell = char:FindFirstChild("AcheronKorbloxLeg")
+                        if oldShell then oldShell:Destroy() end
+                        local shell = Instance.new("Part")
+                        shell.Name = "AcheronKorbloxLeg"
+                        shell.Size = Vector3.new(1, 2, 1)
+                        shell.CanCollide = false
+                        shell.Massless = true
+                        shell.CFrame = base.CFrame * CFrame.new(0, 0.75, 0)
+                        shell.Parent = char
+
+                        local lock = Instance.new("WeldConstraint")
+                        lock.Part0 = shell
+                        lock.Part1 = base
+                        lock.Parent = shell
+
+                        local mesh = Instance.new("SpecialMesh")
+                        mesh.MeshType = Enum.MeshType.FileMesh
+                        mesh.MeshId = "rbxassetid://902942093"
+                        mesh.TextureId = "rbxassetid://902843398"
+                        mesh.Scale = Vector3.new(0.85, 1.25, 0.85)
+                        mesh.Parent = shell
+                    end
+                end
+            else
+                if hum and hum.RigType == Enum.HumanoidRigType.R15 then
+                    for name, props in pairs(_korbloxRestore) do
+                        local p = char:FindFirstChild(name)
+                        if p and p:IsA("MeshPart") then
+                            p.MeshId = props.MeshId
+                            p.TextureID = props.TextureID
+                            p.Transparency = props.Transparency
+                        end
+                    end
+                    _korbloxRestore = {}
+                else
+                    local base = char:FindFirstChild("Right Leg")
+                    if base and base:IsA("BasePart") then
+                        base.Transparency = 0
+                    end
+                    local oldShell = char:FindFirstChild("AcheronKorbloxLeg")
+                    if oldShell then oldShell:Destroy() end
                 end
             end
         end)
