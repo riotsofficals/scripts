@@ -7067,12 +7067,12 @@ do
             end
         end
 
-        -- Search for NPCs/Bots in common folders
-        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies", "Targets", "Mobs", "Hostiles", "AI", "Dummies", "TrainingDummies", "EnemiesFolder", "MonsterFolder", "NPC", "Bot"}
+        -- Search for NPCs/Bots only in specific folders (lighter scan)
+        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies"}
         for _, folderName in ipairs(searchFolders) do
             local folder = Workspace:FindFirstChild(folderName)
             if folder then
-                for _, child in ipairs(folder:GetDescendants()) do
+                for _, child in ipairs(folder:GetChildren()) do
                     if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
                         local hum = child:FindFirstChildOfClass("Humanoid")
                         local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso") or child.PrimaryPart
@@ -7087,29 +7087,6 @@ do
                             })
                             added[child] = true
                         end
-                    end
-                end
-            end
-        end
-
-        -- Search workspace for models with humanoids (catch-all for bots)
-        for _, child in ipairs(Workspace:GetChildren()) do
-            if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
-                local hum = child:FindFirstChildOfClass("Humanoid")
-                local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso") or child.PrimaryPart
-                if hum and root and hum.Health > 0 then
-                    -- Check if it looks like an NPC/Bot (not a player)
-                    local isPlayer = Players:GetPlayerFromCharacter(child)
-                    if not isPlayer then
-                        table.insert(candidates, {
-                            Name = child.Name,
-                            DisplayName = child.Name,
-                            UserId = 1,
-                            Character = child,
-                            IsBot = true,
-                            Team = nil
-                        })
-                        added[child] = true
                     end
                 end
             end
@@ -9472,6 +9449,492 @@ do
     })
 
     -- Weather & Particle FX Section
+    local RAIN_TEX = "rbxassetid://124528706254337"
+    local SPLASH_TEX = "rbxassetid://123240546708836"
+    local SNOW_TEX = "rbxassetid://6490035152"
+
+    local _W = {}
+    _W.getCol3 = function(val, default)
+        if typeof(val) == "Color3" then return val end
+        if typeof(val) == "table" then
+            if typeof(val.Color) == "Color3" then return val.Color end
+            if type(val.Color) == "string" then
+                local ok, c = pcall(function() return Color3.fromHex(val.Color) end)
+                if ok then return c end
+            end
+        end
+        return default or Color3.fromRGB(255, 255, 255)
+    end
+    _W.rainSettings = { Rate = 300, Speed = 120, Size = 8, Width = 30, Radius = 100, Splashes = true, RainFogEnd = 1500, RainFogDensity = 30 }
+    _W.snowSettings = { Rate = 200, Speed = 25, Size = 3, Radius = 100, SnowFogEnd = 1800, SnowFogDensity = 25 }
+    _W.cherrySettings = { MaxPetals = 60, SpawnRate = 0.08, FallSpeed = 1.8, SpawnRadius = 50, FogEnd = 2000, FogDensity = 15 }
+    _W.rainRunning, _W.snowRunning, _W.cherryRunning = false, false, false
+    _W.originalLightingState = nil
+    _W.rainPart, _W.snowPart, _W.cherryPart = nil, nil, nil
+    _W.snowEmitter = nil
+    _W._rainFollowConn, _W._snowFollowConn, _W._cherryFollowConn = nil, nil, nil
+    _W._splashConn = nil
+    _W._splashFolder = nil
+    _W._rainStreaks = {}
+    _W._rainVolFolder = nil
+
+    _W.destroyRainPart = function()
+        if _W.rainPart then pcall(function() _W.rainPart:Destroy() end) _W.rainPart = nil end
+    end
+    _W.destroySnowPart = function()
+        if _W.snowPart then pcall(function() _W.snowPart:Destroy() end) _W.snowPart = nil end
+    end
+    _W.destroyCherryPart = function()
+        if _W.cherryPart then pcall(function() _W.cherryPart:Destroy() end) _W.cherryPart = nil end
+    end
+
+    _W.saveOriginalLighting = function()
+        if _W.originalLightingState then return end
+        local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+        _W.originalLightingState = {
+            FogColor = Lighting.FogColor, FogStart = Lighting.FogStart, FogEnd = Lighting.FogEnd,
+            Ambient = Lighting.Ambient, OutdoorAmbient = Lighting.OutdoorAmbient,
+            AtmoData = atmo and { Density = atmo.Density, Offset = atmo.Offset, Color = atmo.Color, Decay = atmo.Decay, Glare = atmo.Glare, Haze = atmo.Haze } or nil
+        }
+    end
+
+    _W.restoreOriginalLighting = function()
+        if not _W.originalLightingState then return end
+        Lighting.FogColor = _W.originalLightingState.FogColor
+        Lighting.FogStart = _W.originalLightingState.FogStart
+        Lighting.FogEnd = _W.originalLightingState.FogEnd
+        Lighting.Ambient = _W.originalLightingState.Ambient
+        Lighting.OutdoorAmbient = _W.originalLightingState.OutdoorAmbient
+        local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+        if _W.originalLightingState.AtmoData then
+            if not atmo then atmo = Instance.new("Atmosphere") atmo.Parent = Lighting end
+            local d = _W.originalLightingState.AtmoData
+            atmo.Density = d.Density atmo.Offset = d.Offset atmo.Color = d.Color
+            atmo.Decay = d.Decay atmo.Glare = d.Glare atmo.Haze = d.Haze
+        else
+            if atmo then atmo:Destroy() end
+        end
+        _W.originalLightingState = nil
+    end
+
+    _W.applyWeatherAtmosphere = function(weatherName)
+        _W.saveOriginalLighting()
+        local color = Color3.fromRGB(255, 255, 255)
+        local density, fogEnd, haze = 0.42, 2000, 3.5
+        if weatherName == "Cherry" then
+            color = Library.Flags["c_cherry_fog"] and _W.getCol3(Library.Flags["c_cherry_fog"]) or Color3.fromRGB(255, 230, 240)
+            density = (Library.Flags["CherryFogDensity"] or 15) / 100
+            fogEnd = Library.Flags["CherryFogEnd"] or 2000
+            haze = 2.0
+        elseif weatherName == "Rain" then
+            color = Library.Flags["c_rain_fog"] and _W.getCol3(Library.Flags["c_rain_fog"]) or Color3.fromRGB(150, 160, 170)
+            density = (Library.Flags["RainFogDensity"] or 30) / 100
+            fogEnd = Library.Flags["RainFogEnd"] or 1500
+            haze = 4.0
+        elseif weatherName == "Snow" then
+            color = Library.Flags["c_snow_fog"] and _W.getCol3(Library.Flags["c_snow_fog"]) or Color3.fromRGB(220, 225, 235)
+            density = (Library.Flags["SnowFogDensity"] or 25) / 100
+            fogEnd = Library.Flags["SnowFogEnd"] or 1800
+            haze = 3.0
+        end
+        local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+        if not atmo then atmo = Instance.new("Atmosphere") atmo.Parent = Lighting end
+        atmo.Name = "CrypticalWeatherAtmo"
+        atmo.Color = color
+        atmo.Decay = color
+        atmo.Density = density
+        atmo.Haze = haze
+        atmo.Glare = 0.5
+        atmo.Offset = 0
+        Lighting.FogColor = color
+        Lighting.FogStart = 50
+        Lighting.FogEnd = fogEnd
+    end
+
+    _W._stopRain = function()
+        if _W._rainFollowConn then _W._rainFollowConn:Disconnect() _W._rainFollowConn = nil end
+        if _W._splashConn then _W._splashConn:Disconnect() _W._splashConn = nil end
+        _W.destroyRainPart()
+        for _, s in ipairs(_W._rainStreaks) do pcall(function() s.part:Destroy() end) end
+        table.clear(_W._rainStreaks)
+        if _W._rainVolFolder then pcall(function() _W._rainVolFolder:Destroy() end) _W._rainVolFolder = nil end
+        if _W._splashFolder then pcall(function() _W._splashFolder:Destroy() end) _W._splashFolder = nil end
+    end
+
+    _W._enableRain = function()
+        local cam = Workspace.CurrentCamera
+        if not cam then return end
+        _W._stopRain()
+        _W.applyWeatherAtmosphere("Rain")
+        local rate = _W.rainSettings.Rate or 300
+        local spd = _W.rainSettings.Speed or 120
+        local sz = _W.rainSettings.Size or 8
+        local radius = _W.rainSettings.Radius or 100
+        local widthPct = (_W.rainSettings.Width or 30) / 100
+
+        local halfX = radius
+        local halfZ = radius
+        local topY = 45
+        local botY = -25
+        local span = topY - botY
+
+        local streakLen = sz * 0.9
+        local streakWid = streakLen * widthPct
+        local count = math.clamp(math.floor(rate), 10, 800)
+
+        _W._rainVolFolder = Instance.new("Folder")
+        _W._rainVolFolder.Name = "_RainVolume"
+        _W._rainVolFolder.Parent = Workspace
+
+        local baseColor = Library.Flags["c_rain"] and _W.getCol3(Library.Flags["c_rain"]) or Color3.fromRGB(190, 205, 240)
+        local camPos = cam.CFrame.Position
+
+        for i = 1, count do
+            local part = Instance.new("Part")
+            part.Anchored = true
+            part.CanCollide = false
+            part.CanQuery = false
+            part.CanTouch = false
+            part.CastShadow = false
+            part.Transparency = 1
+            part.Size = Vector3.new(0.2, 0.2, 0.2)
+            part.Parent = _W._rainVolFolder
+
+            local depthScale = 0.45 + math.random() * 1.3
+
+            local bb = Instance.new("BillboardGui")
+            bb.Adornee = part
+            bb.AlwaysOnTop = false
+            bb.LightInfluence = 0
+            bb.Size = UDim2.fromScale(streakWid * depthScale, streakLen * depthScale)
+            bb.Parent = part
+
+            local img = Instance.new("ImageLabel")
+            img.BackgroundTransparency = 1
+            img.Size = UDim2.fromScale(1, 1)
+            img.Image = RAIN_TEX
+            img.ImageColor3 = baseColor
+            img.ImageTransparency = 0.25 + math.random() * 0.25
+            img.Parent = bb
+
+            local ox = (math.random() * 2 - 1) * halfX
+            local oz = (math.random() * 2 - 1) * halfZ
+            local oy = botY + math.random() * span
+            part.CFrame = CFrame.new(camPos + Vector3.new(ox, oy, oz))
+
+            table.insert(_W._rainStreaks, {
+                part = part,
+                ox = ox,
+                oz = oz,
+                y = oy,
+                speed = spd * (0.8 + depthScale * 0.4),
+            })
+        end
+
+        _W._splashFolder = Instance.new("Folder")
+        _W._splashFolder.Name = "_RainSplashes"
+        _W._splashFolder.Parent = Workspace
+
+        _W._rainFollowConn = RunService.Heartbeat:Connect(function(dt)
+            if not _W.rainRunning then return end
+            local cpos = Workspace.CurrentCamera and Workspace.CurrentCamera.CFrame.Position or Vector3.zero
+            for _, s in ipairs(_W._rainStreaks) do
+                if not s.part.Parent then continue end
+                s.y = s.y - s.speed * dt
+                if s.y <= botY then
+                    s.y = topY
+                    s.ox = (math.random() * 2 - 1) * halfX
+                    s.oz = (math.random() * 2 - 1) * halfZ
+                end
+                s.part.CFrame = CFrame.new(cpos.X + s.ox, cpos.Y + s.y, cpos.Z + s.oz)
+            end
+        end)
+
+        local splashTimer = 0
+        if _W.rainSettings.Splashes ~= false then
+            _W._splashConn = RunService.Heartbeat:Connect(function(dt)
+                if not _W.rainRunning or not _W._splashFolder or not _W._rainVolFolder then return end
+                splashTimer = splashTimer + dt
+                if splashTimer < 0.08 then return end
+                splashTimer = 0
+                local char = Players.LocalPlayer.Character
+                local hrp = char and (char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso"))
+                if not hrp then return end
+                local hrpPos = hrp.Position
+                local splashCount = math.clamp(math.floor(rate / 80), 2, 5)
+
+                for i = 1, splashCount do
+                    local angle = math.random() * math.pi * 2
+                    local dist = math.random() * math.min(radius, 50)
+                    local origin = hrpPos + Vector3.new(math.cos(angle) * dist, 30, math.sin(angle) * dist)
+                    local rayParams = RaycastParams.new()
+                    rayParams.FilterType = Enum.RaycastFilterType.Exclude
+                    rayParams.FilterDescendantsInstances = {char, _W._splashFolder, _W._rainVolFolder}
+                    local result = Workspace:Raycast(origin, Vector3.new(0, -60, 0), rayParams)
+                    if result and result.Position then
+                        local normal = result.Normal or Vector3.new(0, 1, 0)
+                        local splashSz = sz * 0.65
+                        local splashPart = Instance.new("Part")
+                        splashPart.Anchored = true
+                        splashPart.CanCollide = false
+                        splashPart.CanQuery = false
+                        splashPart.CanTouch = false
+                        splashPart.CastShadow = false
+                        splashPart.Transparency = 1
+                        splashPart.Size = Vector3.new(splashSz, 0.05, splashSz)
+
+                        local up = Vector3.new(0, 1, 0)
+                        if math.abs(normal:Dot(up)) > 0.99 then
+                            splashPart.CFrame = CFrame.new(result.Position + normal * 0.03) * CFrame.Angles(0, math.random() * math.pi * 2, 0)
+                        else
+                            splashPart.CFrame = CFrame.lookAt(result.Position + normal * 0.03, result.Position + normal * 0.03 + normal) * CFrame.Angles(math.pi / 2, 0, math.random() * math.pi * 2)
+                        end
+                        splashPart.Parent = _W._splashFolder
+
+                        local decal = Instance.new("Decal")
+                        decal.Texture = SPLASH_TEX
+                        decal.Color3 = baseColor
+                        decal.Face = Enum.NormalId.Top
+                        decal.Transparency = 0.15
+                        decal.Parent = splashPart
+
+                        task.spawn(function()
+                            local t = 0
+                            local dur = 0.38
+                            while t < dur and splashPart and splashPart.Parent do
+                                t = t + RunService.Heartbeat:Wait()
+                                local a = math.min(t / dur, 1)
+                                local s = splashSz * (0.5 + a * 0.8)
+                                splashPart.Size = Vector3.new(s, 0.05, s)
+                                decal.Transparency = 0.15 + (a * 0.85)
+                            end
+                            if splashPart and splashPart.Parent then splashPart:Destroy() end
+                        end)
+                    end
+                end
+            end)
+        end
+    end
+
+    _W.enableRain = function()
+        if _W.rainRunning then return end
+        _W.rainRunning = true
+        _W._enableRain()
+    end
+    _W.disableRain = function()
+        _W.rainRunning = false
+        _W._stopRain()
+        _W.restoreOriginalLighting()
+    end
+    _W.refreshRain = function()
+        if _W.rainRunning then _W._stopRain() _W._enableRain() end
+    end
+
+    _W._stopSnow = function()
+        if _W._snowFollowConn then _W._snowFollowConn:Disconnect() _W._snowFollowConn = nil end
+        if _W.snowEmitter then pcall(function() _W.snowEmitter:Destroy() end) _W.snowEmitter = nil end
+        _W.destroySnowPart()
+    end
+
+    _W._enableSnow = function()
+        local cam = Workspace.CurrentCamera
+        if not cam then return end
+        _W._stopSnow()
+        _W.applyWeatherAtmosphere("Snow")
+        local rate = _W.snowSettings.Rate or 200
+        local spd = _W.snowSettings.Speed or 25
+        local sz = _W.snowSettings.Size or 3
+
+        _W.snowPart = Instance.new("Part")
+        _W.snowPart.Anchored = true
+        _W.snowPart.CanCollide = false
+        _W.snowPart.CastShadow = false
+        _W.snowPart.Transparency = 1
+        _W.snowPart.Size = Vector3.new(120, 1, 120)
+        _W.snowPart.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 50, 0))
+        _W.snowPart.Parent = cam
+
+        local closeEmitter = Instance.new("ParticleEmitter")
+        closeEmitter.Name = "_SnowClose"
+        closeEmitter.Texture = SNOW_TEX
+        closeEmitter.Color = ColorSequence.new(Color3.fromRGB(245, 250, 255))
+        closeEmitter.LightEmission = 0.8
+        closeEmitter.LightInfluence = 0
+        closeEmitter.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.05),
+            NumberSequenceKeypoint.new(0.7, 0.1),
+            NumberSequenceKeypoint.new(1, 1),
+        })
+        local closeSz = sz * 0.15
+        closeEmitter.Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, closeSz),
+            NumberSequenceKeypoint.new(0.5, closeSz * 0.8),
+            NumberSequenceKeypoint.new(1, 0),
+        })
+        closeEmitter.Rate = rate * 0.4
+        closeEmitter.Lifetime = NumberRange.new(4, 8)
+        closeEmitter.Speed = NumberRange.new(spd * 0.8, spd * 1.2)
+        closeEmitter.SpreadAngle = Vector2.new(45, 45)
+        closeEmitter.Rotation = NumberRange.new(0, 360)
+        closeEmitter.RotSpeed = NumberRange.new(-40, 40)
+        closeEmitter.VelocitySpread = 20
+        closeEmitter.Acceleration = Vector3.new(8, -6, 4)
+        closeEmitter.Drag = 0.5
+        closeEmitter.EmissionDirection = Enum.NormalId.Bottom
+        closeEmitter.Parent = _W.snowPart
+        _W.snowEmitter = closeEmitter
+
+        local midEmitter = Instance.new("ParticleEmitter")
+        midEmitter.Name = "_SnowMid"
+        midEmitter.Texture = SNOW_TEX
+        midEmitter.Color = ColorSequence.new(Color3.fromRGB(240, 246, 255))
+        midEmitter.LightEmission = 0.85
+        midEmitter.LightInfluence = 0
+        midEmitter.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.15),
+            NumberSequenceKeypoint.new(0.7, 0.25),
+            NumberSequenceKeypoint.new(1, 1),
+        })
+        local midSz = sz * 0.08
+        midEmitter.Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, midSz),
+            NumberSequenceKeypoint.new(0.5, midSz),
+            NumberSequenceKeypoint.new(1, 0),
+        })
+        midEmitter.Rate = rate * 0.35
+        midEmitter.Lifetime = NumberRange.new(6, 10)
+        midEmitter.Speed = NumberRange.new(spd * 0.6, spd * 0.9)
+        midEmitter.SpreadAngle = Vector2.new(60, 60)
+        midEmitter.Rotation = NumberRange.new(0, 360)
+        midEmitter.RotSpeed = NumberRange.new(-25, 25)
+        midEmitter.VelocitySpread = 30
+        midEmitter.Acceleration = Vector3.new(12, -4, 8)
+        midEmitter.Drag = 0.3
+        midEmitter.EmissionDirection = Enum.NormalId.Bottom
+        midEmitter.Parent = _W.snowPart
+
+        local farEmitter = Instance.new("ParticleEmitter")
+        farEmitter.Name = "_SnowFar"
+        farEmitter.Texture = SNOW_TEX
+        farEmitter.Color = ColorSequence.new(Color3.fromRGB(235, 242, 255))
+        farEmitter.LightEmission = 0.9
+        farEmitter.LightInfluence = 0
+        farEmitter.Transparency = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.3),
+            NumberSequenceKeypoint.new(0.7, 0.4),
+            NumberSequenceKeypoint.new(1, 1),
+        })
+        local farSz = sz * 0.04
+        farEmitter.Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, farSz),
+            NumberSequenceKeypoint.new(0.5, farSz),
+            NumberSequenceKeypoint.new(1, 0),
+        })
+        farEmitter.Rate = rate * 0.5
+        farEmitter.Lifetime = NumberRange.new(8, 14)
+        farEmitter.Speed = NumberRange.new(spd * 0.4, spd * 0.7)
+        farEmitter.SpreadAngle = Vector2.new(90, 90)
+        farEmitter.Rotation = NumberRange.new(0, 360)
+        farEmitter.RotSpeed = NumberRange.new(-15, 15)
+        farEmitter.VelocitySpread = 40
+        farEmitter.Acceleration = Vector3.new(15, -3, 10)
+        farEmitter.Drag = 0.2
+        farEmitter.EmissionDirection = Enum.NormalId.Bottom
+        farEmitter.Parent = _W.snowPart
+
+        local windTime = 0
+        _W._snowFollowConn = RunService.RenderStepped:Connect(function()
+            if not _W.snowRunning or not _W.snowPart then return end
+            windTime = windTime + 0.016
+            local windX = 8 + math.sin(windTime * 0.3) * 6
+            local windZ = 4 + math.cos(windTime * 0.25) * 4
+            closeEmitter.Acceleration = Vector3.new(windX, -6, windZ)
+            midEmitter.Acceleration = Vector3.new(windX * 1.5, -4, windZ * 1.5)
+            farEmitter.Acceleration = Vector3.new(windX * 2, -3, windZ * 2)
+            if cam then
+                _W.snowPart.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 50, 0))
+            end
+        end)
+    end
+
+    _W.enableSnow = function()
+        if _W.snowRunning then return end
+        _W.snowRunning = true
+        _W._enableSnow()
+    end
+    _W.disableSnow = function()
+        _W.snowRunning = false
+        _W._stopSnow()
+        _W.restoreOriginalLighting()
+    end
+    _W.refreshSnow = function()
+        if _W.snowRunning then _W._stopSnow() _W._enableSnow() end
+    end
+
+    _W._stopCherry = function()
+        if _W._cherryFollowConn then _W._cherryFollowConn:Disconnect() _W._cherryFollowConn = nil end
+        _W.destroyCherryPart()
+    end
+
+    _W._enableCherry = function()
+        local cam = Workspace.CurrentCamera
+        if not cam then return end
+        _W._stopCherry()
+        _W.applyWeatherAtmosphere("Cherry")
+        _W.cherryPart = Instance.new("Part")
+        _W.cherryPart.Anchored = true
+        _W.cherryPart.CanCollide = false
+        _W.cherryPart.CastShadow = false
+        _W.cherryPart.Transparency = 1
+        _W.cherryPart.Size = Vector3.new(100, 1, 100)
+        _W.cherryPart.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 40, 0))
+        _W.cherryPart.Parent = cam
+
+        local pe = Instance.new("ParticleEmitter")
+        pe.Name = "CherryPetals"
+        pe.Color = ColorSequence.new(Color3.fromRGB(255, 182, 193))
+        pe.LightEmission = 0.5
+        pe.LightInfluence = 0.2
+        pe.Size = NumberSequence.new({
+            NumberSequenceKeypoint.new(0, 0.4),
+            NumberSequenceKeypoint.new(0.5, 0.6),
+            NumberSequenceKeypoint.new(1, 0.3),
+        })
+        pe.Lifetime = NumberRange.new(4, 8)
+        pe.Rate = _W.cherrySettings.MaxPetals or 60
+        pe.Speed = NumberRange.new(5, 15)
+        pe.SpreadAngle = Vector2.new(60, 60)
+        pe.Rotation = NumberRange.new(0, 360)
+        pe.RotSpeed = NumberRange.new(-50, 50)
+        pe.Acceleration = Vector3.new(3, -2, 2)
+        pe.EmissionDirection = Enum.NormalId.Bottom
+        pe.Parent = _W.cherryPart
+
+        _W._cherryFollowConn = RunService.RenderStepped:Connect(function()
+            if not _W.cherryRunning or not _W.cherryPart then return end
+            if cam then
+                _W.cherryPart.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 40, 0))
+            end
+        end)
+    end
+
+    _W.enableCherry = function()
+        if _W.cherryRunning then return end
+        _W.cherryRunning = true
+        _W._enableCherry()
+    end
+    _W.disableCherry = function()
+        _W.cherryRunning = false
+        _W._stopCherry()
+        _W.restoreOriginalLighting()
+    end
+
+    _W.clearAllWeather = function()
+        _W.disableRain()
+        _W.disableSnow()
+        _W.disableCherry()
+    end
+
     local WeatherSection = VisualsPage:Section({
         Name = "Weather & Particles",
         Icon = ICON_SPARKLES,
@@ -9479,116 +9942,198 @@ do
     })
     registerVisualsSubtab("World", WeatherSection)
 
-    local weatherFxFolder = nil
-    local function getWeatherFolder()
-        if not weatherFxFolder or not weatherFxFolder.Parent then
-            weatherFxFolder = Instance.new("Folder")
-            weatherFxFolder.Name = "Cryptical_WeatherFX"
-            weatherFxFolder.Parent = Workspace
-        end
-        return weatherFxFolder
-    end
+    local rainToggle, snowToggle, cherryToggle
+    local rainRateSlider, rainSpeedSlider, rainSizeSlider, rainWidthSlider, rainAreaSlider, rainSplashToggle
+    local snowRateSlider, snowSpeedSlider, snowSizeSlider, snowAreaSlider
 
-    local weatherData = {
-        Rain = false,
-        Snow = false,
-        WindSpeed = 10,
-    }
-
-    WeatherSection:Toggle({
-        Name = "Enable Rain FX",
-        Flag = "World_RainFX",
+    rainToggle = WeatherSection:Toggle({
+        Name = "Enable Rain",
+        Flag = "World_Rain",
         Default = false,
         Callback = function(val)
-            weatherData.Rain = val
-            pcall(function()
-                local folder = getWeatherFolder()
-                local existingRain = folder:FindFirstChild("RainEmitter")
-                if val then
-                    if not existingRain then
-                        local part = Instance.new("Part")
-                        part.Name = "RainEmitter"
-                        part.Size = Vector3.new(250, 1, 250)
-                        part.Transparency = 1
-                        part.Anchored = true
-                        part.CanCollide = false
-                        part.Parent = folder
-
-                        local pe = Instance.new("ParticleEmitter")
-                        pe.Name = "RainParticles"
-                        pe.Texture = "rbxassetid://159454288"
-                        pe.Rate = 180
-                        pe.Speed = NumberRange.new(60, 90)
-                        pe.Lifetime = NumberRange.new(1.2, 2.0)
-                        pe.Size = NumberSequence.new(0.4, 0.6)
-                        pe.Transparency = NumberSequence.new(0.3)
-                        pe.Orientation = Enum.ParticleOrientation.FacingCamera
-                        pe.Parent = part
-                    end
-                else
-                    if existingRain then existingRain:Destroy() end
-                end
-            end)
+            if val then
+                if snowToggle then snowToggle:Set(false) end
+                if cherryToggle then cherryToggle:Set(false) end
+                _W.clearAllWeather()
+                _W.enableRain()
+            else
+                _W.disableRain()
+            end
+            if rainRateSlider then rainRateSlider:SetVisibility(val) end
+            if rainSpeedSlider then rainSpeedSlider:SetVisibility(val) end
+            if rainSizeSlider then rainSizeSlider:SetVisibility(val) end
+            if rainWidthSlider then rainWidthSlider:SetVisibility(val) end
+            if rainAreaSlider then rainAreaSlider:SetVisibility(val) end
+            if rainSplashToggle then rainSplashToggle:SetVisibility(val) end
         end,
     })
 
-    WeatherSection:Toggle({
-        Name = "Enable Snow FX",
-        Flag = "World_SnowFX",
-        Default = false,
-        Callback = function(val)
-            weatherData.Snow = val
-            pcall(function()
-                local folder = getWeatherFolder()
-                local existingSnow = folder:FindFirstChild("SnowEmitter")
-                if val then
-                    if not existingSnow then
-                        local part = Instance.new("Part")
-                        part.Name = "SnowEmitter"
-                        part.Size = Vector3.new(250, 1, 250)
-                        part.Transparency = 1
-                        part.Anchored = true
-                        part.CanCollide = false
-                        part.Parent = folder
-
-                        local pe = Instance.new("ParticleEmitter")
-                        pe.Name = "SnowParticles"
-                        pe.Texture = "rbxassetid://418952578"
-                        pe.Rate = 120
-                        pe.Speed = NumberRange.new(8, 20)
-                        pe.Lifetime = NumberRange.new(3.0, 5.0)
-                        pe.Size = NumberSequence.new(0.2, 0.4)
-                        pe.Transparency = NumberSequence.new(0.2)
-                        pe.Parent = part
-                    end
-                else
-                    if existingSnow then existingSnow:Destroy() end
-                end
-            end)
+    rainRateSlider = WeatherSection:Slider({
+        Name = "Rain Rate",
+        Flag = "World_RainRate",
+        Min = 10,
+        Max = 800,
+        Default = 300,
+        Callback = function(v)
+            _W.rainSettings.Rate = v
+            _W.refreshRain()
         end,
     })
 
-    task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
-            pcall(function()
-                if weatherFxFolder then
-                    local cam = Workspace.CurrentCamera
-                    if cam then
-                        local rainP = weatherFxFolder:FindFirstChild("RainEmitter")
-                        if rainP then
-                            rainP.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 45, 0))
-                        end
-                        local snowP = weatherFxFolder:FindFirstChild("SnowEmitter")
-                        if snowP then
-                            snowP.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 35, 0))
-                        end
-                    end
-                end
-            end)
-            task.wait(0.05)
-        end
-    end)
+    rainSpeedSlider = WeatherSection:Slider({
+        Name = "Rain Speed",
+        Flag = "World_RainSpeed",
+        Min = 10,
+        Max = 300,
+        Default = 120,
+        Callback = function(v)
+            _W.rainSettings.Speed = v
+            _W.refreshRain()
+        end,
+    })
 
+    rainSizeSlider = WeatherSection:Slider({
+        Name = "Rain Size",
+        Flag = "World_RainSize",
+        Min = 1,
+        Max = 40,
+        Default = 8,
+        Callback = function(v)
+            _W.rainSettings.Size = v
+            _W.refreshRain()
+        end,
+    })
+
+    rainWidthSlider = WeatherSection:Slider({
+        Name = "Rain Width",
+        Flag = "World_RainWidth",
+        Min = 1,
+        Max = 100,
+        Default = 30,
+        Suffix = "%",
+        Callback = function(v)
+            _W.rainSettings.Width = v
+            _W.refreshRain()
+        end,
+    })
+
+    rainAreaSlider = WeatherSection:Slider({
+        Name = "Rain Radius",
+        Flag = "World_RainRadius",
+        Min = 10,
+        Max = 300,
+        Default = 100,
+        Callback = function(v)
+            _W.rainSettings.Radius = v
+            _W.refreshRain()
+        end,
+    })
+
+    rainSplashToggle = WeatherSection:Toggle({
+        Name = "Rain Splashes",
+        Flag = "World_RainSplashes",
+        Default = true,
+        Callback = function(v)
+            _W.rainSettings.Splashes = v
+            _W.refreshRain()
+        end,
+    })
+
+    rainRateSlider:SetVisibility(false)
+    rainSpeedSlider:SetVisibility(false)
+    rainSizeSlider:SetVisibility(false)
+    rainWidthSlider:SetVisibility(false)
+    rainAreaSlider:SetVisibility(false)
+    rainSplashToggle:SetVisibility(false)
+
+    snowToggle = WeatherSection:Toggle({
+        Name = "Enable Snow",
+        Flag = "World_Snow",
+        Default = false,
+        Callback = function(val)
+            if val then
+                if rainToggle then rainToggle:Set(false) end
+                if cherryToggle then cherryToggle:Set(false) end
+                _W.clearAllWeather()
+                _W.enableSnow()
+            else
+                _W.disableSnow()
+            end
+            if snowRateSlider then snowRateSlider:SetVisibility(val) end
+            if snowSpeedSlider then snowSpeedSlider:SetVisibility(val) end
+            if snowSizeSlider then snowSizeSlider:SetVisibility(val) end
+            if snowAreaSlider then snowAreaSlider:SetVisibility(val) end
+        end,
+    })
+
+    snowRateSlider = WeatherSection:Slider({
+        Name = "Snow Rate",
+        Flag = "World_SnowRate",
+        Min = 10,
+        Max = 500,
+        Default = 200,
+        Callback = function(v)
+            _W.snowSettings.Rate = v
+            _W.refreshSnow()
+        end,
+    })
+
+    snowSpeedSlider = WeatherSection:Slider({
+        Name = "Snow Speed",
+        Flag = "World_SnowSpeed",
+        Min = 5,
+        Max = 150,
+        Default = 25,
+        Callback = function(v)
+            _W.snowSettings.Speed = v
+            _W.refreshSnow()
+        end,
+    })
+
+    snowSizeSlider = WeatherSection:Slider({
+        Name = "Snow Size",
+        Flag = "World_SnowSize",
+        Min = 1,
+        Max = 15,
+        Default = 3,
+        Callback = function(v)
+            _W.snowSettings.Size = v
+            _W.refreshSnow()
+        end,
+    })
+
+    snowAreaSlider = WeatherSection:Slider({
+        Name = "Snow Radius",
+        Flag = "World_SnowRadius",
+        Min = 10,
+        Max = 300,
+        Default = 100,
+        Callback = function(v)
+            _W.snowSettings.Radius = v
+            _W.refreshSnow()
+        end,
+    })
+
+    snowRateSlider:SetVisibility(false)
+    snowSpeedSlider:SetVisibility(false)
+    snowSizeSlider:SetVisibility(false)
+    snowAreaSlider:SetVisibility(false)
+
+    cherryToggle = WeatherSection:Toggle({
+        Name = "Enable Cherry Blossoms",
+        Flag = "World_Cherry",
+        Default = false,
+        Callback = function(val)
+            if val then
+                if rainToggle then rainToggle:Set(false) end
+                if snowToggle then snowToggle:Set(false) end
+                _W.clearAllWeather()
+                _W.enableCherry()
+            else
+                _W.disableCherry()
+            end
+        end,
+    })
     -- Shading & Post-Processing FX Section
     local ShadingSection = VisualsPage:Section({
         Name = "Shading & Color FX",
@@ -9741,6 +10286,27 @@ do
         Default = "SmoothPlastic",
         Callback = function(val)
             worldMaterialData.Material = val
+            -- Auto-apply if enabled
+            if worldMaterialData.Enabled then
+                local materialMap = {
+                    SmoothPlastic = Enum.Material.SmoothPlastic,
+                    Neon = Enum.Material.Neon,
+                    ForceField = Enum.Material.ForceField,
+                    Glass = Enum.Material.Glass,
+                    Metal = Enum.Material.Metal,
+                    Marble = Enum.Material.Marble,
+                    Granite = Enum.Material.Granite,
+                    Slate = Enum.Material.Slate,
+                    Wood = Enum.Material.Wood,
+                    Ice = Enum.Material.Ice,
+                    Fabric = Enum.Material.Fabric,
+                    Plastic = Enum.Material.Plastic,
+                }
+                local targetMaterial = materialMap[val] or Enum.Material.SmoothPlastic
+                for part, _ in pairs(worldMaterialData.OriginalMaterials) do
+                    pcall(function() part.Material = targetMaterial end)
+                end
+            end
         end,
     })
 
@@ -9775,9 +10341,10 @@ do
 
             local targetMaterial = materialMap[worldMaterialData.Material] or Enum.Material.SmoothPlastic
 
+            -- Use GetDescendants but in chunks to prevent lag
+            local allParts = {}
             for _, obj in ipairs(Workspace:GetDescendants()) do
                 if obj:IsA("BasePart") and obj.Name ~= "HumanoidRootPart" then
-                    -- Skip player characters
                     local isPlayerPart = false
                     for _, player in ipairs(Players:GetPlayers()) do
                         if player.Character and obj:IsDescendantOf(player.Character) then
@@ -9785,17 +10352,22 @@ do
                             break
                         end
                     end
-
                     if not isPlayerPart then
-                        if not worldMaterialData.OriginalMaterials[obj] then
-                            worldMaterialData.OriginalMaterials[obj] = obj.Material
-                        end
-                        pcall(function()
-                            obj.Material = targetMaterial
-                        end)
+                        table.insert(allParts, obj)
                     end
                 end
             end
+
+            -- Apply in batches
+            task.spawn(function()
+                for i, obj in ipairs(allParts) do
+                    if not worldMaterialData.OriginalMaterials[obj] then
+                        worldMaterialData.OriginalMaterials[obj] = obj.Material
+                    end
+                    pcall(function() obj.Material = targetMaterial end)
+                    if i % 100 == 0 then task.wait() end -- Prevent lag spike
+                end
+            end)
         end,
     })
 
@@ -10114,16 +10686,30 @@ do
         local animGradOffset = espConfig.GradientText and Vector2.new((tick() * 1.2) % 2 - 1, 0) or Vector2.zero
         local curGradSeq = getEspTextGradientSequence(espConfig.GradientMode, espConfig.GradientColor1, espConfig.GradientColor2)
 
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= Players.LocalPlayer then
+        local currentFrameCandidates = {}
+        local candidates = getAllTargetCandidates()
+
+        for _, p in ipairs(candidates) do
+            local isRealPlayer = (typeof(p) == "Instance" and p:IsA("Player"))
+            local isLocal = (isRealPlayer and p == Players.LocalPlayer)
+
+            if not isLocal then
+                currentFrameCandidates[p] = true
                 local data = playerESPCache[p] or createPlayerESP(p)
                 local char = p.Character
+                if not char and isRealPlayer then
+                    local pFolder = Workspace:FindFirstChild("Players") or Workspace:FindFirstChild("players")
+                    if pFolder then
+                        char = pFolder:FindFirstChild(p.Name)
+                    end
+                end
 
                 local passTeam = not espConfig.TeamCheck
+                    or not isRealPlayer
                     or (p.Team == nil or Players.LocalPlayer.Team == nil or p.Team ~= Players.LocalPlayer.Team)
 
                 if char and passTeam then
-                    local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso")
+                    local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso") or char.PrimaryPart
                     local hum = char:FindFirstChildOfClass("Humanoid")
 
                     if root and hum and hum.Health > 0 then
@@ -10308,8 +10894,9 @@ do
                                 end
 
                                 if espConfig.Name then
+                                    local dispName = p.DisplayName or p.Name
                                     data.NameLabel.Visible = true
-                                    data.NameLabel.Text = p.DisplayName .. " (@" .. p.Name .. ")"
+                                    data.NameLabel.Text = (dispName ~= p.Name) and (dispName .. " (@" .. p.Name .. ")") or p.Name
                                     data.NameLabel.TextColor3 = espConfig.NameColor
                                     data.NameLabel.Position = UDim2.fromOffset(root2d.X - 100, boxY - 16)
                                     data.NameLabel.Size = UDim2.fromOffset(200, 14)
@@ -10441,7 +11028,6 @@ do
                                         end
                                         restorePlayerMaterials(p)
                                     else
-
                                         if data.Highlight then
                                             data.Highlight.Enabled = false
                                         end
@@ -10482,6 +11068,55 @@ do
                                                         part.Transparency = effectiveFillTrans
                                                     end
                                                     part.Color = espConfig.ChamsColor
+                                                end)
+                                            end
+                                        end
+                                    end
+                                else
+                                    if data.Highlight then
+                                        data.Highlight.Enabled = false
+                                    end
+                                    restorePlayerMaterials(p)
+                                end
+                            else
+                                hidePlayerESP(data)
+                                if espConfig.Offscreen and data.OffscreenArrow and rootPos then
+                                    local camCFrame = cam.CFrame
+                                    local toTarget = (rootPos - camCFrame.Position).Unit
+                                    local forward = camCFrame.LookVector
+                                    local right = camCFrame.RightVector
+                                    local up = camCFrame.UpVector
+
+                                    local dotRight = right:Dot(toTarget)
+                                    local dotUp = up:Dot(toTarget)
+
+                                    local angle = math.atan2(-dotRight, dotUp)
+                                    local radius = espConfig.OffscreenRadius or 220
+                                    local arrowPos = screenCenter + Vector2.new(math.sin(angle) * radius, -math.cos(angle) * radius)
+
+                                    data.OffscreenArrow.Visible = true
+                                    data.OffscreenArrow.Position = UDim2.fromOffset(arrowPos.X, arrowPos.Y)
+                                    data.OffscreenArrow.Rotation = math.deg(angle) + 180
+                                    data.OffscreenArrow.ImageColor3 = espConfig.OffscreenColor
+                                end
+                            end
+                        else
+                            hidePlayerESP(data)
+                        end
+                    else
+                        hidePlayerESP(data)
+                    end
+                else
+                    hidePlayerESP(data)
+                end
+            end
+        end
+
+        for cachedP, data in pairs(playerESPCache) do
+            if not currentFrameCandidates[cachedP] then
+                hidePlayerESP(data)
+            end
+        end
                                                 end)
                                             end
                                         end
