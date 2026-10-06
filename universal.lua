@@ -5579,6 +5579,62 @@ task.spawn(function()
  end)
 
 local BUILT_IN_THEMES = {
+    ["Default"] = {
+        Background = Color3.fromRGB(10, 10, 12),
+        Inline = Color3.fromRGB(16, 16, 18),
+        Element = Color3.fromRGB(22, 22, 26),
+        Outline = Color3.fromRGB(35, 35, 40),
+        Accent = Color3.fromRGB(255, 255, 255),
+        Text = Color3.fromRGB(240, 240, 245)
+    },
+    ["Glasstopia"] = {
+        Background = Color3.fromRGB(12, 16, 24),
+        Inline = Color3.fromRGB(18, 24, 36),
+        Element = Color3.fromRGB(24, 32, 48),
+        Outline = Color3.fromRGB(50, 75, 110),
+        Accent = Color3.fromRGB(130, 215, 255),
+        Text = Color3.fromRGB(235, 245, 255)
+    },
+    ["Waterbreed"] = {
+        Background = Color3.fromRGB(8, 14, 18),
+        Inline = Color3.fromRGB(12, 22, 28),
+        Element = Color3.fromRGB(18, 34, 44),
+        Outline = Color3.fromRGB(30, 60, 76),
+        Accent = Color3.fromRGB(45, 190, 210),
+        Text = Color3.fromRGB(220, 245, 250)
+    },
+    ["Bloodfall"] = {
+        Background = Color3.fromRGB(12, 8, 8),
+        Inline = Color3.fromRGB(20, 12, 12),
+        Element = Color3.fromRGB(32, 18, 18),
+        Outline = Color3.fromRGB(65, 28, 28),
+        Accent = Color3.fromRGB(245, 55, 65),
+        Text = Color3.fromRGB(250, 230, 230)
+    },
+    ["Treetops"] = {
+        Background = Color3.fromRGB(8, 12, 9),
+        Inline = Color3.fromRGB(14, 20, 15),
+        Element = Color3.fromRGB(20, 32, 22),
+        Outline = Color3.fromRGB(36, 60, 40),
+        Accent = Color3.fromRGB(72, 215, 110),
+        Text = Color3.fromRGB(230, 248, 235)
+    },
+    ["Sunset"] = {
+        Background = Color3.fromRGB(14, 10, 14),
+        Inline = Color3.fromRGB(24, 16, 22),
+        Element = Color3.fromRGB(36, 22, 30),
+        Outline = Color3.fromRGB(70, 38, 52),
+        Accent = Color3.fromRGB(255, 120, 65),
+        Text = Color3.fromRGB(255, 240, 235)
+    },
+    ["Snowfall"] = {
+        Background = Color3.fromRGB(11, 13, 17),
+        Inline = Color3.fromRGB(17, 21, 28),
+        Element = Color3.fromRGB(25, 31, 42),
+        Outline = Color3.fromRGB(48, 60, 80),
+        Accent = Color3.fromRGB(210, 235, 255),
+        Text = Color3.fromRGB(245, 250, 255)
+    },
     ["Monochrome"] = {
         Background = Color3.fromRGB(10, 10, 12),
         Inline = Color3.fromRGB(16, 16, 18),
@@ -13160,6 +13216,13 @@ do
     })
 
     local themeNames = {
+        "Default",
+        "Glasstopia",
+        "Waterbreed",
+        "Bloodfall",
+        "Treetops",
+        "Sunset",
+        "Snowfall",
         "Monochrome",
         "Dark Classic",
         "Slate Grey",
@@ -13170,7 +13233,7 @@ do
         Name = "Built-in Themes",
         Flag = "Theme_PresetDropdown",
         Items = themeNames,
-        Default = "Monochrome",
+        Default = "Default",
         Callback = function(themeName)
             local preset = BUILT_IN_THEMES[themeName]
             if preset then
@@ -13183,6 +13246,19 @@ do
                         end)
                     end
                 end
+
+                -- Glasstopia transparency effect
+                pcall(function()
+                    local holderFrame = Library.Holder and Library.Holder.Instance
+                    if holderFrame then
+                        if themeName == "Glasstopia" then
+                            holderFrame.BackgroundTransparency = 0.22
+                        else
+                            holderFrame.BackgroundTransparency = 0
+                        end
+                    end
+                end)
+
                 if Library.ESPConfig and Library.ESPConfig.ThemeSync and preset.Accent then
                     Library.ESPConfig.BoxColor = preset.Accent
                     Library.ESPConfig.TracerColor = preset.Accent
