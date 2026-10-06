@@ -6011,7 +6011,7 @@ do
     )
 
     local AimbotMainSection = CombatPage:Section({
-        Name = "Main Aimbot",
+        Name = "Aimbot",
         Icon = ICON_COMBAT,
         Side = 1,
     })
@@ -6263,7 +6263,7 @@ do
     })
     registerCombatSubtab("Aimbot", AimbotFOVSection)
 
-    local drawFovToggle, fovSizeSlider, fovOutlineAlphaSlider, fovFillAlphaSlider, fovSidesSlider, fovSpinToggle, fovSpinSpeedSlider, fovPlacementDropdown
+    local drawFovToggle, fovSizeSlider, fovOutlineAlphaSlider, fovFillAlphaSlider, fovSidesSlider, fovSpinToggle, fovSpinSpeedSlider, fovRainbowToggle, fovPulseToggle, fovDynamicToggle, fovThicknessSlider, fovPlacementDropdown
 
     local useFovToggle = AimbotFOVSection:Toggle({
         Name = "Use FOV Limit",
@@ -6277,6 +6277,10 @@ do
             if fovSidesSlider then fovSidesSlider:SetVisibility(val) end
             if fovSpinToggle then fovSpinToggle:SetVisibility(val) end
             if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(val and Library.Flags["Combat_FOVSpin"] == true) end
+            if fovRainbowToggle then fovRainbowToggle:SetVisibility(val) end
+            if fovPulseToggle then fovPulseToggle:SetVisibility(val) end
+            if fovDynamicToggle then fovDynamicToggle:SetVisibility(val) end
+            if fovThicknessSlider then fovThicknessSlider:SetVisibility(val) end
             if fovPlacementDropdown then fovPlacementDropdown:SetVisibility(val) end
         end,
     })
@@ -6402,11 +6406,23 @@ do
         if jumpDelaySlider then jumpDelaySlider:SetVisibility(Library.Flags["Combat_JumpDelayToggle"] == true) end
         if pullResXSlider then pullResXSlider:SetVisibility(Library.Flags["Combat_PullResToggle"] == true) end
         if pullResYSlider then pullResYSlider:SetVisibility(Library.Flags["Combat_PullResToggle"] == true) end
-        if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(Library.Flags["Combat_FOVSpin"] == true) end
+        local fovLimitActive = Library.Flags["Combat_UseFOV"] == true
+        if drawFovToggle then drawFovToggle:SetVisibility(fovLimitActive) end
+        if fovSizeSlider then fovSizeSlider:SetVisibility(fovLimitActive) end
+        if fovOutlineAlphaSlider then fovOutlineAlphaSlider:SetVisibility(fovLimitActive) end
+        if fovFillAlphaSlider then fovFillAlphaSlider:SetVisibility(fovLimitActive) end
+        if fovSidesSlider then fovSidesSlider:SetVisibility(fovLimitActive) end
+        if fovSpinToggle then fovSpinToggle:SetVisibility(fovLimitActive) end
+        if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(fovLimitActive and Library.Flags["Combat_FOVSpin"] == true) end
+        if fovRainbowToggle then fovRainbowToggle:SetVisibility(fovLimitActive) end
+        if fovPulseToggle then fovPulseToggle:SetVisibility(fovLimitActive) end
+        if fovDynamicToggle then fovDynamicToggle:SetVisibility(fovLimitActive) end
+        if fovThicknessSlider then fovThicknessSlider:SetVisibility(fovLimitActive) end
+        if fovPlacementDropdown then fovPlacementDropdown:SetVisibility(fovLimitActive) end
     end)
 
     local SilentAimMainSection = CombatPage:Section({
-        Name = "Silent Aim Main",
+        Name = "Silent Aim",
         Icon = ICON_SPARKLES,
         Side = 1,
     })
@@ -6499,7 +6515,7 @@ do
     })
     registerCombatSubtab("Silent Aim", SilentAimFOVSection)
 
-    local sDrawFov, sFovSize, sOutlineAlpha, sFillAlpha, sFovSides, sFovSpin, sSpinSpeed, sFovPlacement
+    local sDrawFov, sFovSize, sOutlineAlpha, sFillAlpha, sFovSides, sFovSpin, sSpinSpeed, sRainbowToggle, sPulseToggle, sDynamicToggle, sThicknessSlider, sFovPlacement
 
     local sUseFovToggle = SilentAimFOVSection:Toggle({
         Name = "Use FOV Limit",
@@ -6513,6 +6529,10 @@ do
             if sFovSides then sFovSides:SetVisibility(val) end
             if sFovSpin then sFovSpin:SetVisibility(val) end
             if sSpinSpeed then sSpinSpeed:SetVisibility(val and Library.Flags["SilentAim_FOVSpin"] == true) end
+            if sRainbowToggle then sRainbowToggle:SetVisibility(val) end
+            if sPulseToggle then sPulseToggle:SetVisibility(val) end
+            if sDynamicToggle then sDynamicToggle:SetVisibility(val) end
+            if sThicknessSlider then sThicknessSlider:SetVisibility(val) end
             if sFovPlacement then sFovPlacement:SetVisibility(val) end
         end,
     })
@@ -11440,6 +11460,7 @@ end
 local hudConfig = {
     Master = false,
     Watermark = false,
+    WatermarkType = "Text",
     Keybinds = false,
     GameData = false,
     TargetHUD = false,
@@ -11690,12 +11711,26 @@ do
         Default = Enum.KeyCode.F11,
     })
 
+    local wmTypeDrop
+
     OverlaysSection:Toggle({
         Name = "Watermark Overlay",
         Flag = "Overlay_Watermark",
         Default = false,
         Callback = function(val)
             hudConfig.Watermark = val
+            if wmTypeDrop then wmTypeDrop:SetVisibility(val) end
+            if Library.UpdateOverlays then Library.UpdateOverlays() end
+        end,
+    })
+
+    wmTypeDrop = OverlaysSection:Dropdown({
+        Name = "Watermark Type",
+        Flag = "Overlay_WatermarkType",
+        Items = {"Text", "Image"},
+        Default = "Text",
+        Callback = function(val)
+            hudConfig.WatermarkType = val
             if Library.UpdateOverlays then Library.UpdateOverlays() end
         end,
     })
@@ -11881,12 +11916,32 @@ do
     wmLabel.Parent = watermarkFrame
     wmLabel.BackgroundTransparency = 1
     wmLabel.FontFace = Library.Font
-    wmLabel.Text = string.format("cryptical  |  %s  |  %d FPS  |  %d ms  |  %s", userName or "user", math.floor(fps or 60), getPing(), os.date("%X"))
-    wmLabel.TextColor3 = Theme.Text
-    wmLabel.TextSize = 12
+    wmLabel.Text = "cryptical.net"
+    wmLabel.TextColor3 = Theme.Accent or Color3.fromRGB(139, 149, 246)
+    wmLabel.TextSize = 13
     wmLabel.Size = UDim2.new(0, 0, 1, 0)
     wmLabel.AutomaticSize = Enum.AutomaticSize.X
-    Library:AddToTheme(wmLabel, {TextColor3 = "Text"})
+    Library:AddToTheme(wmLabel, {TextColor3 = "Accent"})
+
+    local wmGrad = Instance.new("UIGradient")
+    wmGrad.Name = "MonoWaveGrad"
+    wmGrad.Parent = wmLabel
+    wmGrad.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(180, 180, 195)),
+        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 40, 50)),
+        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(180, 180, 195)),
+        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 255, 255)),
+    })
+
+    local wmImage = Instance.new("ImageLabel")
+    wmImage.Name = "WatermarkImage"
+    wmImage.Parent = watermarkFrame
+    wmImage.BackgroundTransparency = 1
+    wmImage.Size = UDim2.fromOffset(120, 22)
+    wmImage.Image = "rbxassetid://112709740803927"
+    wmImage.ScaleType = Enum.ScaleType.Fit
+    wmImage.Visible = false
 
     watermarkFrame.Visible = hudConfig.Master and hudConfig.Watermark
     makeDraggable(watermarkFrame)
@@ -12156,6 +12211,9 @@ do
         local master = (hudConfig.Master ~= false)
         if watermarkFrame then
             watermarkFrame.Visible = master and (hudConfig.Watermark == true)
+            local isImage = (hudConfig.WatermarkType == "Image")
+            if wmLabel then wmLabel.Visible = not isImage end
+            if wmImage then wmImage.Visible = isImage end
         end
         if keybindsFrame then
             keybindsFrame.Visible = master and (hudConfig.Keybinds == true)
