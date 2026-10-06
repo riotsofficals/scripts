@@ -6017,6 +6017,7 @@ do
     })
     registerCombatSubtab("Aimbot", AimbotMainSection)
 
+    local aimbotToggleKeybindObj = nil
     local aimbotGroundDropdown, aimbotAirDropdown, smoothToggle, smoothSlider, easeToggle, easeDropdown, predToggle, predXSlider, predYSlider, offsetToggle, offsetYSlider, offsetXSlider, airYSlider, stickyToggle, checksDropdown
 
     local aimbotToggle = AimbotMainSection:Toggle({
@@ -6041,7 +6042,7 @@ do
             if checksDropdown then checksDropdown:SetVisibility(val) end
         end,
     })
-    aimbotToggle:Keybind({
+    aimbotToggleKeybindObj = aimbotToggle:Keybind({
         Mode = "Hold",
         Default = Enum.KeyCode.E,
     })
@@ -7179,8 +7180,11 @@ do
             combatState.SilentLocked = nil
         end
 
-        local aimbotEnabled = Library.Flags["Combat_Aimbot"] == true
-        if aimbotEnabled then
+        local aimbotMaster = Library.Flags["Combat_Aimbot"] == true
+        local aimbindState = aimbotToggleKeybindObj and aimbotToggleKeybindObj.Toggled
+        local aimbotActive = aimbotMaster and (aimbindState == nil or aimbindState == true)
+
+        if aimbotActive then
             local bestPlayer, targetPart = getBestAimbotTarget()
             if bestPlayer and targetPart then
                 combatState.AimbotTarget = bestPlayer
@@ -8807,37 +8811,13 @@ do
     }
 
     local skyboxPresets = {
-        ["Synthwave Sunset"] = {
-            Bk = "rbxassetid://600830446",
-            Dn = "rbxassetid://600831635",
-            Ft = "rbxassetid://600832720",
-            Lf = "rbxassetid://600886090",
-            Rt = "rbxassetid://600833862",
-            Up = "rbxassetid://600835177"
-        },
-        ["Cyberpunk Purple"] = {
+        ["Purple Nebula"] = {
             Bk = "rbxassetid://159454299",
             Dn = "rbxassetid://159454296",
             Ft = "rbxassetid://159454293",
             Lf = "rbxassetid://159454286",
             Rt = "rbxassetid://159454300",
             Up = "rbxassetid://159454288"
-        },
-        ["Deep Space Nebula"] = {
-            Bk = "rbxassetid://159454299",
-            Dn = "rbxassetid://159454296",
-            Ft = "rbxassetid://159454293",
-            Lf = "rbxassetid://159454286",
-            Rt = "rbxassetid://159454300",
-            Up = "rbxassetid://159454288"
-        },
-        ["Pure Dark Space"] = {
-            Bk = "rbxassetid://64448843",
-            Dn = "rbxassetid://64448847",
-            Ft = "rbxassetid://64448843",
-            Lf = "rbxassetid://64448843",
-            Rt = "rbxassetid://64448843",
-            Up = "rbxassetid://64448847"
         },
         ["Red Nebula"] = {
             Bk = "rbxassetid://401664839",
@@ -8855,13 +8835,37 @@ do
             Rt = "rbxassetid://418952424",
             Up = "rbxassetid://418952449"
         },
-        ["Twilight Blue"] = {
-            Bk = "rbxassetid://264908339",
-            Dn = "rbxassetid://264907956",
-            Ft = "rbxassetid://264909758",
-            Lf = "rbxassetid://264908920",
-            Rt = "rbxassetid://264909264",
-            Up = "rbxassetid://264909998"
+        ["Night Sky"] = {
+            Bk = "rbxassetid://12064107",
+            Dn = "rbxassetid://12064152",
+            Ft = "rbxassetid://12064121",
+            Lf = "rbxassetid://12064115",
+            Rt = "rbxassetid://12064131",
+            Up = "rbxassetid://12064144"
+        },
+        ["Blossom Pink"] = {
+            Bk = "rbxassetid://271042516",
+            Dn = "rbxassetid://271042556",
+            Ft = "rbxassetid://271042440",
+            Lf = "rbxassetid://271042310",
+            Rt = "rbxassetid://271042162",
+            Up = "rbxassetid://271042661"
+        },
+        ["Galaxy Space"] = {
+            Bk = "rbxassetid://159454299",
+            Dn = "rbxassetid://159454296",
+            Ft = "rbxassetid://159454293",
+            Lf = "rbxassetid://159454286",
+            Rt = "rbxassetid://159454300",
+            Up = "rbxassetid://159454288"
+        },
+        ["Dark Storm"] = {
+            Bk = "rbxassetid://1013852",
+            Dn = "rbxassetid://1013853",
+            Ft = "rbxassetid://1013849",
+            Lf = "rbxassetid://1013850",
+            Rt = "rbxassetid://1013851",
+            Up = "rbxassetid://1013854"
         }
     }
 
@@ -8944,8 +8948,8 @@ do
     skyboxPresetDrop = SkyboxSection:Dropdown({
         Name = "Skybox Preset",
         Flag = "World_SkyboxPreset",
-        Items = {"Synthwave Sunset", "Cyberpunk Purple", "Deep Space Nebula", "Pure Dark Space", "Red Nebula", "Vaporwave Pink", "Twilight Blue"},
-        Default = "Synthwave Sunset",
+        Items = {"Purple Nebula", "Red Nebula", "Vaporwave Pink", "Night Sky", "Blossom Pink", "Galaxy Space", "Dark Storm"},
+        Default = "Purple Nebula",
         Callback = function(val)
             skyboxData.Preset = val
             if skyboxData.Active then
