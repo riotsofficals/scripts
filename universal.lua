@@ -6352,6 +6352,12 @@ do
         Default = false,
     })
 
+    fovRainbowToggle = AimbotFOVSection:Toggle({
+        Name = "Rainbow FOV Color",
+        Flag = "Combat_FOVRainbow",
+        Default = false,
+    })
+
     fovDynamicToggle = AimbotFOVSection:Toggle({
         Name = "Dynamic Camera FOV Scaling",
         Flag = "Combat_FOVDynamic",
@@ -12582,14 +12588,71 @@ do
     Library.UpdateOverlays = updateOverlaysVisibility
     updateOverlaysVisibility()
 
-    local sessionStartTime = tick()
+    local function refreshKeybindsHUD()
+        if not (hudConfig.Master and hudConfig.Keybinds) then return end
+        for _, child in ipairs(kbList:GetChildren()) do
+            if child:IsA("Frame") or child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
 
-    local targetThumbCache = {}
+        local activeBinds = {}
+        for flagName, bindInfo in pairs(Library.Keybinds or {}) do
+            local state = Library.Flags[flagName]
+            if state == true or (type(state) == "table" and state.Enabled) then
+                local keyName = tostring(bindInfo.Key or "None")
+                if keyName ~= "None" and keyName ~= "" then
+                    table.insert(activeBinds, {Name = flagName:gsub("^[A-Za-z]+_", ""), Key = keyName})
+                end
+            end
+        end
+
+        if #activeBinds == 0 then
+            local emptyLabel = Instance.new("TextLabel")
+            emptyLabel.Parent = kbList
+            emptyLabel.BackgroundTransparency = 1
+            emptyLabel.FontFace = Library.Font
+            emptyLabel.Text = "No active keybinds"
+            emptyLabel.TextColor3 = Theme.Text
+            emptyLabel.TextTransparency = 0.5
+            emptyLabel.TextSize = 10
+            emptyLabel.Size = UDim2.new(1, 0, 0, 14)
+            emptyLabel.TextXAlignment = Enum.TextXAlignment.Left
+        else
+            for _, b in ipairs(activeBinds) do
+                local row = Instance.new("Frame")
+                row.Parent = kbList
+                row.BackgroundTransparency = 1
+                row.Size = UDim2.new(1, 0, 0, 14)
+
+                local nameLbl = Instance.new("TextLabel")
+                nameLbl.Parent = row
+                nameLbl.BackgroundTransparency = 1
+                nameLbl.FontFace = Library.Font
+                nameLbl.Text = b.Name
+                nameLbl.TextColor3 = Theme.Text
+                nameLbl.TextSize = 10
+                nameLbl.Size = UDim2.new(0.65, 0, 1, 0)
+                nameLbl.TextXAlignment = Enum.TextXAlignment.Left
+
+                local keyLbl = Instance.new("TextLabel")
+                keyLbl.Parent = row
+                keyLbl.BackgroundTransparency = 1
+                keyLbl.FontFace = Library.Font
+                keyLbl.Text = "[" .. b.Key .. "]"
+                keyLbl.TextColor3 = Theme.Accent
+                keyLbl.TextSize = 10
+                keyLbl.Size = UDim2.new(0.35, 0, 1, 0)
+                keyLbl.TextXAlignment = Enum.TextXAlignment.Right
+            end
+        end
+    end
+
+    local lastAvatarUserId = nil
     local function getActiveTarget()
         local lp = Players.LocalPlayer
         local myChar = lp and lp.Character
         local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
-        local cam = Workspace.CurrentCamera
 
         if combatState.AimbotTarget and combatState.AimbotTarget.Parent then
             local p = combatState.AimbotTarget
@@ -12611,80 +12674,16 @@ do
 
         if combatState.TargetLocked and combatState.TargetLocked.Parent then
             local char = combatState.TargetLocked
-            local p = Players:GetPlayerFromCharacter(char) or combatState.AimbotTarget or combatState.SilentTarget
+            local p = Players:GetPlayerFromCharacter(char)
             local hum = char:FindFirstChildOfClass("Humanoid")
-            if p and hum and hum.Health > 0 then
-                return p, char, hum
+            if hum and hum.Health > 0 then
+                return p or { Name = char.Name, DisplayName = char.Name, UserId = 1 }, char, hum
             end
         end
 
-        local mouseLoc = UserInputService:GetMouseLocation()
-        local bestPlayer, bestChar, bestHum = nil, nil, nil
-        local closestDist = math.huge
-
-        for _, p in ipairs(Players:GetPlayers()) do
-            if p ~= lp and p.Character then
-                local char = p.Character
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                local hrp = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Head")
-                if hum and hum.Health > 0 and hrp and cam then
-                    local pos2d, onScreen = cam:WorldToViewportPoint(hrp.Position)
-                    if onScreen and pos2d.Z > 0 then
-                        local screenDist = (Vector2.new(pos2d.X, pos2d.Y) - mouseLoc).Magnitude
-                        if screenDist < 450 and screenDist < closestDist then
-                            closestDist = screenDist
-                            bestPlayer = p
-                            bestChar = char
-                            bestHum = hum
-                        end
-                    end
-                end
-            end
-        end
-
-        if not bestPlayer and myHrp then
-            local worldDist = math.huge
-            for _, p in ipairs(Players:GetPlayers()) do
-                if p ~= lp and p.Character then
-                    local char = p.Character
-                    local hum = char:FindFirstChildOfClass("Humanoid")
-                    local hrp = char:FindFirstChild("HumanoidRootPart")
-                    if hum and hum.Health > 0 and hrp then
-                        local d = (hrp.Position - myHrp.Position).Magnitude
-                        if d < worldDist then
-                            worldDist = d
-                            bestPlayer = p
-                            bestChar = char
-                            bestHum = hum
-                        end
-                    end
-                end
-            end
-        end
-
-        if not bestPlayer and myHrp then
-            local npcDist = math.huge
-            for _, obj in ipairs(Workspace:GetChildren()) do
-                if obj:IsA("Model") and obj ~= myChar then
-                    local hum = obj:FindFirstChildOfClass("Humanoid")
-                    local hrp = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Head")
-                    if hum and hum.Health > 0 and hrp then
-                        local d = (hrp.Position - myHrp.Position).Magnitude
-                        if d < 300 and d < npcDist then
-                            npcDist = d
-                            bestPlayer = { Name = obj.Name, DisplayName = obj.Name, UserId = 1 }
-                            bestChar = obj
-                            bestHum = hum
-                        end
-                    end
-                end
-            end
-        end
-
-        return bestPlayer, bestChar, bestHum
+        return nil, nil, nil
     end
 
-    local lastAvatarUserId = nil
     local function refreshTargetHUD()
         if not (hudConfig.Master and hudConfig.TargetHUD) then return end
 
