@@ -7838,7 +7838,7 @@ do
     local ChamsSection = VisualsPage:Section({
         Name = "Chams & Materials",
         Icon = ICON_SHIELD,
-        Side = 1,
+        Side = 2,
     })
     registerVisualsSubtab("Player ESP", ChamsSection)
 
@@ -9234,6 +9234,236 @@ do
             pcall(function()
                 local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
                 if atmos then atmos.Haze = v end
+            end)
+        end,
+    })
+
+    -- Weather & Particle FX Section
+    local WeatherSection = VisualsPage:Section({
+        Name = "Weather & Particles",
+        Icon = ICON_SPARKLES,
+        Side = 1,
+    })
+    registerVisualsSubtab("World", WeatherSection)
+
+    local weatherFxFolder = nil
+    local function getWeatherFolder()
+        if not weatherFxFolder or not weatherFxFolder.Parent then
+            weatherFxFolder = Instance.new("Folder")
+            weatherFxFolder.Name = "Cryptical_WeatherFX"
+            weatherFxFolder.Parent = Workspace
+        end
+        return weatherFxFolder
+    end
+
+    local weatherData = {
+        Rain = false,
+        Snow = false,
+        WindSpeed = 10,
+    }
+
+    WeatherSection:Toggle({
+        Name = "Enable Rain FX",
+        Flag = "World_RainFX",
+        Default = false,
+        Callback = function(val)
+            weatherData.Rain = val
+            pcall(function()
+                local folder = getWeatherFolder()
+                local existingRain = folder:FindFirstChild("RainEmitter")
+                if val then
+                    if not existingRain then
+                        local part = Instance.new("Part")
+                        part.Name = "RainEmitter"
+                        part.Size = Vector3.new(250, 1, 250)
+                        part.Transparency = 1
+                        part.Anchored = true
+                        part.CanCollide = false
+                        part.Parent = folder
+
+                        local pe = Instance.new("ParticleEmitter")
+                        pe.Name = "RainParticles"
+                        pe.Texture = "rbxassetid://159454288"
+                        pe.Rate = 180
+                        pe.Speed = NumberRange.new(60, 90)
+                        pe.Lifetime = NumberRange.new(1.2, 2.0)
+                        pe.Size = NumberSequence.new(0.4, 0.6)
+                        pe.Transparency = NumberSequence.new(0.3)
+                        pe.Orientation = Enum.ParticleOrientation.FacingCamera
+                        pe.Parent = part
+                    end
+                else
+                    if existingRain then existingRain:Destroy() end
+                end
+            end)
+        end,
+    })
+
+    WeatherSection:Toggle({
+        Name = "Enable Snow FX",
+        Flag = "World_SnowFX",
+        Default = false,
+        Callback = function(val)
+            weatherData.Snow = val
+            pcall(function()
+                local folder = getWeatherFolder()
+                local existingSnow = folder:FindFirstChild("SnowEmitter")
+                if val then
+                    if not existingSnow then
+                        local part = Instance.new("Part")
+                        part.Name = "SnowEmitter"
+                        part.Size = Vector3.new(250, 1, 250)
+                        part.Transparency = 1
+                        part.Anchored = true
+                        part.CanCollide = false
+                        part.Parent = folder
+
+                        local pe = Instance.new("ParticleEmitter")
+                        pe.Name = "SnowParticles"
+                        pe.Texture = "rbxassetid://418952578"
+                        pe.Rate = 120
+                        pe.Speed = NumberRange.new(8, 20)
+                        pe.Lifetime = NumberRange.new(3.0, 5.0)
+                        pe.Size = NumberSequence.new(0.2, 0.4)
+                        pe.Transparency = NumberSequence.new(0.2)
+                        pe.Parent = part
+                    end
+                else
+                    if existingSnow then existingSnow:Destroy() end
+                end
+            end)
+        end,
+    })
+
+    task.spawn(function()
+        while not unloaded and getgenv().CrypticalGen == GEN do
+            pcall(function()
+                if weatherFxFolder then
+                    local cam = Workspace.CurrentCamera
+                    if cam then
+                        local rainP = weatherFxFolder:FindFirstChild("RainEmitter")
+                        if rainP then
+                            rainP.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 45, 0))
+                        end
+                        local snowP = weatherFxFolder:FindFirstChild("SnowEmitter")
+                        if snowP then
+                            snowP.CFrame = CFrame.new(cam.CFrame.Position + Vector3.new(0, 35, 0))
+                        end
+                    end
+                end
+            end)
+            task.wait(0.05)
+        end
+    end)
+
+    -- Shading & Post-Processing FX Section
+    local ShadingSection = VisualsPage:Section({
+        Name = "Shading & Color FX",
+        Icon = ICON_COLOR,
+        Side = 2,
+    })
+    registerVisualsSubtab("World", ShadingSection)
+
+    local ccEffect, bloomEffect, sunRaysEffect
+
+    ShadingSection:Toggle({
+        Name = "Color Correction (Shading)",
+        Flag = "World_ColorCorrection",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                if val then
+                    if not ccEffect then
+                        ccEffect = Instance.new("ColorCorrectionEffect")
+                        ccEffect.Name = "Cryptical_CC"
+                        ccEffect.Parent = Lighting
+                    end
+                    ccEffect.Enabled = true
+                else
+                    if ccEffect then ccEffect.Enabled = false end
+                end
+            end)
+        end,
+    })
+
+    ShadingSection:Slider({
+        Name = "Saturation",
+        Flag = "World_Saturation",
+        Default = 0,
+        Min = -1,
+        Max = 2,
+        Decimals = 2,
+        Callback = function(v)
+            pcall(function()
+                if ccEffect then ccEffect.Saturation = v end
+            end)
+        end,
+    })
+
+    ShadingSection:Slider({
+        Name = "Contrast",
+        Flag = "World_Contrast",
+        Default = 0,
+        Min = -1,
+        Max = 2,
+        Decimals = 2,
+        Callback = function(v)
+            pcall(function()
+                if ccEffect then ccEffect.Contrast = v end
+            end)
+        end,
+    })
+
+    ShadingSection:Toggle({
+        Name = "Bloom Effect",
+        Flag = "World_Bloom",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                if val then
+                    if not bloomEffect then
+                        bloomEffect = Instance.new("BloomEffect")
+                        bloomEffect.Name = "Cryptical_Bloom"
+                        bloomEffect.Parent = Lighting
+                    end
+                    bloomEffect.Enabled = true
+                else
+                    if bloomEffect then bloomEffect.Enabled = false end
+                end
+            end)
+        end,
+    })
+
+    ShadingSection:Slider({
+        Name = "Bloom Intensity",
+        Flag = "World_BloomIntensity",
+        Default = 1.0,
+        Min = 0.0,
+        Max = 5.0,
+        Decimals = 1,
+        Callback = function(v)
+            pcall(function()
+                if bloomEffect then bloomEffect.Intensity = v end
+            end)
+        end,
+    })
+
+    ShadingSection:Toggle({
+        Name = "Sun Rays Effect",
+        Flag = "World_SunRays",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                if val then
+                    if not sunRaysEffect then
+                        sunRaysEffect = Instance.new("SunRaysEffect")
+                        sunRaysEffect.Name = "Cryptical_SunRays"
+                        sunRaysEffect.Parent = Lighting
+                    end
+                    sunRaysEffect.Enabled = true
+                else
+                    if sunRaysEffect then sunRaysEffect.Enabled = false end
+                end
             end)
         end,
     })
