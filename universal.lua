@@ -2367,7 +2367,7 @@ local Library do
                     BorderSizePixel = 0,
                     Size = UDim2New(0, 0, 0, 26),
                     AutomaticSize = Enum.AutomaticSize.X,
-                    LayoutOrder = 1,
+                    LayoutOrder = 2,
                     ZIndex = 16
                 }):AddToTheme({BackgroundColor3 = 'Element'})
 
@@ -2453,7 +2453,7 @@ local Library do
                     Size = UDim2New(0, 26, 0, 26),
                     BackgroundColor3 = Library.Theme["Element"],
                     BorderSizePixel = 0,
-                    LayoutOrder = 2,
+                    LayoutOrder = 1,
                     ZIndex = 16
                 }):AddToTheme({BackgroundColor3 = 'Element'})
 
@@ -5307,60 +5307,11 @@ function CrypticalAPI:IsRegistered(username)
 end
 
 function CrypticalAPI:AutoRegister()
-    task.spawn(function()
-        pcall(function()
-            local lp = Players.LocalPlayer
-            if not lp then return end
-            local uName = lp.Name
-            local uId = lp.UserId
-            local exec = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Unknown"
-            local queryParams = string.format("&reg=1&user=%s&uid=%d&exec=%s", game:GetService("HttpService"):UrlEncode(uName), uId, game:GetService("HttpService"):UrlEncode(exec))
-            game:HttpGet(CrypticalAPI.Url .. "?t=" .. tostring(tick()) .. queryParams)
-        end)
-    end)
 end
 
 function CrypticalAPI:Fetch()
-    task.spawn(function()
-        local lp = Players.LocalPlayer
-        local uName = lp and lp.Name or "Unknown"
-        local uId = lp and lp.UserId or 0
-        local exec = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Native"
-        local regQuery = string.format("&u=%s&id=%s&ex=%s", game:GetService("HttpService"):UrlEncode(uName), tostring(uId), game:GetService("HttpService"):UrlEncode(exec))
-
-        local success, result = pcall(function()
-            return game:HttpGet(CrypticalAPI.Url .. "?t=" .. tostring(tick()) .. regQuery)
-        end)
-        if success and type(result) == "string" and result ~= "" then
-            local newUsers = {}
-            for line in string.gmatch(result, "[^\r\n]+") do
-                line = line:match("^%s*(.-)%s*$")
-                if line ~= "" and not line:match("^#") and not line:match("^%-%-") then
-                    local userPart, tagsPart = line:match("^([^=]+)=(.*)$")
-                    if userPart and tagsPart then
-                        userPart = userPart:match("^%s*(.-)%s*$")
-                        local lowerU = string.lower(userPart)
-                        local tagsList = {}
-                        for tag in string.gmatch(tagsPart, "([^,]+)") do
-                            local cleanTag = tag:match("^%s*(.-)%s*$")
-                            if cleanTag ~= "" then
-                                table.insert(tagsList, string.lower(cleanTag))
-                            end
-                        end
-                        if #tagsList == 0 then
-                            table.insert(tagsList, "user")
-                        end
-                        newUsers[lowerU] = {
-                            Raw = userPart,
-                            Tags = tagsList
-                        }
-                    end
-                end
-            end
-            CrypticalAPI.Users = newUsers
-            CrypticalAPI.Loaded = true
-        end
-    end)
+    self.Users = {}
+    self.Loaded = true
 end
 
 CrypticalAPI:AutoRegister()
@@ -9487,98 +9438,7 @@ do
         end,
     })
 
-    local AnimChangerSection = VisualsPage:Section({
-        Name = "Animation Changer & Bundles",
-        Icon = ICON_BOT,
-        Side = 1,
-    })
-    registerVisualsSubtab("Character", AnimChangerSection)
 
-    local animPacks = {
-        ["Default"] = { Idle1 = 180435571, Idle2 = 180435792, Walk = 180436334, Run = 180436148, Jump = 125750702, Fall = 157931322 },
-        ["Mage"] = { Idle1 = 707742142, Idle2 = 707855907, Walk = 707897309, Run = 707861613, Jump = 707853674, Fall = 707829716 },
-        ["Ninja"] = { Idle1 = 656117400, Idle2 = 656118341, Walk = 656121766, Run = 656124103, Jump = 656121766, Fall = 656115606 },
-        ["Zombie"] = { Idle1 = 616158929, Idle2 = 616160626, Walk = 616168032, Run = 616163682, Jump = 616161997, Fall = 616157476 },
-        ["Vampire"] = { Idle1 = 1083445855, Idle2 = 1083450166, Walk = 1083451631, Run = 1083452667, Jump = 1083453712, Fall = 1083443587 },
-        ["Toy"] = { Idle1 = 782841498, Idle2 = 782845736, Walk = 782843345, Run = 782842708, Jump = 782847020, Fall = 782843869 },
-        ["Knight"] = { Idle1 = 657564596, Idle2 = 657565701, Walk = 657552424, Run = 657555620, Jump = 657553854, Fall = 657563584 }
-    }
-
-    local function applyAnimPack(packName)
-        pcall(function()
-            local char = Players.LocalPlayer.Character
-            local animate = char and char:FindFirstChild("Animate")
-            local pack = animPacks[packName]
-            if animate and pack then
-                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation1") then
-                    animate.idle.Animation1.AnimationId = "rbxassetid://" .. pack.Idle1
-                end
-                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation2") then
-                    animate.idle.Animation2.AnimationId = "rbxassetid://" .. pack.Idle2
-                end
-                if animate:FindFirstChild("walk") and animate.walk:FindFirstChild("WalkAnim") then
-                    animate.walk.WalkAnim.AnimationId = "rbxassetid://" .. pack.Walk
-                end
-                if animate:FindFirstChild("run") and animate.run:FindFirstChild("RunAnim") then
-                    animate.run.RunAnim.AnimationId = "rbxassetid://" .. pack.Run
-                end
-                if animate:FindFirstChild("jump") and animate.jump:FindFirstChild("JumpAnim") then
-                    animate.jump.JumpAnim.AnimationId = "rbxassetid://" .. pack.Jump
-                end
-                if animate:FindFirstChild("fall") and animate.fall:FindFirstChild("FallAnim") then
-                    animate.fall.FallAnim.AnimationId = "rbxassetid://" .. pack.Fall
-                end
-            end
-        end)
-    end
-
-    local animPackInitialized = false
-    AnimChangerSection:Dropdown({
-        Name = "Movement Animation Pack",
-        Flag = "Visuals_AnimPack",
-        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
-        Default = "Default",
-        Callback = function(val)
-            if not animPackInitialized then
-                animPackInitialized = true
-                return
-            end
-            applyAnimPack(val)
-        end,
-    })
-
-    AnimChangerSection:Toggle({
-        Name = "Headless Horseman",
-        Flag = "Visuals_Headless",
-        Default = false,
-        Callback = function(val)
-            pcall(function()
-                local char = Players.LocalPlayer.Character
-                local head = char and char:FindFirstChild("Head")
-                if head then
-                    head.Transparency = val and 1 or 0
-                    if head:FindFirstChildOfClass("Decal") then
-                        head:FindFirstChildOfClass("Decal").Transparency = val and 1 or 0
-                    end
-                end
-            end)
-        end,
-    })
-
-    AnimChangerSection:Toggle({
-        Name = "Korblox Right Leg",
-        Flag = "Visuals_Korblox",
-        Default = false,
-        Callback = function(val)
-            pcall(function()
-                local char = Players.LocalPlayer.Character
-                local rLeg = char and (char:FindFirstChild("RightLeg") or char:FindFirstChild("RightLowerLeg"))
-                if rLeg then
-                    rLeg.Transparency = val and 1 or 0
-                end
-            end)
-        end,
-    })
 
     local InGameESPHolder = Instance.new("ScreenGui")
     InGameESPHolder.Name = "Cryptical_InGameESP"
@@ -10285,6 +10145,98 @@ do
         BHop = false,
         ClickTPActive = false,
     }
+
+    local AnimChangerSection = MiscPage:Section({
+        Name = "Animation Changer & Bundles",
+        Icon = ICON_BOT,
+        Side = 1,
+    })
+
+    local animPacks = {
+        ["Default"] = { Idle1 = 180435571, Idle2 = 180435792, Walk = 180436334, Run = 180436148, Jump = 125750702, Fall = 157931322 },
+        ["Mage"] = { Idle1 = 707742142, Idle2 = 707855907, Walk = 707897309, Run = 707861613, Jump = 707853674, Fall = 707829716 },
+        ["Ninja"] = { Idle1 = 656117400, Idle2 = 656118341, Walk = 656121766, Run = 656124103, Jump = 656121766, Fall = 656115606 },
+        ["Zombie"] = { Idle1 = 616158929, Idle2 = 616160626, Walk = 616168032, Run = 616163682, Jump = 616161997, Fall = 616157476 },
+        ["Vampire"] = { Idle1 = 1083445855, Idle2 = 1083450166, Walk = 1083451631, Run = 1083452667, Jump = 1083453712, Fall = 1083443587 },
+        ["Toy"] = { Idle1 = 782841498, Idle2 = 782845736, Walk = 782843345, Run = 782842708, Jump = 782847020, Fall = 782843869 },
+        ["Knight"] = { Idle1 = 657564596, Idle2 = 657565701, Walk = 657552424, Run = 657555620, Jump = 657553854, Fall = 657563584 }
+    }
+
+    local function applyAnimPack(packName)
+        pcall(function()
+            local char = Players.LocalPlayer.Character
+            local animate = char and char:FindFirstChild("Animate")
+            local pack = animPacks[packName]
+            if animate and pack then
+                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation1") then
+                    animate.idle.Animation1.AnimationId = "rbxassetid://" .. pack.Idle1
+                end
+                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation2") then
+                    animate.idle.Animation2.AnimationId = "rbxassetid://" .. pack.Idle2
+                end
+                if animate:FindFirstChild("walk") and animate.walk:FindFirstChild("WalkAnim") then
+                    animate.walk.WalkAnim.AnimationId = "rbxassetid://" .. pack.Walk
+                end
+                if animate:FindFirstChild("run") and animate.run:FindFirstChild("RunAnim") then
+                    animate.run.RunAnim.AnimationId = "rbxassetid://" .. pack.Run
+                end
+                if animate:FindFirstChild("jump") and animate.jump:FindFirstChild("JumpAnim") then
+                    animate.jump.JumpAnim.AnimationId = "rbxassetid://" .. pack.Jump
+                end
+                if animate:FindFirstChild("fall") and animate.fall:FindFirstChild("FallAnim") then
+                    animate.fall.FallAnim.AnimationId = "rbxassetid://" .. pack.Fall
+                end
+            end
+        end)
+    end
+
+    local animPackInitialized = false
+    AnimChangerSection:Dropdown({
+        Name = "Movement Animation Pack",
+        Flag = "Visuals_AnimPack",
+        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
+        Default = "Default",
+        Callback = function(val)
+            if not animPackInitialized then
+                animPackInitialized = true
+                return
+            end
+            applyAnimPack(val)
+        end,
+    })
+
+    AnimChangerSection:Toggle({
+        Name = "Headless Horseman",
+        Flag = "Visuals_Headless",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                local char = Players.LocalPlayer.Character
+                local head = char and char:FindFirstChild("Head")
+                if head then
+                    head.Transparency = val and 1 or 0
+                    if head:FindFirstChildOfClass("Decal") then
+                        head:FindFirstChildOfClass("Decal").Transparency = val and 1 or 0
+                    end
+                end
+            end)
+        end,
+    })
+
+    AnimChangerSection:Toggle({
+        Name = "Korblox Right Leg",
+        Flag = "Visuals_Korblox",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                local char = Players.LocalPlayer.Character
+                local rLeg = char and (char:FindFirstChild("RightLeg") or char:FindFirstChild("RightLowerLeg"))
+                if rLeg then
+                    rLeg.Transparency = val and 1 or 0
+                end
+            end)
+        end,
+    })
 
     local MovementSection = MiscPage:Section({
         Name = "Movement & Physics",
