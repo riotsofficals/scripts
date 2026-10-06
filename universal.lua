@@ -5,6 +5,65 @@ pcall(function()
     getgenv().debugInfo = false
 end)
 
+-- New Adonis Anti-Cheat Bypass
+local g = getinfo or debug.getinfo
+local d = false
+local h = {}
+
+local x, y
+
+setthreadidentity(2)
+
+for i, v in getgc(true) do
+    if typeof(v) == "table" then
+        local a = rawget(v, "Detected")
+        local b = rawget(v, "Kill")
+    
+        if typeof(a) == "function" and not x then
+            x = a
+            
+            local o; o = hookfunction(x, function(c, f, n)
+                if c ~= "_" then
+                    if d then
+                        warn(`Adonis AntiCheat flagged\nMethod: {c}\nInfo: {f}`)
+                    end
+                end
+                
+                return true
+            end)
+
+            table.insert(h, x)
+        end
+
+        if rawget(v, "Variables") and rawget(v, "Process") and typeof(b) == "function" and not y then
+            y = b
+            local o; o = hookfunction(y, function(f)
+                if d then
+                    warn(`Adonis AntiCheat tried to kill (fallback): {f}`)
+                end
+            end)
+
+            table.insert(h, y)
+        end
+    end
+end
+
+local o; o = hookfunction(getrenv().debug.info, newcclosure(function(...)
+    local a, f = ...
+
+    if x and a == x then
+        if d then
+            warn(`zins | adonis bypassed`)
+        end
+
+        return coroutine.yield(coroutine.running())
+    end
+    
+    return o(...)
+end))
+
+setthreadidentity(7)
+
 local previousLibrary = getgenv().Library
 if previousLibrary then
     pcall(function()
@@ -5161,6 +5220,8 @@ local ICON_CONFIGS = "rbxassetid://74885853379841"
 local ICON_DEFAULT_SEC = "rbxassetid://127136375066593"
 local ICON_CHEVRON = "rbxassetid://10709790948"
 local ICON_SHIELD = "rbxassetid://127136375066593"
+local ICON_CUBE = "rbxassetid://89470265972291"
+local ICON_COLOR = "rbxassetid://93142176757189"
 
 local holderGui = Library.Holder and Library.Holder.Instance
 if holderGui then
@@ -5822,9 +5883,21 @@ do
     local accountStat = makeHomeStat("Account age", accountAge .. " days", 1)
     local userIdStat = makeHomeStat("User ID", userId, 2)
     local execStat = makeHomeStat("Executor", execName, 3)
-    local fpsStat = makeHomeStat("Client FPS", tostring(fps or 60) .. " FPS", 4)
+    local fpsStat = makeHomeStat("Client FPS", "60 FPS", 4)
     local pingStat = makeHomeStat("Server Ping", tostring(getPing()) .. " ms", 5)
     local tierStat = makeHomeStat("User Tier", string.upper(CrypticalAPI:GetTags(userName)[1] or "USER"), 6)
+
+    -- Update FPS stat in real-time
+    task.spawn(function()
+        while not unloaded and getgenv().CrypticalGen == GEN do
+            task.wait(0.5)
+            if fpsStat and fpsStat.Label then
+                pcall(function()
+                    fpsStat.Label.Text = tostring(fps or 60) .. " FPS"
+                end)
+            end
+        end
+    end)
 
     ProfileSection:Label("Build: CRYPTICAL v2.4 (Enterprise)")
     ProfileSection:Label("Status: Active • Premium")
@@ -6049,14 +6122,14 @@ do
     aimbotGroundDropdown = AimbotMainSection:Dropdown({
         Name = "Hitpart (Ground)",
         Flag = "Combat_HitpartGround",
-        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Random"},
+        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "LeftHand", "RightHand", "LeftArm", "RightArm", "LeftLeg", "RightLeg", "Closest", "Random"},
         Default = "Head",
     })
 
     aimbotAirDropdown = AimbotMainSection:Dropdown({
         Name = "Hitpart (Air)",
         Flag = "Combat_HitpartAir",
-        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Random"},
+        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "LeftHand", "RightHand", "LeftArm", "RightArm", "LeftLeg", "RightLeg", "Closest", "Random"},
         Default = "HumanoidRootPart",
     })
 
@@ -6479,14 +6552,14 @@ do
     sGroundDrop = SilentAimMainSection:Dropdown({
         Name = "Hitpart (Ground)",
         Flag = "SilentAim_HitpartGround",
-        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Random"},
+        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "LeftHand", "RightHand", "LeftArm", "RightArm", "LeftLeg", "RightLeg", "Closest", "Random"},
         Default = "Head",
     })
 
     sAirDrop = SilentAimMainSection:Dropdown({
         Name = "Hitpart (Air)",
         Flag = "SilentAim_HitpartAir",
-        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "Random"},
+        Items = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", "LeftHand", "RightHand", "LeftArm", "RightArm", "LeftLeg", "RightLeg", "Closest", "Random"},
         Default = "Head",
     })
 
@@ -6753,7 +6826,7 @@ do
     hbPart = HitboxSection:Dropdown({
         Name = "Expanded Hitbox Part",
         Flag = "Hitbox_Part",
-        Items = {"Head", "HumanoidRootPart", "Torso", "All"},
+        Items = {"Head", "HumanoidRootPart", "Torso", "UpperTorso", "LowerTorso", "LeftArm", "RightArm", "LeftLeg", "RightLeg", "All"},
         Default = "Head",
     })
 
@@ -6834,16 +6907,69 @@ do
 
     local function getTargetHitpart(char, hitpartName)
         if not char then return nil end
+        
+        local allParts = {
+            "Head", "HumanoidRootPart", "UpperTorso", "LowerTorso", 
+            "LeftHand", "RightHand", "LeftLowerArm", "RightLowerArm", 
+            "LeftUpperLeg", "RightUpperLeg", "LeftLowerLeg", "RightLowerLeg",
+            "LeftFoot", "RightFoot", "Torso"
+        }
+        
         if hitpartName == "Random" then
-            local parts = {"Head", "HumanoidRootPart", "UpperTorso", "LowerTorso"}
             local valid = {}
-            for _, pName in ipairs(parts) do
+            for _, pName in ipairs(allParts) do
                 local p = char:FindFirstChild(pName)
-                if p then table.insert(valid, p) end
+                if p and p:IsA("BasePart") then table.insert(valid, p) end
             end
             return (#valid > 0) and valid[math.random(1, #valid)] or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
         end
-        return char:FindFirstChild(hitpartName) or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
+        
+        if hitpartName == "Closest" then
+            local cam = Workspace.CurrentCamera
+            if not cam then return char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart") end
+            
+            local closestPart = nil
+            local closestDist = math.huge
+            local screenCenter = Vector2.new(cam.ViewportSize.X / 2, cam.ViewportSize.Y / 2)
+            
+            for _, pName in ipairs(allParts) do
+                local p = char:FindFirstChild(pName)
+                if p and p:IsA("BasePart") then
+                    local pos2d, onScreen = cam:WorldToViewportPoint(p.Position)
+                    if onScreen and pos2d.Z > 0 then
+                        local dist = (Vector2.new(pos2d.X, pos2d.Y) - screenCenter).Magnitude
+                        if dist < closestDist then
+                            closestDist = dist
+                            closestPart = p
+                        end
+                    end
+                end
+            end
+            return closestPart or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
+        end
+        
+        -- Direct lookup with fallback chain
+        local direct = char:FindFirstChild(hitpartName)
+        if direct then return direct end
+        
+        -- Fallback mappings for different rig types
+        local fallbackMap = {
+            ["LeftHand"] = {"LeftHand", "Left Arm"},
+            ["RightHand"] = {"RightHand", "Right Arm"},
+            ["LeftArm"] = {"LeftUpperArm", "LeftLowerArm", "Left Arm"},
+            ["RightArm"] = {"RightUpperArm", "RightLowerArm", "Right Arm"},
+            ["LeftLeg"] = {"LeftUpperLeg", "LeftLowerLeg", "Left Leg"},
+            ["RightLeg"] = {"RightUpperLeg", "RightLowerLeg", "Right Leg"},
+        }
+        
+        if fallbackMap[hitpartName] then
+            for _, fallback in ipairs(fallbackMap[hitpartName]) do
+                local p = char:FindFirstChild(fallback)
+                if p then return p end
+            end
+        end
+        
+        return char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso")
     end
 
     local function validateTarget(p, checksList)
@@ -6933,6 +7059,7 @@ do
         local candidates = {}
         local added = {}
 
+        -- Add all players
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= Players.LocalPlayer then
                 table.insert(candidates, p)
@@ -6940,23 +7067,49 @@ do
             end
         end
 
-        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies", "Targets"}
+        -- Search for NPCs/Bots in common folders
+        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies", "Targets", "Mobs", "Hostiles", "AI", "Dummies", "TrainingDummies", "EnemiesFolder", "MonsterFolder", "NPC", "Bot"}
         for _, folderName in ipairs(searchFolders) do
             local folder = Workspace:FindFirstChild(folderName)
             if folder then
-                for _, child in ipairs(folder:GetChildren()) do
+                for _, child in ipairs(folder:GetDescendants()) do
                     if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
                         local hum = child:FindFirstChildOfClass("Humanoid")
-                        if hum then
+                        local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso") or child.PrimaryPart
+                        if hum and root then
                             table.insert(candidates, {
                                 Name = child.Name,
                                 DisplayName = child.Name,
                                 UserId = 1,
                                 Character = child,
-                                IsBot = true
+                                IsBot = true,
+                                Team = nil
                             })
                             added[child] = true
                         end
+                    end
+                end
+            end
+        end
+
+        -- Search workspace for models with humanoids (catch-all for bots)
+        for _, child in ipairs(Workspace:GetChildren()) do
+            if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
+                local hum = child:FindFirstChildOfClass("Humanoid")
+                local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso") or child.PrimaryPart
+                if hum and root and hum.Health > 0 then
+                    -- Check if it looks like an NPC/Bot (not a player)
+                    local isPlayer = Players:GetPlayerFromCharacter(child)
+                    if not isPlayer then
+                        table.insert(candidates, {
+                            Name = child.Name,
+                            DisplayName = child.Name,
+                            UserId = 1,
+                            Character = child,
+                            IsBot = true,
+                            Team = nil
+                        })
+                        added[child] = true
                     end
                 end
             end
@@ -7264,9 +7417,18 @@ do
                 end
 
                 if Library.Flags["Combat_PullResToggle"] then
-                    local rx = (Library.Flags["Combat_PullResX"] or 10) / 50
-                    local ry = (Library.Flags["Combat_PullResY"] or 10) / 50
-                    targetPos = targetPos + Vector3.new(math.sin(tick() * 10) * rx, math.cos(tick() * 10) * ry, 0)
+                    -- Pull Resistance: Allows free camera movement while aimbot is active
+                    -- The aimbot will "resist" your movements proportionally to the settings
+                    local mouseDelta = UserInputService:GetMouseDelta()
+                    local rx = (Library.Flags["Combat_PullResX"] or 10) / 100
+                    local ry = (Library.Flags["Combat_PullResY"] or 10) / 100
+                    
+                    -- Calculate how much the user is trying to move the camera
+                    local userInfluenceX = mouseDelta.X * rx
+                    local userInfluenceY = mouseDelta.Y * ry
+                    
+                    -- Blend the target position with user input
+                    targetPos = targetPos + Vector3.new(userInfluenceX * 0.1, userInfluenceY * 0.1, 0)
                 end
 
                 local camPos = cam.CFrame.Position
@@ -7403,6 +7565,7 @@ do
         AutoRotatePreview = true,
         PreviewSpeed = 1.0,
         PreviewZoom = 9.2,
+        ShowNPCs = true,
 
         Box = false,
         BoxStyle = "Corner Box",
@@ -7542,6 +7705,15 @@ do
         Callback = function(val)
             espConfig.MasterEnabled = val
             if updatePreviewOverlay then updatePreviewOverlay() end
+        end,
+    })
+
+    PlayerESPSection:Toggle({
+        Name = "Show NPCs/Bots in ESP",
+        Flag = "Visuals_ShowNPCs",
+        Default = true,
+        Callback = function(val)
+            espConfig.ShowNPCs = val
         end,
     })
 
@@ -9529,6 +9701,156 @@ do
         end,
     })
 
+    -- World Material Changer Section
+    local WorldMaterialSection = VisualsPage:Section({
+        Name = "World Material Changer",
+        Icon = ICON_CUBE,
+        Side = 2,
+    })
+    registerVisualsSubtab("World", WorldMaterialSection)
+
+    local worldMaterialData = {
+        Enabled = false,
+        Material = "SmoothPlastic",
+        ForceAll = false,
+        OriginalMaterials = {},
+    }
+
+    WorldMaterialSection:Toggle({
+        Name = "Enable World Material",
+        Flag = "World_MaterialEnabled",
+        Default = false,
+        Callback = function(val)
+            worldMaterialData.Enabled = val
+            if not val then
+                -- Restore original materials
+                for part, original in pairs(worldMaterialData.OriginalMaterials) do
+                    pcall(function()
+                        part.Material = original
+                    end)
+                end
+                worldMaterialData.OriginalMaterials = {}
+            end
+        end,
+    })
+
+    WorldMaterialSection:Dropdown({
+        Name = "Material Type",
+        Flag = "World_MaterialType",
+        Items = {"SmoothPlastic", "Neon", "ForceField", "Glass", "Metal", "Marble", "Granite", "Slate", "Wood", "Ice", "Fabric", "Plastic"},
+        Default = "SmoothPlastic",
+        Callback = function(val)
+            worldMaterialData.Material = val
+        end,
+    })
+
+    WorldMaterialSection:Toggle({
+        Name = "Force All Parts",
+        Flag = "World_ForceAllMaterials",
+        Default = false,
+        Callback = function(val)
+            worldMaterialData.ForceAll = val
+        end,
+    })
+
+    WorldMaterialSection:Button({
+        Name = "Apply Material Now",
+        Callback = function()
+            if not worldMaterialData.Enabled then return end
+            
+            local materialMap = {
+                SmoothPlastic = Enum.Material.SmoothPlastic,
+                Neon = Enum.Material.Neon,
+                ForceField = Enum.Material.ForceField,
+                Glass = Enum.Material.Glass,
+                Metal = Enum.Material.Metal,
+                Marble = Enum.Material.Marble,
+                Granite = Enum.Material.Granite,
+                Slate = Enum.Material.Slate,
+                Wood = Enum.Material.Wood,
+                Ice = Enum.Material.Ice,
+                Fabric = Enum.Material.Fabric,
+                Plastic = Enum.Material.Plastic,
+            }
+
+            local targetMaterial = materialMap[worldMaterialData.Material] or Enum.Material.SmoothPlastic
+
+            for _, obj in ipairs(Workspace:GetDescendants()) do
+                if obj:IsA("BasePart") and obj.Name ~= "HumanoidRootPart" then
+                    -- Skip player characters
+                    local isPlayerPart = false
+                    for _, player in ipairs(Players:GetPlayers()) do
+                        if player.Character and obj:IsDescendantOf(player.Character) then
+                            isPlayerPart = true
+                            break
+                        end
+                    end
+
+                    if not isPlayerPart then
+                        if not worldMaterialData.OriginalMaterials[obj] then
+                            worldMaterialData.OriginalMaterials[obj] = obj.Material
+                        end
+                        pcall(function()
+                            obj.Material = targetMaterial
+                        end)
+                    end
+                end
+            end
+        end,
+    })
+
+    -- Fullbright / No Shadows Section
+    local FullbrightSection = VisualsPage:Section({
+        Name = "Fullbright & Shadows",
+        Icon = ICON_SUN,
+        Side = 1,
+    })
+    registerVisualsSubtab("World", FullbrightSection)
+
+    FullbrightSection:Toggle({
+        Name = "Fullbright (No Shadows)",
+        Flag = "World_Fullbright",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                Lighting.Brightness = val and 3 or 2
+                Lighting.Ambient = val and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
+                Lighting.OutdoorAmbient = val and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
+                
+                for _, v in ipairs(Lighting:GetChildren()) do
+                    if v:IsA("Atmosphere") then
+                        v.Density = val and 0 or v.Density
+                    end
+                end
+            end)
+        end,
+    })
+
+    FullbrightSection:Toggle({
+        Name = "Remove Fog",
+        Flag = "World_RemoveFog",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                for _, v in ipairs(Lighting:GetChildren()) do
+                    if v:IsA("Atmosphere") then
+                        v.Density = val and 0 or 0.4
+                    end
+                end
+            end)
+        end,
+    })
+
+    FullbrightSection:Toggle({
+        Name = "No Shadows",
+        Flag = "World_NoShadows",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                Lighting.GlobalShadows = not val
+            end)
+        end,
+    })
 
 
     local InGameESPHolder = Instance.new("ScreenGui")
