@@ -7125,6 +7125,7 @@ do
 
         return candidates
     end
+    Library.GetAllTargetCandidates = getAllTargetCandidates
 
     local function getBestAimbotTarget()
         local cam = Workspace.CurrentCamera
@@ -11014,7 +11015,7 @@ do
         local curGradSeq = getEspTextGradientSequence(espConfig.GradientMode, espConfig.GradientColor1, espConfig.GradientColor2)
 
         local currentFrameCandidates = {}
-        local candidates = getAllTargetCandidates()
+        local candidates = Library.GetAllTargetCandidates and Library.GetAllTargetCandidates() or Players:GetPlayers()
 
         for _, p in ipairs(candidates) do
             pcall(function()
