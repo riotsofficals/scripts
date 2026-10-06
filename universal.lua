@@ -2976,7 +2976,7 @@ local Library do
                     BorderSizePixel = 0,
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BackgroundColor3 = Library.Theme["Outline"],
-                    BackgroundTransparency = 0.4,
+                    BackgroundTransparency = Library.IsGlasstopia and 0.65 or 0.4,
                     ClipsDescendants = true,
                     ZIndex = 4
                 }):AddToTheme({BackgroundColor3 = 'Outline'})
@@ -3005,6 +3005,7 @@ local Library do
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["Inline"],
+                    BackgroundTransparency = Library.IsGlasstopia and 0.36 or 0,
                     ClipsDescendants = true,
                     ZIndex = 5
                 }):AddToTheme({BackgroundColor3 = 'Inline'})
@@ -5588,12 +5589,12 @@ local BUILT_IN_THEMES = {
         Text = Color3.fromRGB(240, 240, 245)
     },
     ["Glasstopia"] = {
-        Background = Color3.fromRGB(12, 16, 24),
-        Inline = Color3.fromRGB(18, 24, 36),
-        Element = Color3.fromRGB(24, 32, 48),
-        Outline = Color3.fromRGB(50, 75, 110),
-        Accent = Color3.fromRGB(130, 215, 255),
-        Text = Color3.fromRGB(235, 245, 255)
+        Background = Color3.fromRGB(12, 12, 16),
+        Inline = Color3.fromRGB(18, 18, 24),
+        Element = Color3.fromRGB(25, 26, 34),
+        Outline = Color3.fromRGB(60, 65, 80),
+        Accent = Color3.fromRGB(255, 255, 255),
+        Text = Color3.fromRGB(245, 245, 250)
     },
     ["Waterbreed"] = {
         Background = Color3.fromRGB(8, 14, 18),
@@ -10837,6 +10838,7 @@ do
             HealthBarFill = nil,
             HealthNum = nil,
             HeadDot = nil,
+            LookVectorLine = nil,
             OffscreenArrow = nil,
             NameLabel = nil,
             NameGrad = nil,
@@ -10929,6 +10931,18 @@ do
         hdStroke.Parent = hd
         data.HeadDot = hd
 
+        local lvk = Instance.new("Frame")
+        lvk.Name = "LookVector_Line"
+        lvk.Parent = InGameESPHolder
+        lvk.BorderSizePixel = 0
+        lvk.AnchorPoint = Vector2.new(0.5, 0.5)
+        lvk.Visible = false
+        local lvkStroke = Instance.new("UIStroke")
+        lvkStroke.Color = Color3.fromRGB(0, 0, 0)
+        lvkStroke.Thickness = 0.8
+        lvkStroke.Parent = lvk
+        data.LookVectorLine = lvk
+
         local arrow = Instance.new("ImageLabel")
         arrow.Name = "Offscreen_Arrow"
         arrow.Parent = InGameESPHolder
@@ -10977,7 +10991,7 @@ do
         trStroke.Parent = tr
         data.TracerLine = tr
 
-        for i = 1, 12 do
+        for i = 1, 16 do
             local sl = Instance.new("Frame")
             sl.Name = "Skel_" .. i
             sl.Parent = InGameESPHolder
@@ -10994,7 +11008,12 @@ do
         local hl = Instance.new("Highlight")
         hl.Name = "ESP_Cham_" .. p.Name
         hl.Enabled = false
-        hl.Parent = InGameESPHolder
+        pcall(function()
+            hl.Parent = gethui and gethui() or game:GetService("CoreGui")
+        end)
+        if not hl.Parent then
+            hl.Parent = InGameESPHolder
+        end
         data.Highlight = hl
 
         playerESPCache[p] = data
@@ -11025,6 +11044,7 @@ do
             if data.HealthBarBg then data.HealthBarBg:Destroy() end
             if data.HealthNum then data.HealthNum:Destroy() end
             if data.HeadDot then data.HeadDot:Destroy() end
+            if data.LookVectorLine then data.LookVectorLine:Destroy() end
             if data.OffscreenArrow then data.OffscreenArrow:Destroy() end
             if data.NameLabel then data.NameLabel:Destroy() end
             if data.DistLabel then data.DistLabel:Destroy() end
@@ -11041,6 +11061,7 @@ do
         if data.HealthBarBg then data.HealthBarBg.Visible = false end
         if data.HealthNum then data.HealthNum.Visible = false end
         if data.HeadDot then data.HeadDot.Visible = false end
+        if data.LookVectorLine then data.LookVectorLine.Visible = false end
         if data.OffscreenArrow then data.OffscreenArrow.Visible = false end
         if data.NameLabel then data.NameLabel.Visible = false end
         if data.DistLabel then data.DistLabel.Visible = false end
@@ -11139,6 +11160,18 @@ do
                                 if root2d.Z > 0 and (rootOnScreen or topOnScreen or bottomOnScreen or (root2d.X >= -100 and root2d.X <= screenW + 100 and root2d.Y >= -100 and root2d.Y <= screenH + 100)) then
                                     if data.OffscreenArrow then data.OffscreenArrow.Visible = false end
 
+                                    local activeColor = espConfig.BoxColor
+                                    if espConfig.RainbowESP then
+                                        activeColor = Color3.fromHSV((tick() * 0.45) % 1, 0.85, 1)
+                                    elseif espConfig.UseTeamColors and isRealPlayer and p.TeamColor then
+                                        activeColor = p.TeamColor.Color
+                                    end
+
+                                    local activeTracerColor = espConfig.RainbowESP and activeColor or (espConfig.UseTeamColors and isRealPlayer and p.TeamColor and p.TeamColor.Color or espConfig.TracerColor)
+                                    local activeSkelColor = espConfig.RainbowESP and activeColor or (espConfig.UseTeamColors and isRealPlayer and p.TeamColor and p.TeamColor.Color or espConfig.SkeletonColor)
+                                    local activeHeadDotColor = espConfig.RainbowESP and activeColor or (espConfig.UseTeamColors and isRealPlayer and p.TeamColor and p.TeamColor.Color or espConfig.HeadDotColor)
+                                    local activeLookVecColor = espConfig.RainbowESP and activeColor or (espConfig.UseTeamColors and isRealPlayer and p.TeamColor and p.TeamColor.Color or espConfig.LookVectorColor)
+
                                     local boxH = math.max(6, math.abs(bottom2d.Y - top2d.Y))
                                     local boxW = math.clamp(boxH * 0.55, 6, 450)
                                     local boxX = math.floor(root2d.X - (boxW * 0.5))
@@ -11148,60 +11181,69 @@ do
                                         data.Box.Visible = true
                                         data.Box.Position = UDim2.fromOffset(boxX, boxY)
                                         data.Box.Size = UDim2.fromOffset(boxW, boxH)
-                                        data.BoxStroke.Color = espConfig.BoxColor
+                                        data.BoxStroke.Color = activeColor
 
-                                        local L = math.clamp(math.floor(boxW * 0.25), 3, 16)
-                                        local function syncCorner(cName, hPos, vPos, hSize, vSize, hfPos, vfPos, hfSize, vfSize)
-                                            local c = data.Corners:FindFirstChild(cName)
-                                            if not c then
-                                                c = Instance.new("Frame")
-                                                c.Name = cName
-                                                c.Parent = data.Corners
-                                                c.BackgroundTransparency = 1
-                                                c.Size = UDim2.fromScale(1, 1)
+                                        if espConfig.BoxStyle == "Corner Box" then
+                                            data.BoxStroke.Enabled = false
+                                            data.Corners.Visible = true
 
-                                                local hb = Instance.new("Frame")
-                                                hb.Name = "HB"
-                                                hb.Parent = c
-                                                hb.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-                                                hb.BorderSizePixel = 0
+                                            local L = math.clamp(math.floor(boxW * 0.25), 3, 16)
+                                            local function syncCorner(cName, hPos, vPos, hSize, vSize, hfPos, vfPos, hfSize, vfSize)
+                                                local c = data.Corners:FindFirstChild(cName)
+                                                if not c then
+                                                    c = Instance.new("Frame")
+                                                    c.Name = cName
+                                                    c.Parent = data.Corners
+                                                    c.BackgroundTransparency = 1
+                                                    c.Size = UDim2.fromScale(1, 1)
 
-                                                local hf = Instance.new("Frame")
-                                                hf.Name = "HF"
-                                                hf.Parent = c
-                                                hf.BorderSizePixel = 0
+                                                    local hb = Instance.new("Frame")
+                                                    hb.Name = "HB"
+                                                    hb.Parent = c
+                                                    hb.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                                                    hb.BorderSizePixel = 0
 
-                                                local vb = Instance.new("Frame")
-                                                vb.Name = "VB"
-                                                vb.Parent = c
-                                                vb.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-                                                vb.BorderSizePixel = 0
+                                                    local hf = Instance.new("Frame")
+                                                    hf.Name = "HF"
+                                                    hf.Parent = c
+                                                    hf.BorderSizePixel = 0
 
-                                                local vf = Instance.new("Frame")
-                                                vf.Name = "VF"
-                                                vf.Parent = c
-                                                vf.BorderSizePixel = 0
+                                                    local vb = Instance.new("Frame")
+                                                    vb.Name = "VB"
+                                                    vb.Parent = c
+                                                    vb.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+                                                    vb.BorderSizePixel = 0
+
+                                                    local vf = Instance.new("Frame")
+                                                    vf.Name = "VF"
+                                                    vf.Parent = c
+                                                    vf.BorderSizePixel = 0
+                                                end
+
+                                                c.HB.Position = hPos
+                                                c.HB.Size = hSize
+                                                c.HF.Position = hfPos
+                                                c.HF.Size = hfSize
+                                                c.HF.BackgroundColor3 = activeColor
+
+                                                c.VB.Position = vPos
+                                                c.VB.Size = vSize
+                                                c.VF.Position = vfPos
+                                                c.VF.Size = vfSize
+                                                c.VF.BackgroundColor3 = activeColor
                                             end
 
-                                            c.HB.Position = hPos
-                                            c.HB.Size = hSize
-                                            c.HF.Position = hfPos
-                                            c.HF.Size = hfSize
-                                            c.HF.BackgroundColor3 = espConfig.BoxColor
-
-                                            c.VB.Position = vPos
-                                            c.VB.Size = vSize
-                                            c.VF.Position = vfPos
-                                            c.VF.Size = vfSize
-                                            c.VF.BackgroundColor3 = espConfig.BoxColor
+                                            syncCorner("TL", UDim2.new(0, -1, 0, -1), UDim2.new(0, -1, 0, -1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(0, 0, 0, 0), UDim2.new(0, 0, 0, 0), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
+                                            syncCorner("TR", UDim2.new(1, -L - 1, 0, -1), UDim2.new(1, -2, 0, -1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(1, -L, 0, 0), UDim2.new(1, -1, 0, 0), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
+                                            syncCorner("BL", UDim2.new(0, -1, 1, -2), UDim2.new(0, -1, 1, -L - 1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(0, 0, 1, -1), UDim2.new(0, 0, 1, -L), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
+                                            syncCorner("BR", UDim2.new(1, -L - 1, 1, -2), UDim2.new(1, -2, 1, -L - 1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(1, -L, 1, -1), UDim2.new(1, -1, 1, -L), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
+                                        else
+                                            data.BoxStroke.Enabled = true
+                                            data.Corners.Visible = false
                                         end
-
-                                        syncCorner("TL", UDim2.new(0, -1, 0, -1), UDim2.new(0, -1, 0, -1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(0, 0, 0, 0), UDim2.new(0, 0, 0, 0), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
-                                        syncCorner("TR", UDim2.new(1, -L - 1, 0, -1), UDim2.new(1, -2, 0, -1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(1, -L, 0, 0), UDim2.new(1, -1, 0, 0), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
-                                        syncCorner("BL", UDim2.new(0, -1, 1, -2), UDim2.new(0, -1, 1, -L - 1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(0, 0, 1, -1), UDim2.new(0, 0, 1, -L), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
-                                        syncCorner("BR", UDim2.new(1, -L - 1, 1, -2), UDim2.new(1, -2, 1, -L - 1), UDim2.new(0, L + 2, 0, 3), UDim2.new(0, 3, 0, L + 2), UDim2.new(1, -L, 1, -1), UDim2.new(1, -1, 1, -L), UDim2.new(0, L, 0, 1), UDim2.new(0, 1, 0, L))
                                     else
                                         data.Box.Visible = false
+                                        data.Corners.Visible = false
                                     end
 
                                     if espConfig.Health then
@@ -11251,7 +11293,7 @@ do
                                             data.HeadDot.Visible = true
                                             data.HeadDot.Size = UDim2.fromOffset(sz * 2, sz * 2)
                                             data.HeadDot.Position = UDim2.fromOffset(head2d.X, head2d.Y)
-                                            data.HeadDot.BackgroundColor3 = espConfig.HeadDotColor
+                                            data.HeadDot.BackgroundColor3 = activeHeadDotColor
                                         else
                                             data.HeadDot.Visible = false
                                         end
@@ -11259,12 +11301,33 @@ do
                                         data.HeadDot.Visible = false
                                     end
 
+                                    if espConfig.LookVector and head and data.LookVectorLine then
+                                        local lookStart = head.Position
+                                        local lookEnd = head.Position + (head.CFrame.LookVector * 5.5)
+                                        local p1, ok1 = cam:WorldToViewportPoint(lookStart)
+                                        local p2, ok2 = cam:WorldToViewportPoint(lookEnd)
+                                        if ok1 and ok2 and p1.Z > 0 and p2.Z > 0 then
+                                            local dx = p2.X - p1.X
+                                            local dy = p2.Y - p1.Y
+                                            local len = math.sqrt(dx*dx + dy*dy)
+                                            data.LookVectorLine.Visible = true
+                                            data.LookVectorLine.BackgroundColor3 = activeLookVecColor
+                                            data.LookVectorLine.Size = UDim2.fromOffset(len, 1.5)
+                                            data.LookVectorLine.Position = UDim2.fromOffset((p1.X + p2.X)/2, (p1.Y + p2.Y)/2)
+                                            data.LookVectorLine.Rotation = math.deg(math.atan2(dy, dx))
+                                        else
+                                            data.LookVectorLine.Visible = false
+                                        end
+                                    elseif data.LookVectorLine then
+                                        data.LookVectorLine.Visible = false
+                                    end
+
                                     if espConfig.Name then
                                         local rawName = (isRealPlayer and p.Name) or (typeof(p) == "table" and p.Name) or char.Name
                                         local dispName = (isRealPlayer and (p.DisplayName or p.Name)) or (typeof(p) == "table" and (p.DisplayName or p.Name)) or char.Name
                                         data.NameLabel.Visible = true
                                         data.NameLabel.Text = (dispName ~= rawName) and (dispName .. " (@" .. rawName .. ")") or rawName
-                                        data.NameLabel.TextColor3 = espConfig.NameColor
+                                        data.NameLabel.TextColor3 = (espConfig.RainbowESP or espConfig.UseTeamColors) and activeColor or espConfig.NameColor
                                         data.NameLabel.Position = UDim2.fromOffset(root2d.X - 100, boxY - 16)
                                         data.NameLabel.Size = UDim2.fromOffset(200, 14)
                                         data.NameGrad.Enabled = espConfig.GradientText
@@ -11318,7 +11381,7 @@ do
                                         local length = math.sqrt(dx*dx + dy*dy)
 
                                         data.TracerLine.Visible = true
-                                        data.TracerLine.BackgroundColor3 = espConfig.TracerColor
+                                        data.TracerLine.BackgroundColor3 = activeTracerColor
                                         data.TracerLine.Size = UDim2.fromOffset(length, 1.5)
                                         data.TracerLine.Position = UDim2.fromOffset((origin.X + target.X)/2, (origin.Y + target.Y)/2)
                                         data.TracerLine.Rotation = math.deg(math.atan2(dy, dx))
@@ -11339,12 +11402,16 @@ do
                                             {"UpperTorso", "LowerTorso"},
                                             {"UpperTorso", "LeftUpperArm"},
                                             {"LeftUpperArm", "LeftLowerArm"},
+                                            {"LeftLowerArm", "LeftHand"},
                                             {"UpperTorso", "RightUpperArm"},
                                             {"RightUpperArm", "RightLowerArm"},
+                                            {"RightLowerArm", "RightHand"},
                                             {"LowerTorso", "LeftUpperLeg"},
                                             {"LeftUpperLeg", "LeftLowerLeg"},
+                                            {"LeftLowerLeg", "LeftFoot"},
                                             {"LowerTorso", "RightUpperLeg"},
                                             {"RightUpperLeg", "RightLowerLeg"},
+                                            {"RightLowerLeg", "RightFoot"},
                                         }
                                         local isR15 = (hum and hum.RigType == Enum.HumanoidRigType.R15)
                                         local boneList = isR15 and r15Bones or r6Bones
@@ -11362,7 +11429,7 @@ do
                                                         local dy = v2.Y - v1.Y
                                                         local l = math.sqrt(dx*dx + dy*dy)
                                                         sl.Visible = true
-                                                        sl.BackgroundColor3 = espConfig.SkeletonColor
+                                                        sl.BackgroundColor3 = activeSkelColor
                                                         sl.Size = UDim2.fromOffset(l, 1.5)
                                                         sl.Position = UDim2.fromOffset((v1.X + v2.X)/2, (v1.Y + v2.Y)/2)
                                                         sl.Rotation = math.deg(math.atan2(dy, dx))
@@ -11388,8 +11455,8 @@ do
                                             if data.Highlight then
                                                 data.Highlight.Adornee = char
                                                 data.Highlight.Enabled = true
-                                                data.Highlight.FillColor = espConfig.ChamsColor
-                                                data.Highlight.OutlineColor = espConfig.ChamsOutlineColor
+                                                data.Highlight.FillColor = (espConfig.RainbowESP or espConfig.UseTeamColors) and activeColor or espConfig.ChamsColor
+                                                data.Highlight.OutlineColor = (espConfig.RainbowESP or espConfig.UseTeamColors) and activeColor or espConfig.ChamsOutlineColor
                                                 data.Highlight.FillTransparency = effectiveFillTrans
                                                 data.Highlight.OutlineTransparency = espConfig.ChamsOutlineTransparency
                                                 data.Highlight.DepthMode = espConfig.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
@@ -11435,7 +11502,7 @@ do
                                                             part.Material = Enum.Material.SmoothPlastic
                                                             part.Transparency = effectiveFillTrans
                                                         end
-                                                        part.Color = espConfig.ChamsColor
+                                                        part.Color = (espConfig.RainbowESP or espConfig.UseTeamColors) and activeColor or espConfig.ChamsColor
                                                     end)
                                                 end
                                             end
@@ -11448,23 +11515,24 @@ do
                                 else
                                     hidePlayerESP(data)
                                     if espConfig.Offscreen and data.OffscreenArrow and rootPos then
-                                        local camCFrame = cam.CFrame
-                                        local toTarget = (rootPos - camCFrame.Position).Unit
-                                        local forward = camCFrame.LookVector
-                                        local right = camCFrame.RightVector
-                                        local up = camCFrame.UpVector
+                                        local localPos = cam.CFrame:PointToObjectSpace(rootPos)
+                                        local flatDir = Vector2.new(localPos.X, -localPos.Y)
+                                        if localPos.Z > 0 then flatDir = -flatDir end
+                                        if flatDir.Magnitude < 0.001 then flatDir = Vector2.new(0, 1) end
+                                        flatDir = flatDir.Unit
 
-                                        local dotRight = right:Dot(toTarget)
-                                        local dotUp = up:Dot(toTarget)
-
-                                        local angle = math.atan2(-dotRight, dotUp)
                                         local radius = espConfig.OffscreenRadius or 220
-                                        local arrowPos = screenCenter + Vector2.new(math.sin(angle) * radius, -math.cos(angle) * radius)
+                                        local arrowPos = screenCenter + flatDir * radius
+                                        local angleDeg = math.deg(math.atan2(flatDir.Y, flatDir.X)) + 90
+
+                                        local activeArrowColor = (espConfig.RainbowESP and Color3.fromHSV((tick() * 0.45) % 1, 0.85, 1))
+                                            or (espConfig.UseTeamColors and isRealPlayer and p.TeamColor and p.TeamColor.Color)
+                                            or espConfig.OffscreenColor
 
                                         data.OffscreenArrow.Visible = true
                                         data.OffscreenArrow.Position = UDim2.fromOffset(arrowPos.X, arrowPos.Y)
-                                        data.OffscreenArrow.Rotation = math.deg(angle) + 180
-                                        data.OffscreenArrow.ImageColor3 = espConfig.OffscreenColor
+                                        data.OffscreenArrow.Rotation = angleDeg
+                                        data.OffscreenArrow.ImageColor3 = activeArrowColor
                                     end
                                 end
                             else
@@ -11782,6 +11850,20 @@ do
         Side = 1,
     })
 
+    local HC_GUN_SKINS = {
+        "Default", "Adurite", "Amethyst", "Arctic", "Arsenic", "Ascension", "Binary",
+        "Black Cat", "Black Ice", "Blacksteel Dragon", "Candy Cane", "Crimson Fangs",
+        "Cupid", "Deathbringer", "Ember", "Floral", "Green Tint", "Hallows",
+        "Heartbringer", "Hell Dragon", "Hell Hound", "Hello Kitty", "Hexagram",
+        "Kirumi", "Kitty", "Lightbringer", "Lovestruck", "None", "Phoenix",
+        "Poseidon", "Radiation", "Shiryus Breath", "Snow Dragon",
+        "Strawberry Shortcake", "Void", "Void Dragon", "Volcanic Ashes", "Voxel"
+    }
+
+    local HC_KNIFE_SKINS = {
+        "Default", "Beta", "Bitcoin", "Fishbone", "Nightblade", "None"
+    }
+
     local skinSettings = {
         Enabled = false,
         DoubleBarrel = "Ascension",
@@ -11794,7 +11876,10 @@ do
 
     local handleMap = {
         DB_HANDLE = "DoubleBarrel",
-        REV_HANDLE = "Revolver"
+        REV_HANDLE = "Revolver",
+        TAC_HANDLE = "TacticalShotgun",
+        SMG_HANDLE = "SMG",
+        SG_HANDLE = "Shotgun"
     }
 
     local function prepSkinParts(model, isKnife)
@@ -11920,7 +12005,7 @@ do
     SkinChangerSection:Dropdown({
         Name = "Double Barrel Skin",
         Flag = "Misc_DBSkin",
-        Items = {"Ascension", "Default", "Gold", "Vanguard", "Galaxy"},
+        Items = HC_GUN_SKINS,
         Default = "Ascension",
         Callback = function(val)
             skinSettings.DoubleBarrel = val
@@ -11931,7 +12016,7 @@ do
     SkinChangerSection:Dropdown({
         Name = "Revolver Skin",
         Flag = "Misc_RevSkin",
-        Items = {"Ascension", "Default", "Gold", "Vanguard", "Galaxy"},
+        Items = HC_GUN_SKINS,
         Default = "Ascension",
         Callback = function(val)
             skinSettings.Revolver = val
@@ -11940,9 +12025,42 @@ do
     })
 
     SkinChangerSection:Dropdown({
+        Name = "Tactical Shotgun Skin",
+        Flag = "Misc_TacSkin",
+        Items = HC_GUN_SKINS,
+        Default = "Ascension",
+        Callback = function(val)
+            skinSettings.TacticalShotgun = val
+            if skinSettings.Enabled and Players.LocalPlayer.Character then applyAllSkins(Players.LocalPlayer.Character) end
+        end,
+    })
+
+    SkinChangerSection:Dropdown({
+        Name = "SMG Skin",
+        Flag = "Misc_SMGSkin",
+        Items = HC_GUN_SKINS,
+        Default = "Ascension",
+        Callback = function(val)
+            skinSettings.SMG = val
+            if skinSettings.Enabled and Players.LocalPlayer.Character then applyAllSkins(Players.LocalPlayer.Character) end
+        end,
+    })
+
+    SkinChangerSection:Dropdown({
+        Name = "Shotgun Skin",
+        Flag = "Misc_ShotgunSkin",
+        Items = HC_GUN_SKINS,
+        Default = "Ascension",
+        Callback = function(val)
+            skinSettings.Shotgun = val
+            if skinSettings.Enabled and Players.LocalPlayer.Character then applyAllSkins(Players.LocalPlayer.Character) end
+        end,
+    })
+
+    SkinChangerSection:Dropdown({
         Name = "Knife Skin",
         Flag = "Misc_KnifeSkin",
-        Items = {"Beta", "Default", "Karambit", "Butterfly"},
+        Items = HC_KNIFE_SKINS,
         Default = "Beta",
         Callback = function(val)
             skinSettings.Knife = val
@@ -13247,14 +13365,37 @@ do
                     end
                 end
 
-                -- Glasstopia transparency effect
+                -- Glasstopia true low-alpha frosted glass effect
                 pcall(function()
-                    local holderFrame = Library.Holder and Library.Holder.Instance
-                    if holderFrame then
-                        if themeName == "Glasstopia" then
-                            holderFrame.BackgroundTransparency = 0.22
-                        else
-                            holderFrame.BackgroundTransparency = 0
+                    local isGlass = (themeName == "Glasstopia")
+                    Library.IsGlasstopia = isGlass
+
+                    local main = Window.Items and Window.Items["MainFrame"] and Window.Items["MainFrame"].Instance
+                    if main then
+                        main.BackgroundTransparency = isGlass and 0.38 or 0
+
+                        if Window.Items["TopBar"] and Window.Items["TopBar"].Instance then
+                            Window.Items["TopBar"].Instance.BackgroundTransparency = isGlass and 0.42 or 0.1
+                        end
+                        if Window.Items["TopBarBottomFill"] and Window.Items["TopBarBottomFill"].Instance then
+                            Window.Items["TopBarBottomFill"].Instance.BackgroundTransparency = isGlass and 0.42 or 0.1
+                        end
+                        if Window.Items["BottomBar"] and Window.Items["BottomBar"].Instance then
+                            Window.Items["BottomBar"].Instance.BackgroundTransparency = isGlass and 0.52 or 0.4
+                        end
+
+                        for _, desc in ipairs(main:GetDescendants()) do
+                            if desc:IsA("Frame") then
+                                if desc.Name == "SectionInner" then
+                                    desc.BackgroundTransparency = isGlass and 0.36 or 0
+                                elseif desc.Name:find("Outline") then
+                                    desc.BackgroundTransparency = isGlass and 0.65 or 0.4
+                                elseif desc.Name == "KeyBubble" or desc.Name == "OptsBtn" then
+                                    desc.BackgroundTransparency = isGlass and 0.50 or 0.4
+                                end
+                            elseif desc:IsA("ScrollingFrame") then
+                                desc.BackgroundTransparency = 1
+                            end
                         end
                     end
                 end)
