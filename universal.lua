@@ -308,9 +308,11 @@ local Library do
     Library.Theme = TableClone(Themes["Preset"])
 
     for Index, Value in Library.Folders do
-        if not isfolder(Value) then
-            makefolder(Value)
-        end
+        pcall(function()
+            if not isfolder(Value) then
+                makefolder(Value)
+            end
+        end)
     end
 
     local Tween = { } do
@@ -922,7 +924,7 @@ local Library do
             Name = "ProgressTrack",
             Position = UDim2New(0, 0, 1, -2),
             Size = UDim2New(1, 0, 0, 2),
-            BackgroundColor3 = Color3.fromRGB(20, 20, 28),
+            BackgroundColor3 = Color3.fromRGB(20, 20, 20),
             BackgroundTransparency = 0.5,
             BorderSizePixel = 0,
             ZIndex = 10003
@@ -1071,11 +1073,9 @@ local Library do
 
         for Property, Value in ThemeData.Properties do
             if type(Value) == "string" then
-                if not self.Theme[Value] then
-                    Item[Property] = Value
+                if self.Theme[Value] then
+                    Item[Property] = self.Theme[Value]
                 end
-
-                Item[Property] = self.Theme[Value]
             else
                 Item[Property] = Value()
             end
@@ -5063,7 +5063,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
     subtabHolder.Name = "SubtabHolder_" .. page.Name
     subtabHolder.Parent = col1
     subtabHolder.Size = UDim2.new(1, 0, 0, 36)
-    subtabHolder.BackgroundColor3 = Color3.fromRGB(12, 12, 16)
+    subtabHolder.BackgroundColor3 = Color3.fromRGB(12, 12, 12)
     subtabHolder.BorderSizePixel = 0
     subtabHolder.LayoutOrder = -100
     Library:AddToTheme(subtabHolder, {BackgroundColor3 = "Element"})
@@ -5073,7 +5073,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
     sc.Parent = subtabHolder
 
     local ss = Instance.new("UIStroke")
-    ss.Color = Color3.fromRGB(30, 30, 42)
+    ss.Color = Color3.fromRGB(40, 40, 40)
     ss.Transparency = 0.3
     ss.Thickness = 1
     ss.Parent = subtabHolder
@@ -5098,13 +5098,13 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         activeTab = tabName
         for name, btn in pairs(tabButtons) do
             local isAct = (name == tabName)
-            local bg = isAct and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(16, 16, 22)
-            local txt = isAct and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(160, 165, 185)
+            local bg = isAct and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(18, 18, 18)
+            local txt = isAct and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(150, 150, 150)
             local stroke = btn:FindFirstChildOfClass("UIStroke")
             if stroke then
                 TweenService:Create(stroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Transparency = isAct and 0.2 or 0.8,
-                    Color = isAct and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(32, 32, 44)
+                    Color = isAct and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(40, 40, 40)
                 }):Play()
             end
             TweenService:Create(btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -5133,11 +5133,11 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         btn.Name = "SubtabBtn_" .. tabName:gsub("%s+", "")
         btn.Parent = subtabHolder
         btn.Size = UDim2.new(1 / numTabs, -4, 1, 0)
-        btn.BackgroundColor3 = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(16, 16, 22)
+        btn.BackgroundColor3 = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(18, 18, 18)
         btn.BorderSizePixel = 0
         btn.FontFace = Library.Font
         btn.Text = tabName
-        btn.TextColor3 = (tabName == activeTab) and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(160, 165, 185)
+        btn.TextColor3 = (tabName == activeTab) and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(150, 150, 150)
         btn.TextSize = 11
         btn.AutoButtonColor = false
 
@@ -5147,15 +5147,15 @@ local function makePageSubtabs(page, tabsList, defaultTab)
 
         local bs = Instance.new("UIStroke")
         bs.Thickness = 1
-        bs.Color = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(32, 32, 44)
+        bs.Color = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(40, 40, 40)
         bs.Transparency = (tabName == activeTab) and 0.2 or 0.8
         bs.Parent = btn
 
         btn.MouseEnter:Connect(function()
             if tabName ~= activeTab then
                 TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    BackgroundColor3 = Color3.fromRGB(24, 24, 34),
-                    TextColor3 = Color3.fromRGB(225, 230, 245)
+                    BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+                    TextColor3 = Color3.fromRGB(230, 230, 230)
                 }):Play()
             end
         end)
@@ -5163,8 +5163,8 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         btn.MouseLeave:Connect(function()
             if tabName ~= activeTab then
                 TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
-                    BackgroundColor3 = Color3.fromRGB(16, 16, 22),
-                    TextColor3 = Color3.fromRGB(160, 165, 185)
+                    BackgroundColor3 = Color3.fromRGB(18, 18, 18),
+                    TextColor3 = Color3.fromRGB(150, 150, 150)
                 }):Play()
             end
         end)
@@ -5475,18 +5475,26 @@ function AcheronAPI:Fetch()
             or (http and http.request)
 
         pcall(function()
-            if game and game.HttpGet then
-                body = game:HttpGet(self.Url)
+            if httpReq then
+                local res = httpReq({Url = self.Url, Method = "GET"})
+                if res and (res.StatusCode == nil or res.StatusCode == 200) then
+                    body = res.Body or res.body
+                end
             end
         end)
 
-        if not body and httpReq then
+        if not body then
             pcall(function()
-                local res = httpReq({Url = self.Url, Method = "GET"})
-                if res then
-                    body = res.Body or res.body
+                if game and game.HttpGet then
+                    body = game:HttpGet(self.Url)
                 end
             end)
+        end
+
+        self.Failed = not (body and type(body) == "string" and #body > 0)
+        if body and type(body) == "string" and body:sub(1, 1) == "<" then
+            body = nil
+            self.Failed = true
         end
 
         local parsedUsers = {}
@@ -5564,10 +5572,10 @@ AcheronAPI:AutoRegister()
 AcheronAPI:Fetch()
 task.spawn(function()
     while not unloaded and getgenv().AcheronGen == GEN do
-        task.wait(45)
+        task.wait(AcheronAPI.Failed and 300 or 45)
         AcheronAPI:Fetch()
     end
-end)
+ end)
 
 local BUILT_IN_THEMES = {
     ["Monochrome"] = {
@@ -5813,7 +5821,7 @@ do
         local execBadge = Instance.new("Frame")
         execBadge.Name = "ExecBadge"
         execBadge.Parent = badgesRow
-        execBadge.BackgroundColor3 = Color3.fromRGB(15, 25, 35)
+        execBadge.BackgroundColor3 = Color3.fromRGB(18, 18, 18)
         execBadge.BorderSizePixel = 0
         execBadge.Size = UDim2.new(0, 0, 0, 18)
         execBadge.AutomaticSize = Enum.AutomaticSize.X
@@ -5823,7 +5831,7 @@ do
         ebCorner.Parent = execBadge
 
         local ebStroke = Instance.new("UIStroke")
-        ebStroke.Color = Color3.fromRGB(40, 120, 180)
+        ebStroke.Color = Color3.fromRGB(70, 70, 70)
         ebStroke.Thickness = 1
         ebStroke.Transparency = 0.3
         ebStroke.Parent = execBadge
@@ -5838,7 +5846,7 @@ do
         ebLabel.BackgroundTransparency = 1
         ebLabel.FontFace = Library.Font
         ebLabel.Text = "EXECUTOR: " .. string.upper(tostring(execName))
-        ebLabel.TextColor3 = Color3.fromRGB(120, 210, 255)
+        ebLabel.TextColor3 = Color3.fromRGB(220, 220, 220)
         ebLabel.TextSize = 9
         ebLabel.Size = UDim2.new(0, 0, 1, 0)
         ebLabel.AutomaticSize = Enum.AutomaticSize.X
@@ -13071,23 +13079,17 @@ do
     })
 
     local themeNames = {
-        "Violet",
-        "Cyan",
-        "Crimson",
-        "Emerald",
-        "Amber",
-        "Tokyo",
-        "Frost",
         "Monochrome",
-        "Sunset",
-        "Tactical"
+        "Dark Classic",
+        "Slate Grey",
+        "Pure Night"
     }
 
     ThemingSection:Dropdown({
         Name = "Built-in Themes",
         Flag = "Theme_PresetDropdown",
         Items = themeNames,
-        Default = "Violet",
+        Default = "Monochrome",
         Callback = function(themeName)
             local preset = BUILT_IN_THEMES[themeName]
             if preset then
@@ -13523,7 +13525,7 @@ do
     wmLabel.Parent = watermarkFrame
     wmLabel.BackgroundTransparency = 1
     wmLabel.FontFace = Library.Font
-    wmLabel.Text = "acheron | " .. userName .. " | 60 FPS | 0 ms | 00:00:00"
+    wmLabel.Text = "acheron | " .. localUserName .. " | 60 FPS | 0 ms | 00:00:00"
     wmLabel.TextColor3 = Theme.Text
     wmLabel.TextSize = 11
     wmLabel.Size = UDim2.new(0, 0, 1, 0)
@@ -14193,7 +14195,7 @@ do
                 local secs = elapsedSec % 60
                 local uptimeStr = string.format("%02d:%02d:%02d", hours, mins, secs)
 
-                wmLabel.Text = string.format("acheron | %s | %d FPS | %d ms | %s", userName, fps or 60, pingNum, timeStr)
+                wmLabel.Text = string.format("acheron | %s | %d FPS | %d ms | %s", localUserName, fps or 60, pingNum, timeStr)
 
                 gdPlayers.Text = string.format("Players: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
                 gdUptime.Text = "Session: " .. uptimeStr
