@@ -163,6 +163,7 @@ local Library do
     Library.__index = Library
     Library.Sections.__index = Library.Sections
     Library.Pages.__index = Library.Pages
+    Library.CreateWidgetContextMenu = Library.CreateWidgetContextMenu or function() end
 
     local Keys = {
         ["Unknown"]           = "Unknown",
@@ -434,7 +435,7 @@ local Library do
             end
 
             local Gui = self.Instance
-            local DragTarget = (Handle and Handle.Instance) or (Handle and typeof(Handle) == "Instance" and Handle) or Gui
+            local DragTarget = (Handle and typeof(Handle) == "Instance" and Handle) or (Handle and Handle.Instance) or Gui
             local Dragging = false
             local DragStart
             local StartPosition
@@ -691,10 +692,15 @@ local Library do
             end
             if not loaded then
                 pcall(function() delfile("AltHack_Inter") end)
-                Library.Font = CustomFont:New("OutfitMedium", 400, "Regular", {
-                    Id = "OutfitMedium",
-                    Url = "https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Outfit-Medium.ttf"
-                })
+                pcall(function()
+                    Library.Font = CustomFont:New("OutfitMedium", 400, "Regular", {
+                        Id = "OutfitMedium",
+                        Url = "https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Outfit-Medium.ttf"
+                    })
+                end)
+            end
+            if not Library.Font then
+                Library.Font = Font.fromEnum(Enum.Font.GothamMedium)
             end
         end
     end
@@ -714,6 +720,195 @@ local Library do
         Enabled = false,
         ResetOnSpawn = false
     })
+
+    local NotifContainer = Instances:Create("Frame", {
+        Parent = Library.Holder.Instance,
+        Name = "NotifContainer",
+        Position = UDim2New(1, -20, 1, -20),
+        Size = UDim2New(0, 280, 1, -40),
+        AnchorPoint = Vector2New(1, 1),
+        BackgroundTransparency = 1,
+        BorderSizePixel = 0,
+        ZIndex = 9999
+    })
+
+    Instances:Create("UIListLayout", {
+        Parent = NotifContainer.Instance,
+        Name = "\0",
+        FillDirection = Enum.FillDirection.Vertical,
+        VerticalAlignment = Enum.VerticalAlignment.Bottom,
+        HorizontalAlignment = Enum.HorizontalAlignment.Right,
+        SortOrder = Enum.SortOrder.LayoutOrder,
+        Padding = UDimNew(0, 8)
+    })
+
+    function Library:Notify(Config, Content, Duration)
+        local Title = "swatware"
+        local Text = ""
+        local Time = Duration or 3.5
+
+        if type(Config) == "table" then
+            Title = Config.Title or Config.title or Config.Name or Config.name or Title
+            Text = Config.Text or Config.text or Config.Content or Config.content or Config.Message or Config.message or ""
+            Time = Config.Time or Config.time or Config.Duration or Config.duration or Time
+        elseif type(Config) == "string" then
+            if Content then
+                Title = Config
+                Text = tostring(Content)
+            else
+                Text = Config
+            end
+        end
+
+        local Toast = Instances:Create("Frame", {
+            Parent = NotifContainer.Instance,
+            Name = "Notification",
+            Size = UDim2New(1, 0, 0, 0),
+            AutomaticSize = Enum.AutomaticSize.Y,
+            BackgroundColor3 = Library.Theme["Inline"] or Color3.fromRGB(12, 12, 15),
+            BorderSizePixel = 0,
+            ClipsDescendants = true,
+            ZIndex = 10000
+        }):AddToTheme({BackgroundColor3 = 'Inline'})
+
+        Instances:Create("UICorner", {
+            Parent = Toast.Instance,
+            CornerRadius = UDimNew(0, 8)
+        })
+
+        Instances:Create("UIStroke", {
+            Parent = Toast.Instance,
+            Color = Library.Theme["Outline"] or Color3.fromRGB(28, 28, 36),
+            Thickness = 1,
+            Transparency = 0.3
+        }):AddToTheme({Color = 'Outline'})
+
+        local AccentBar = Instances:Create("Frame", {
+            Parent = Toast.Instance,
+            Name = "AccentBar",
+            Position = UDim2New(0, 0, 0, 0),
+            Size = UDim2New(0, 4, 1, 0),
+            BackgroundColor3 = Library.Theme["Accent"] or Color3.fromRGB(139, 149, 246),
+            BorderSizePixel = 0,
+            ZIndex = 10001
+        }):AddToTheme({BackgroundColor3 = 'Accent'})
+
+        Instances:Create("UICorner", {
+            Parent = AccentBar.Instance,
+            CornerRadius = UDimNew(0, 2)
+        })
+
+        local ContentFrame = Instances:Create("Frame", {
+            Parent = Toast.Instance,
+            Name = "ContentFrame",
+            Position = UDim2New(0, 10, 0, 0),
+            Size = UDim2New(1, -14, 0, 0),
+            AutomaticSize = Enum.AutomaticSize.Y,
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            ZIndex = 10001
+        })
+
+        Instances:Create("UIPadding", {
+            Parent = ContentFrame.Instance,
+            PaddingTop = UDimNew(0, 8),
+            PaddingBottom = UDimNew(0, 10),
+            PaddingLeft = UDimNew(0, 4),
+            PaddingRight = UDimNew(0, 8)
+        })
+
+        Instances:Create("UIListLayout", {
+            Parent = ContentFrame.Instance,
+            SortOrder = Enum.SortOrder.LayoutOrder,
+            Padding = UDimNew(0, 3)
+        })
+
+        local HeaderRow = Instances:Create("Frame", {
+            Parent = ContentFrame.Instance,
+            Name = "HeaderRow",
+            Size = UDim2New(1, 0, 0, 16),
+            BackgroundTransparency = 1,
+            BorderSizePixel = 0,
+            LayoutOrder = 1
+        })
+
+        Instances:Create("TextLabel", {
+            Parent = HeaderRow.Instance,
+            Name = "Title",
+            FontFace = Library.Font,
+            Text = Title,
+            TextColor3 = Library.Theme["Accent"] or Color3.fromRGB(139, 149, 246),
+            TextSize = 12,
+            BackgroundTransparency = 1,
+            Size = UDim2New(1, 0, 1, 0),
+            TextXAlignment = Enum.TextXAlignment.Left,
+            ZIndex = 10002
+        }):AddToTheme({TextColor3 = 'Accent'})
+
+        Instances:Create("TextLabel", {
+            Parent = ContentFrame.Instance,
+            Name = "Message",
+            FontFace = Library.Font,
+            Text = Text,
+            TextColor3 = Library.Theme["Text"] or Color3.fromRGB(235, 235, 245),
+            TextTransparency = 0.15,
+            TextSize = 11,
+            TextWrapped = true,
+            BackgroundTransparency = 1,
+            Size = UDim2New(1, 0, 0, 0),
+            AutomaticSize = Enum.AutomaticSize.Y,
+            TextXAlignment = Enum.TextXAlignment.Left,
+            LayoutOrder = 2,
+            ZIndex = 10002
+        }):AddToTheme({TextColor3 = 'Text'})
+
+        local ProgressBarTrack = Instances:Create("Frame", {
+            Parent = Toast.Instance,
+            Name = "ProgressTrack",
+            Position = UDim2New(0, 0, 1, -2),
+            Size = UDim2New(1, 0, 0, 2),
+            BackgroundColor3 = Color3.fromRGB(20, 20, 28),
+            BackgroundTransparency = 0.5,
+            BorderSizePixel = 0,
+            ZIndex = 10003
+        })
+
+        local ProgressBar = Instances:Create("Frame", {
+            Parent = ProgressBarTrack.Instance,
+            Name = "ProgressBar",
+            Size = UDim2New(1, 0, 1, 0),
+            BackgroundColor3 = Library.Theme["Accent"] or Color3.fromRGB(139, 149, 246),
+            BorderSizePixel = 0,
+            ZIndex = 10004
+        }):AddToTheme({BackgroundColor3 = 'Accent'})
+
+        local toastInst = Toast.Instance
+        toastInst.Position = UDim2New(1, 50, 0, 0)
+        TweenService:Create(toastInst, TweenInfo.new(0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
+            Position = UDim2New(0, 0, 0, 0)
+        }):Play()
+
+        local progressInst = ProgressBar.Instance
+        TweenService:Create(progressInst, TweenInfo.new(Time, Enum.EasingStyle.Linear, Enum.EasingDirection.Out), {
+            Size = UDim2New(0, 0, 1, 0)
+        }):Play()
+
+        task.delay(Time, function()
+            if toastInst and toastInst.Parent then
+                local tw = TweenService:Create(toastInst, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.In), {
+                    Position = UDim2New(1, 60, 0, 0)
+                })
+                tw.Completed:Connect(function()
+                    Toast:Clean()
+                end)
+                tw:Play()
+            end
+        end)
+
+        return Toast
+    end
+
+    Library.Notification = function(self, ...) return Library:Notify(...) end
 
     Library.Unload = function(self)
         if self.IsUnloaded then
@@ -2681,12 +2876,21 @@ local Library do
                     CornerRadius = UDimNew(0, 10)
                 })
 
+                Instances:Create("UIPadding", {
+                    Parent = Items["SectionOutline"].Instance,
+                    Name = "\0",
+                    PaddingTop = UDimNew(0, 1),
+                    PaddingBottom = UDimNew(0, 1),
+                    PaddingLeft = UDimNew(0, 1),
+                    PaddingRight = UDimNew(0, 1)
+                })
+
                 Items["Section"] = Instances:Create("Frame", {
                     Parent = Items["SectionOutline"].Instance,
                     Name = "SectionInner",
-                    Position = UDim2New(0, 1, 0, 1),
+                    Position = UDim2New(0, 0, 0, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
-                    Size = UDim2New(1, -2, 0, 0),
+                    Size = UDim2New(1, 0, 0, 0),
                     AutomaticSize = Enum.AutomaticSize.Y,
                     BorderSizePixel = 0,
                     BackgroundColor3 = Library.Theme["Inline"],
@@ -4708,7 +4912,7 @@ local combatState = {
     LastTriggerShot = 0,
 }
 
--- Target HUD state managed in combatState and overlay controller
+
 
 local player = Players.LocalPlayer
 local localUserName = (player and player.Name) or "Player"
@@ -5267,7 +5471,7 @@ do
         local titleGroup = Instance.new("Frame")
         titleGroup.Name = "Swatware_TitleGroup"
         titleGroup.Parent = titleArea
-        Items["MainFrame"]:MakeDraggable(titleGroup)
+        Window.Items["MainFrame"]:MakeDraggable(titleGroup)
         titleGroup.BackgroundTransparency = 1
         titleGroup.Size = UDim2.new(0, 0, 1, 0)
         titleGroup.AutomaticSize = Enum.AutomaticSize.X
@@ -7041,7 +7245,7 @@ do
         MasterEnabled = false,
         ThemeSync = false,
         ShowPreview = false,
-        AutoRotatePreview = false,
+        AutoRotatePreview = true,
         PreviewSpeed = 1.0,
         PreviewZoom = 9.2,
 
@@ -8279,7 +8483,7 @@ do
             return
         end
 
-        if not espConfig.ShowPreview or not previewFrame or not previewFrame.Visible then
+        if not espConfig.ShowPreview or not previewWindow or not previewWindow.Visible then
             return
         end
 
@@ -8350,7 +8554,7 @@ do
     PreviewSection:Toggle({
         Name = "Auto-Rotate 3D Character",
         Flag = "Visuals_AutoRotatePreview",
-        Default = false,
+        Default = true,
         Callback = function(val)
             espConfig.AutoRotatePreview = val
         end,
@@ -11740,3 +11944,5 @@ pcall(function()
         end
     end
 end)
+
+
