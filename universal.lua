@@ -4995,20 +4995,20 @@ local Lighting = cloneref and cloneref(game:GetService("Lighting")) or game:GetS
 local HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
 
 local function getSafeGuiParent()
-    local parent
+    local parent = nil
     pcall(function()
         if getgenv and type(getgenv().gethui) == "function" then
             parent = getgenv().gethui()
-        elseif type(gethui) == "function" then
-            parent = gethui()
         end
     end)
     if parent then return parent end
 
-    local canUseCore = pcall(function()
+    local canUseCore = false
+    pcall(function()
         local test = Instance.new("Folder")
         test.Parent = CoreGui
         test:Destroy()
+        canUseCore = true
     end)
     if canUseCore then
         return CoreGui
@@ -5016,9 +5016,10 @@ local function getSafeGuiParent()
 
     local lp = Players.LocalPlayer or (Players:GetPlayers() and Players:GetPlayers()[1])
     if lp then
-        local pg = lp:FindFirstChild("PlayerGui") or lp:WaitForChild("PlayerGui", 5)
+        local pg = lp:FindFirstChildOfClass("PlayerGui") or lp:FindFirstChild("PlayerGui")
         if pg then return pg end
     end
+
     return CoreGui
 end
 
@@ -5393,15 +5394,23 @@ local CrypticalAPI = {
     Loaded = false,
     Url = "https://cryptical-api.avgavg193.workers.dev/users.txt",
     TagColors = {
+        ["owner"]     = { Text = Color3.fromRGB(255, 215, 0), Bg = Color3.fromRGB(45, 36, 10), Border = Color3.fromRGB(180, 140, 20) },
         ["admin"]     = { Text = Color3.fromRGB(255, 75, 95), Bg = Color3.fromRGB(42, 14, 18), Border = Color3.fromRGB(150, 30, 45) },
         ["dev"]       = { Text = Color3.fromRGB(195, 135, 255), Bg = Color3.fromRGB(32, 16, 48), Border = Color3.fromRGB(120, 55, 175) },
         ["developer"] = { Text = Color3.fromRGB(195, 135, 255), Bg = Color3.fromRGB(32, 16, 48), Border = Color3.fromRGB(120, 55, 175) },
+        ["staff"]     = { Text = Color3.fromRGB(160, 120, 255), Bg = Color3.fromRGB(28, 18, 45), Border = Color3.fromRGB(110, 45, 170) },
+        ["mod"]       = { Text = Color3.fromRGB(255, 100, 100), Bg = Color3.fromRGB(40, 15, 15), Border = Color3.fromRGB(160, 40, 40) },
+        ["moderator"] = { Text = Color3.fromRGB(255, 100, 100), Bg = Color3.fromRGB(40, 15, 15), Border = Color3.fromRGB(160, 40, 40) },
         ["media"]     = { Text = Color3.fromRGB(255, 185, 45), Bg = Color3.fromRGB(42, 28, 10), Border = Color3.fromRGB(160, 105, 20) },
         ["verified"]  = { Text = Color3.fromRGB(60, 210, 255), Bg = Color3.fromRGB(12, 32, 45), Border = Color3.fromRGB(30, 120, 165) },
         ["verifed"]   = { Text = Color3.fromRGB(60, 210, 255), Bg = Color3.fromRGB(12, 32, 45), Border = Color3.fromRGB(30, 120, 165) },
         ["vip"]       = { Text = Color3.fromRGB(60, 245, 145), Bg = Color3.fromRGB(14, 38, 24), Border = Color3.fromRGB(35, 150, 80) },
         ["buyer"]     = { Text = Color3.fromRGB(60, 245, 145), Bg = Color3.fromRGB(14, 38, 24), Border = Color3.fromRGB(35, 150, 80) },
         ["premium"]   = { Text = Color3.fromRGB(60, 245, 145), Bg = Color3.fromRGB(14, 38, 24), Border = Color3.fromRGB(35, 150, 80) },
+        ["booster"]   = { Text = Color3.fromRGB(255, 120, 200), Bg = Color3.fromRGB(42, 16, 32), Border = Color3.fromRGB(160, 45, 120) },
+        ["tester"]    = { Text = Color3.fromRGB(255, 230, 80), Bg = Color3.fromRGB(40, 36, 12), Border = Color3.fromRGB(160, 140, 25) },
+        ["friend"]    = { Text = Color3.fromRGB(120, 200, 255), Bg = Color3.fromRGB(16, 32, 45), Border = Color3.fromRGB(45, 120, 170) },
+        ["partner"]   = { Text = Color3.fromRGB(255, 190, 60), Bg = Color3.fromRGB(42, 30, 10), Border = Color3.fromRGB(170, 120, 20) },
         ["user"]      = { Text = Color3.fromRGB(180, 190, 205), Bg = Color3.fromRGB(20, 22, 28), Border = Color3.fromRGB(52, 58, 72) },
     }
 }
@@ -5602,7 +5611,7 @@ do
     })
 
     local ProfileSection = HomePage:Section({
-        Name = "Operator & Identity",
+        Name = "Identity",
         Icon = ICON_CROWN,
         Side = 1,
     })
@@ -5913,7 +5922,7 @@ do
     ProfileSection:Label("Status: Active • Premium")
 
     local ActionSection = HomePage:Section({
-        Name = "Quick Actions",
+        Name = "Actions",
         Icon = ICON_BOT,
         Side = 1,
     })
@@ -5972,7 +5981,7 @@ do
     })
 
     local SessionSection = HomePage:Section({
-        Name = "Live Server & Game",
+        Name = "Server",
         Icon = ICON_CLOCK,
         Side = 2,
     })
@@ -5985,81 +5994,7 @@ do
         string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
     )
 
-    local NewsSection = HomePage:Section({
-        Name = "Updates & Changelog",
-        Icon = ICON_SPARKLES,
-        Side = 2,
-    })
-
-    local changelogData = {
-        ["v2.4 (Current)"] = {
-            "Multi-Game Hub Loader Engine & Fast Execution",
-            "Unified Ultra-Smooth FOV Circles (Aimbot & Silent)",
-            "Zero-Default Safe Startup Configuration",
-            "Modern Pill Subtab Navigation Bar",
-            "Tactical Screen HUD Overlays & Target HUD",
-            "Dynamic Multi-Version Interactive Changelogs"
-        },
-        ["v2.3 (Tactical Engine)"] = {
-            "Real-Time Dynamic Target HUD & Keybinds",
-            "Keybinds Monitor & Target Profile HUD Cards",
-            "Movement Prediction Engine (Ground & Air Tracking)",
-            "Sticky Aim Lock & Dynamic Hitpart Resolver",
-            "Hitbox Expander with Custom Transparency",
-            "RGB & Monochrome Wave ESP Gradient Styling"
-        },
-        ["v2.2 (Visuals Overhaul)"] = {
-            "3D Interactive Viewport ESP Character Preview",
-            "Dynamic Atmospheric Fog & Celestial Body Controls",
-            "High-Definition Custom Skybox Texture Engine",
-            "Enhanced Health Bar Gradients & Distance Tags",
-            "Offscreen Indicator Arrows with Custom Radius",
-            "Custom Cham Highlights with AlwaysOnTop Support"
-        },
-        ["v2.1 (Performance)"] = {
-            "Unlocked Maximum Frame Rate (240+ FPS Cap)",
-            "Optimized RenderStepped Pipelines & Low CPU Usage",
-            "Custom Config Profile Import, Export & Deletion",
-            "Instant Server Hop & Auto Reconnect Utilities",
-            "Discord Integration & Job ID Sharing",
-            "Executor Level Safety & Anti-Detection Layer"
-        },
-        ["v2.0 (Core Engine)"] = {
-            "Brand New CRYPTICAL Sleek Dark Theming Engine",
-            "Universal Game Compatibility Architecture",
-            "Fast Loadstring Executor Bridge API",
-            "Responsive Dual-Column UI Layout System",
-            "Interactive Theming Color Pickers & Live Updates",
-            "Complete Client Protection & Clean Unload System"
-        }
-    }
-
-    local logLabels = {}
-    for i = 1, 6 do
-        logLabels[i] = NewsSection:Label(changelogData["v2.4 (Current)"][i] or "")
-    end
-
-    NewsSection:Dropdown({
-        Name = "Select Version",
-        Flag = "Home_ChangelogVersion",
-        Items = {
-            "v2.4 (Current)",
-            "v2.3 (Tactical Engine)",
-            "v2.2 (Visuals Overhaul)",
-            "v2.1 (Performance)",
-            "v2.0 (Core Engine)"
-        },
-        Default = "v2.4 (Current)",
-        Callback = function(selectedVer)
-            local entries = changelogData[selectedVer] or changelogData["v2.4 (Current)"]
-            for i = 1, 6 do
-                if logLabels[i] then
-                    logLabels[i]:SetText(entries[i] or "")
-                end
-            end
-        end
-    })
-
+    
     task.spawn(function()
         while not unloaded and getgenv().CrypticalGen == GEN do
             task.wait(0.5)
@@ -6260,7 +6195,7 @@ do
     })
 
     local HumanizationSection = CombatPage:Section({
-        Name = "Aimbot Humanization",
+        Name = "Humanizer",
         Icon = ICON_BOT,
         Side = 2,
     })
@@ -6351,20 +6286,6 @@ do
         Name = "Use FOV Limit",
         Flag = "Combat_UseFOV",
         Default = false,
-        Callback = function(val)
-            if drawFovToggle then drawFovToggle:SetVisibility(val) end
-            if fovSizeSlider then fovSizeSlider:SetVisibility(val) end
-            if fovOutlineAlphaSlider then fovOutlineAlphaSlider:SetVisibility(val) end
-            if fovFillAlphaSlider then fovFillAlphaSlider:SetVisibility(val) end
-            if fovSidesSlider then fovSidesSlider:SetVisibility(val) end
-            if fovSpinToggle then fovSpinToggle:SetVisibility(val) end
-            if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(val and Library.Flags["Combat_FOVSpin"] == true) end
-            if fovRainbowToggle then fovRainbowToggle:SetVisibility(val) end
-            if fovPulseToggle then fovPulseToggle:SetVisibility(val) end
-            if fovDynamicToggle then fovDynamicToggle:SetVisibility(val) end
-            if fovThicknessSlider then fovThicknessSlider:SetVisibility(val) end
-            if fovPlacementDropdown then fovPlacementDropdown:SetVisibility(val) end
-        end,
     })
 
     drawFovToggle = AimbotFOVSection:Toggle({
@@ -8046,7 +7967,7 @@ do
     })
 
     local ChamsSection = VisualsPage:Section({
-        Name = "Chams & Materials",
+        Name = "Chams",
         Icon = ICON_SHIELD,
         Side = 2,
     })
@@ -8158,7 +8079,7 @@ do
     end)
 
     local PreviewSection = VisualsPage:Section({
-        Name = "3D ESP Preview System",
+        Name = "ESP Preview",
         Icon = ICON_SCANEYE,
         Side = 2,
     })
@@ -9411,23 +9332,25 @@ do
         end)
     end
 
-    task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
-            if skyboxData.Active and skyboxData.Spin and skyboxData.SkyInstance then
+    Library:Connect(RunService.Heartbeat, function(dt)
+        if unloaded or getgenv().CrypticalGen ~= GEN then return end
+        if skyboxData.Active and skyboxData.Spin then
+            local sky = skyboxData.SkyInstance or Lighting:FindFirstChildOfClass("Sky")
+            if sky then
+                local spd = skyboxData.SpinSpeed or 20
+                skyboxData.CurrentAngle = ((skyboxData.CurrentAngle or 0) + (spd * dt)) % 360
                 pcall(function()
-                    skyboxData.CurrentAngle = (skyboxData.CurrentAngle + (skyboxData.SpinSpeed * 0.05)) % 360
-                    local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
-                    if atmos then
-                        atmos.Offset = math.sin(math.rad(skyboxData.CurrentAngle)) * 0.25
-                    end
+                    sky.SkyboxOrientation = Vector3.new(0, skyboxData.CurrentAngle, 0)
+                end)
+                pcall(function()
+                    sky.SkyboxRotation = skyboxData.CurrentAngle
                 end)
             end
-            task.wait(0.03)
         end
     end)
 
     local SkyboxSection = VisualsPage:Section({
-        Name = "Skybox Changer",
+        Name = "Skybox",
         Icon = ICON_CLOUD,
         Side = 1,
     })
@@ -9483,7 +9406,7 @@ do
     })
 
     local CelestialSection = VisualsPage:Section({
-        Name = "Sun & Moon Modifiers",
+        Name = "Celestials",
         Icon = ICON_SUN,
         Side = 1,
     })
@@ -9529,7 +9452,7 @@ do
     })
 
     local AmbienceSection = VisualsPage:Section({
-        Name = "Ambience & Lighting",
+        Name = "Ambience",
         Icon = ICON_LIGHTBULB,
         Side = 2,
     })
@@ -9635,7 +9558,7 @@ do
     })
 
     local AtmosphereFogSection = VisualsPage:Section({
-        Name = "Atmosphere & Fog",
+        Name = "Atmosphere",
         Icon = ICON_WAND,
         Side = 2,
     })
@@ -10234,7 +10157,7 @@ do
     end
 
     local WeatherSection = VisualsPage:Section({
-        Name = "Weather & Particles",
+        Name = "Weather",
         Icon = ICON_SPARKLES,
         Side = 1,
     })
@@ -10433,7 +10356,7 @@ do
         end,
     })
     local ShadingSection = VisualsPage:Section({
-        Name = "Shading & Color FX",
+        Name = "Shading",
         Icon = ICON_COLOR,
         Side = 2,
     })
@@ -10544,7 +10467,7 @@ do
     })
 
     local WorldMaterialSection = VisualsPage:Section({
-        Name = "World Material Changer",
+        Name = "World Materials",
         Icon = ICON_CUBE,
         Side = 2,
     })
@@ -10664,7 +10587,7 @@ do
     })
 
     local FullbrightSection = VisualsPage:Section({
-        Name = "Fullbright & Shadows",
+        Name = "Fullbright",
         Icon = ICON_SUN,
         Side = 1,
     })
@@ -10958,7 +10881,8 @@ do
     Players.PlayerRemoving:Connect(removePlayerESP)
 
     Library:Connect(RunService.RenderStepped, function()
-        if not espConfig.MasterEnabled or unloaded or getgenv().CrypticalGen ~= GEN then
+        local masterOn = espConfig.MasterEnabled or espConfig.Box or espConfig.Name or espConfig.Health or espConfig.Distance or espConfig.Weapon or espConfig.Tracers or espConfig.Skeleton or espConfig.Chams or espConfig.HeadDot or espConfig.Offscreen
+        if not masterOn or unloaded or getgenv().CrypticalGen ~= GEN then
             for _, data in pairs(playerESPCache) do
                 hidePlayerESP(data)
             end
@@ -11030,7 +10954,7 @@ do
                             local bottom2d, bottomOnScreen = cam:WorldToViewportPoint(feetBotPos)
                             local root2d, rootOnScreen = cam:WorldToViewportPoint(rootPos)
 
-                            if (topOnScreen or bottomOnScreen or rootOnScreen) and top2d.Z > 0 and bottom2d.Z > 0 then
+                            if root2d.Z > 0 and (rootOnScreen or topOnScreen or bottomOnScreen or (root2d.X >= -100 and root2d.X <= screenW + 100 and root2d.Y >= -100 and root2d.Y <= screenH + 100)) then
                                 if data.OffscreenArrow then data.OffscreenArrow.Visible = false end
 
                                 local boxH = math.max(6, math.abs(bottom2d.Y - top2d.Y))
@@ -11442,7 +11366,7 @@ do
     }
 
     local AnimChangerSection = MiscPage:Section({
-        Name = "Animation Changer & Bundles",
+        Name = "Animations",
         Icon = ICON_BOT,
         Side = 1,
     })
@@ -11632,7 +11556,7 @@ do
     })
 
     local SkinChangerSection = MiscPage:Section({
-        Name = "HC Weapon Skin Changer",
+        Name = "Skins",
         Icon = ICON_BOT,
         Side = 1,
     })
@@ -11806,7 +11730,7 @@ do
     })
 
     local MovementSection = MiscPage:Section({
-        Name = "Movement & Physics",
+        Name = "Movement",
         Icon = ICON_MOVE,
         Side = 1,
     })
@@ -11958,7 +11882,7 @@ do
     })
 
     local AntiAimSection = MiscPage:Section({
-        Name = "Anti-Aim & Spinbot",
+        Name = "Anti-Aim",
         Icon = ICON_SPARKLES,
         Side = 1,
     })
@@ -12061,7 +11985,7 @@ do
     end)
 
     local RageSection = MiscPage:Section({
-        Name = "Rage & Survival Mods",
+        Name = "Rage",
         Icon = ICON_SKULL,
         Side = 2,
     })
@@ -12078,24 +12002,32 @@ do
                 if not root then return end
 
                 if val then
-                    miscState.VoidSavedCF = root.CFrame
+                    if root.Position.Y < 20000 then
+                        miscState.VoidSavedCF = root.CFrame
+                    end
                     if not miscState.VoidPlatform then
                         local p = Instance.new("Part")
                         p.Name = "Cryptical_VoidPlatform"
-                        p.Size = Vector3.new(20, 2, 20)
+                        p.Size = Vector3.new(30, 2, 30)
                         p.Position = Vector3.new(0, 30000, 0)
                         p.Anchored = true
                         p.CanCollide = true
-                        p.Transparency = 0.5
-                        p.Color = Theme.Accent or Color3.fromRGB(139, 149, 246)
+                        p.Transparency = 1
                         p.Parent = Workspace
                         miscState.VoidPlatform = p
                     end
                     root.CFrame = CFrame.new(0, 30005, 0)
                 else
-                    if miscState.VoidSavedCF then
+                    if miscState.VoidSavedCF and miscState.VoidSavedCF.Position.Y < 20000 then
                         root.CFrame = miscState.VoidSavedCF
                         miscState.VoidSavedCF = nil
+                    else
+                        local spawnPos = Workspace:FindFirstChildOfClass("SpawnLocation")
+                        if spawnPos then
+                            root.CFrame = spawnPos.CFrame + Vector3.new(0, 5, 0)
+                        else
+                            root.CFrame = CFrame.new(root.Position.X, 10, root.Position.Z)
+                        end
                     end
                     if miscState.VoidPlatform then
                         miscState.VoidPlatform:Destroy()
@@ -12147,7 +12079,7 @@ do
 
 
     local UtilitiesSection = MiscPage:Section({
-        Name = "Client & Server Utilities",
+        Name = "Utilities",
         Icon = ICON_TROLL,
         Side = 2,
     })
@@ -12401,7 +12333,7 @@ do
     end
 
     local PlayersListSection = PlayerlistPage:Section({
-        Name = "Player Explorer",
+        Name = "Players",
         Icon = ICON_CLIENT,
         Side = 1,
     })
@@ -12551,7 +12483,7 @@ do
     plLayout.SortOrder = Enum.SortOrder.LayoutOrder
 
     local TargetDetailsSection = PlayerlistPage:Section({
-        Name = "Target Details & Controls",
+        Name = "Target",
         Icon = ICON_COMBAT,
         Side = 2,
     })
@@ -13081,7 +13013,7 @@ do
     })
 
     local ThemingSection = SettingsPage:Section({
-        Name = "Themes & Colors",
+        Name = "Themes",
         Icon = ICON_THEME,
         Side = 1,
     })
@@ -13210,7 +13142,7 @@ do
     end)
 
     local ConfigsSection = SettingsPage:Section({
-        Name = "Configs & Profiles",
+        Name = "Configs",
         Icon = ICON_CONFIGS,
         Side = 1,
     })
@@ -13297,7 +13229,7 @@ do
     Library:RefreshConfigsList(ConfigsDropdown)
 
     local OverlaysSection = SettingsPage:Section({
-        Name = "Tactical Screen Overlays",
+        Name = "Overlays",
         Icon = ICON_CAMERA,
         Side = 2,
     })
@@ -13374,7 +13306,7 @@ do
 
     
     local MenuSection = SettingsPage:Section({
-        Name = "Menu Settings",
+        Name = "Menu",
         Icon = ICON_DEFAULT_SEC,
         Side = 2,
     })
