@@ -5,7 +5,6 @@ pcall(function()
     getgenv().debugInfo = false
 end)
 
--- New Adonis Anti-Cheat Bypass
 local g = getinfo or debug.getinfo
 local d = false
 local h = {}
@@ -3885,7 +3884,7 @@ local Library do
                     BackgroundColor3 = Library.Theme["Outline"]
                 }):AddToTheme({BackgroundColor3 = 'Outline'})
 
-                Items["OptionHolder"] = Instances:Create("TextButton", {
+                Items["OptionHolder"] = Instances:Create("ScrollingFrame", {
                     Parent = Library.UnusedHolder.Instance,
                     Name = "\0",
                     Visible = false,
@@ -3897,10 +3896,14 @@ local Library do
                     Size = UDim2New(0, 200, 0, 0),
                     Position = UDim2New(0, 54, 0, 236),
                     BorderSizePixel = 0,
-                    AutomaticSize = Enum.AutomaticSize.Y,
-                    TextSize = 14,
+                    CanvasSize = UDim2New(0, 0, 0, 0),
+                    AutomaticCanvasSize = Enum.AutomaticSize.Y,
+                    ScrollBarThickness = 3,
+                    ScrollBarImageColor3 = Library.Theme["Accent"],
+                    ClipsDescendants = true,
+                    Active = true,
                     BackgroundColor3 = Library.Theme["Inline"]
-                }):AddToTheme({BackgroundColor3 = 'Inline'})
+                }):AddToTheme({BackgroundColor3 = 'Inline', ScrollBarImageColor3 = 'Accent'})
 
                 Instances:Create("UICorner", {
                     Parent = Items["OptionHolder"].Instance,
@@ -3964,7 +3967,15 @@ local Library do
                             0,
                             Items["RealDropdown"].Instance.AbsolutePosition.Y + Items["RealDropdown"].Instance.AbsoluteSize.Y + 4
                         )
-                        Items["OptionHolder"].Instance.Size = UDim2New(0, Items["RealDropdown"].Instance.AbsoluteSize.X, 0, 0)
+                        local optionCount = 0
+                        for _, child in ipairs(Items["OptionHolder"].Instance:GetChildren()) do
+                            if child:IsA("GuiButton") or child:IsA("TextButton") then
+                                optionCount = optionCount + 1
+                            end
+                        end
+                        local visibleCount = math.min(optionCount, 5)
+                        local targetHeight = (visibleCount > 0) and ((visibleCount * 26) + 14) or 40
+                        Items["OptionHolder"].Instance.Size = UDim2New(0, Items["RealDropdown"].Instance.AbsoluteSize.X, 0, targetHeight)
                     end)
 
                     for Index, Value in Library.OpenFrames do
@@ -5887,7 +5898,6 @@ do
     local pingStat = makeHomeStat("Server Ping", tostring(getPing()) .. " ms", 5)
     local tierStat = makeHomeStat("User Tier", string.upper(CrypticalAPI:GetTags(userName)[1] or "USER"), 6)
 
-    -- Update FPS stat in real-time
     task.spawn(function()
         while not unloaded and getgenv().CrypticalGen == GEN do
             task.wait(0.5)
@@ -6948,11 +6958,9 @@ do
             return closestPart or char:FindFirstChild("Head") or char:FindFirstChild("HumanoidRootPart")
         end
         
-        -- Direct lookup with fallback chain
         local direct = char:FindFirstChild(hitpartName)
         if direct then return direct end
         
-        -- Fallback mappings for different rig types
         local fallbackMap = {
             ["LeftHand"] = {"LeftHand", "Left Arm"},
             ["RightHand"] = {"RightHand", "Right Arm"},
@@ -7059,7 +7067,6 @@ do
         local candidates = {}
         local added = {}
 
-        -- Add all players
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= Players.LocalPlayer then
                 table.insert(candidates, p)
@@ -7067,7 +7074,6 @@ do
             end
         end
 
-        -- Search for NPCs/Bots only in specific folders (lighter scan)
         local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies"}
         for _, folderName in ipairs(searchFolders) do
             local folder = Workspace:FindFirstChild(folderName)
@@ -7394,17 +7400,13 @@ do
                 end
 
                 if Library.Flags["Combat_PullResToggle"] then
-                    -- Pull Resistance: Allows free camera movement while aimbot is active
-                    -- The aimbot will "resist" your movements proportionally to the settings
                     local mouseDelta = UserInputService:GetMouseDelta()
                     local rx = (Library.Flags["Combat_PullResX"] or 10) / 100
                     local ry = (Library.Flags["Combat_PullResY"] or 10) / 100
                     
-                    -- Calculate how much the user is trying to move the camera
                     local userInfluenceX = mouseDelta.X * rx
                     local userInfluenceY = mouseDelta.Y * ry
                     
-                    -- Blend the target position with user input
                     targetPos = targetPos + Vector3.new(userInfluenceX * 0.1, userInfluenceY * 0.1, 0)
                 end
 
@@ -9014,64 +9016,361 @@ do
         MoonSize = 11,
     }
 
-    local skyboxPresets = {
-        ["Purple Nebula"] = {
-            Bk = "rbxassetid://159454299",
-            Dn = "rbxassetid://159454296",
-            Ft = "rbxassetid://159454293",
-            Lf = "rbxassetid://159454286",
-            Rt = "rbxassetid://159454300",
-            Up = "rbxassetid://159454288"
-        },
-        ["Red Nebula"] = {
-            Bk = "rbxassetid://401664839",
-            Dn = "rbxassetid://401664862",
-            Ft = "rbxassetid://401664960",
-            Lf = "rbxassetid://401664881",
-            Rt = "rbxassetid://401664901",
-            Up = "rbxassetid://401664936"
-        },
-        ["Vaporwave Pink"] = {
-            Bk = "rbxassetid://418952356",
-            Dn = "rbxassetid://418952578",
-            Ft = "rbxassetid://418952379",
-            Lf = "rbxassetid://418952399",
-            Rt = "rbxassetid://418952424",
-            Up = "rbxassetid://418952449"
-        },
-        ["Night Sky"] = {
-            Bk = "rbxassetid://12064107",
-            Dn = "rbxassetid://12064152",
-            Ft = "rbxassetid://12064121",
-            Lf = "rbxassetid://12064115",
-            Rt = "rbxassetid://12064131",
-            Up = "rbxassetid://12064144"
-        },
-        ["Blossom Pink"] = {
-            Bk = "rbxassetid://271042516",
-            Dn = "rbxassetid://271042556",
-            Ft = "rbxassetid://271042440",
-            Lf = "rbxassetid://271042310",
-            Rt = "rbxassetid://271042162",
-            Up = "rbxassetid://271042661"
-        },
-        ["Galaxy Space"] = {
-            Bk = "rbxassetid://159454299",
-            Dn = "rbxassetid://159454296",
-            Ft = "rbxassetid://159454293",
-            Lf = "rbxassetid://159454286",
-            Rt = "rbxassetid://159454300",
-            Up = "rbxassetid://159454288"
-        },
-        ["Dark Storm"] = {
-            Bk = "rbxassetid://1013852",
-            Dn = "rbxassetid://1013853",
-            Ft = "rbxassetid://1013849",
-            Lf = "rbxassetid://1013850",
-            Rt = "rbxassetid://1013851",
-            Up = "rbxassetid://1013854"
-        }
+        local skyboxPresets = {
+        Piss={Up="rbxassetid://2651437350",Rt="rbxassetid://2651436979",Lf="rbxassetid://2651436494",Ft="rbxassetid://2651435990",Bk="rbxassetid://2651432901",Dn="rbxassetid://2651434974"},
+        Space={Up="rbxassetid://15983964246",Rt="rbxassetid://15983966246",Lf="rbxassetid://15983967420",Ft="rbxassetid://15983965025",Bk="rbxassetid://15983968922",Dn="rbxassetid://15983966825"},
+        Dark={Up="rbxassetid://15470160563",Rt="rbxassetid://15470158022",Lf="rbxassetid://15470155938",Ft="rbxassetid://15470153860",Bk="rbxassetid://15470149279",Dn="rbxassetid://15470151245"},
+        ["Space V2"]={Up="rbxassetid://16262366016",Rt="rbxassetid://16262363873",Lf="rbxassetid://16262362003",Ft="rbxassetid://16262360469",Bk="rbxassetid://16262356578",Dn="rbxassetid://16262358026"},
+        Pink={Up="rbxassetid://12635316856",Rt="rbxassetid://12635315817",Lf="rbxassetid://12635313718",Ft="rbxassetid://12635312870",Bk="rbxassetid://12635309703",Dn="rbxassetid://12635311686"},
+        Forest={Up="rbxassetid://237593929",Rt="rbxassetid://237593835",Lf="rbxassetid://237593861",Ft="rbxassetid://237593922",Bk="rbxassetid://237593887",Dn="rbxassetid://237593849"},
+        Night={Up="rbxassetid://154185031",Rt="rbxassetid://154184972",Lf="rbxassetid://154184943",Ft="rbxassetid://154185021",Bk="rbxassetid://154185004",Dn="rbxassetid://154184960"},
+        Lava={Up="rbxassetid://4776130793",Rt="rbxassetid://4776133150",Lf="rbxassetid://4776128425",Ft="rbxassetid://4776131365",Bk="rbxassetid://4776124334",Dn="rbxassetid://4776125375"},
+        Rainy={Up="rbxassetid://4495867486",Rt="rbxassetid://4495866584",Lf="rbxassetid://4495866035",Ft="rbxassetid://4495865458",Bk="rbxassetid://4495864450",Dn="rbxassetid://4495864887"},
+        Green={Up="rbxassetid://566611218",Rt="rbxassetid://566611300",Lf="rbxassetid://566611266",Ft="rbxassetid://566611142",Bk="rbxassetid://566611187",Dn="rbxassetid://566613198"},
+        Nebulous={Up="rbxassetid://131036626982613",Rt="rbxassetid://103716549795832",Lf="rbxassetid://126542804346203",Ft="rbxassetid://107665368823185",Bk="rbxassetid://95020137072033",Dn="rbxassetid://92862258103959"},
+        ["Blue Clouds"]={Lf="rbxassetid://113877479719528",Dn="rbxassetid://79704090322682",Up="rbxassetid://83295215834464",Bk="rbxassetid://130432680623409",Rt="rbxassetid://84246762168898",Ft="rbxassetid://114966033937119"},
+        ["Candy Floss"]={Bk="rbxassetid://103994796436499",Dn="rbxassetid://88135141884296",Ft="rbxassetid://71705651078185",Lf="rbxassetid://83560072752341",Rt="rbxassetid://96879039628172",Up="rbxassetid://131043401069407"},
+        ["Green Skies"]={Up="rbxassetid://11941773718",Rt="rbxassetid://11941774042",Lf="rbxassetid://11941774369",Ft="rbxassetid://11941774655",Dn="rbxassetid://11941774975",Bk="rbxassetid://11941775243"},
+        ["White Skies"]={Up="rbxassetid://14638329084",Rt="rbxassetid://14627242578",Lf="rbxassetid://14627253604",Ft="rbxassetid://14627298624",Dn="rbxassetid://14638334572",Bk="rbxassetid://14627238543"},
+        ["Blood Red"]={Bk="rbxassetid://108929045660200",Dn="rbxassetid://78646480540009",Ft="rbxassetid://90546017435179",Lf="rbxassetid://109838453114563",Rt="rbxassetid://94190734796082",Up="rbxassetid://126944775797063"},
+        ["Scary"]={Up="rbxassetid://48020383",Rt="rbxassetid://48020254",Lf="rbxassetid://48020211",Ft="rbxassetid://48020234",Bk="rbxassetid://48020371",Dn="rbxassetid://48020144"},
+        ["Realistic Day"]={Up="rbxassetid://15502526102",Rt="rbxassetid://15502523711",Lf="rbxassetid://15502522129",Ft="rbxassetid://15502524520",Bk="rbxassetid://15502525195",Dn="rbxassetid://15502522797"},
+        ["Realistic Space"]={Up="rbxassetid://155441905",Rt="rbxassetid://155441874",Lf="rbxassetid://155441777",Ft="rbxassetid://155441818",Bk="rbxassetid://155441936",Dn="rbxassetid://155441802"},
+        ["Classic"]={Up="rbxassetid://16960183792",Rt="rbxassetid://16960180775",Lf="rbxassetid://16960173960",Ft="rbxassetid://16960177173",Bk="rbxassetid://16960168607",Dn="rbxassetid://16960171251"},
+        ["Sunset"]={Up="rbxassetid://541743441",Rt="rbxassetid://541743435",Lf="rbxassetid://541743436",Ft="rbxassetid://541743446",Bk="rbxassetid://541743453",Dn="rbxassetid://541743443"},
+        ["HD Space"]={Up="rbxassetid://16876771721",Rt="rbxassetid://16876769447",Lf="rbxassetid://16876767659",Ft="rbxassetid://16876765234",Bk="rbxassetid://16876760844",Dn="rbxassetid://16876762818"},
+        ["Cold Winter"]={Up="rbxassetid://5346761509",Rt="rbxassetid://5346761335",Lf="rbxassetid://5346761102",Ft="rbxassetid://5346760919",Bk="rbxassetid://5346760450",Dn="rbxassetid://5346760689"},
+        ["Shiverfrost"]={Up="rbxassetid://11941773718",Rt="rbxassetid://11941774042",Lf="rbxassetid://11941774369",Ft="rbxassetid://11941774655",Bk="rbxassetid://11941775243",Dn="rbxassetid://11941774975"},
+        ["Blue Nebula"]={Up="rbxassetid://88174897344210",Rt="rbxassetid://81731245279712",Lf="rbxassetid://72493016739936",Ft="rbxassetid://92947876187368",Bk="rbxassetid://135908594667929",Dn="rbxassetid://139584143501514"},
+        ["Red Space"]={Up="rbxassetid://16563527042",Rt="rbxassetid://16563525361",Lf="rbxassetid://16563524305",Ft="rbxassetid://16563522248",Bk="rbxassetid://16563515269",Dn="rbxassetid://16563519063"},
+        ["Green Clouds"]={Up="rbxassetid://921882259",Rt="rbxassetid://921881989",Lf="rbxassetid://921881811",Ft="rbxassetid://921882121",Bk="rbxassetid://921882045",Dn="rbxassetid://921881907"},
+        ["Purple Clouds"]={Up="rbxassetid://17279864507",Rt="rbxassetid://17279862234",Lf="rbxassetid://17279860360",Ft="rbxassetid://17279858447",Bk="rbxassetid://17279854976",Dn="rbxassetid://17279856318"},
+        ["Nibiru"]={Up="rbxassetid://16888795319",Rt="rbxassetid://16888793222",Lf="rbxassetid://16888791272",Ft="rbxassetid://16888789063",Bk="rbxassetid://16888782970",Dn="rbxassetid://16888785001"},
+        ["Nebulae"]={Up="rbxassetid://15410066351",Rt="rbxassetid://15410065410",Lf="rbxassetid://15410064356",Ft="rbxassetid://15410062941",Bk="rbxassetid://15410060765",Dn="rbxassetid://15410061776"},
+        ["Moody"]={Up="rbxassetid://16094726650",Rt="rbxassetid://16094722121",Lf="rbxassetid://16094718550",Ft="rbxassetid://16094725387",Bk="rbxassetid://16094723769",Dn="rbxassetid://16094720620"},
+        ["Whistle"]={Up="rbxassetid://119554574473335",Rt="rbxassetid://73230217205735",Lf="rbxassetid://106597220421789",Ft="rbxassetid://134876166747769",Bk="rbxassetid://111497829836471",Dn="rbxassetid://85772401772303"},
+        ["Crossroads"]={Up="http://www.roblox.com/asset/?id=144931564",Rt="http://www.roblox.com/asset/?id=144933299",Lf="http://www.roblox.com/asset/?id=144933244",Ft="http://www.roblox.com/asset/?id=144933262",Bk="http://www.roblox.com/asset/?id=144933338",Dn="http://www.roblox.com/asset/?id=144931530"},
+        ["Abyss Blue"]={Up="rbxassetid://16269829700",Rt="rbxassetid://16269814948",Lf="rbxassetid://16269813852",Ft="rbxassetid://16269798011",Bk="rbxassetid://16269815885",Dn="rbxassetid://16269839652",Moon="rbxassetid://sky/moon.jpg"},
+        ["Red Castle Dark"]={Up="rbxassetid://15832429401",Rt="rbxassetid://15832431198",Lf="rbxassetid://15832430671",Ft="rbxassetid://15832430210",Bk="rbxassetid://15832429892",Dn="rbxassetid://15832430998"},
+        Red1={Up="rbxassetid://126944775797063",Rt="rbxassetid://94190734796082",Lf="rbxassetid://109838453114563",Ft="rbxassetid://90546017435179",Bk="rbxassetid://108929045660200",Dn="rbxassetid://78646480540009"},
+        Red2={Up="rbxassetid://1014449",Rt="rbxassetid://1012888",Lf="rbxassetid://1012889",Ft="rbxassetid://1012887",Bk="rbxassetid://1012890",Dn="rbxassetid://1012891"},
+        Purple={Up="rbxassetid://16553667750",Rt="rbxassetid://16553665766",Lf="rbxassetid://16553664042",Ft="rbxassetid://16553662144",Bk="rbxassetid://16553658937",Dn="rbxassetid://16553660713"},
+        Blue_Nebula={Up="rbxassetid://88174897344210",Rt="rbxassetid://81731245279712",Lf="rbxassetid://72493016739936",Ft="rbxassetid://92947876187368",Bk="rbxassetid://135908594667929",Dn="rbxassetid://139584143501514"},
+        Eyes={Up="rbxassetid://6823346883",Rt="rbxassetid://6823346883",Lf="rbxassetid://6823346883",Ft="rbxassetid://6823346883",Bk="rbxassetid://6823346883",Dn="rbxassetid://6823346883"},
+        Purple_Green={Up="rbxassetid://678556362",Rt="rbxassetid://678556360",Lf="rbxassetid://678556373",Ft="rbxassetid://678556368",Bk="rbxassetid://678556371",Dn="rbxassetid://678556361"},
+        Red3={Up="rbxassetid://80526725",Rt="rbxassetid://80526715",Lf="rbxassetid://80526703",Ft="rbxassetid://80526692",Bk="rbxassetid://80526657",Dn="rbxassetid://80526668"},
+        Dark_Forest={Up="rbxassetid://1100975263",Rt="rbxassetid://1100975263",Lf="rbxassetid://1100975263",Ft="rbxassetid://1100975263",Bk="rbxassetid://1100975263",Dn="rbxassetid://1100975263"},
+        Red4={Up="rbxassetid://157785145",Rt="rbxassetid://157785104",Lf="rbxassetid://157785128",Ft="rbxassetid://157785081",Bk="rbxassetid://157785163",Dn="rbxassetid://157785059"},
+        Fire={Up="rbxassetid://5250886",Rt="rbxassetid://7315949",Lf="rbxassetid://7315949",Ft="rbxassetid://7315949",Bk="rbxassetid://7315949",Dn="rbxassetid://6869705"},
+        icemountain={Up="rbxassetid://653026555",Rt="rbxassetid://653024934",Lf="rbxassetid://653025971",Ft="rbxassetid://653026058",Bk="rbxassetid://653026312",Dn="rbxassetid://58992866"},
+        nightcity={Up="rbxassetid://8777332629",Rt="rbxassetid://8773001251",Lf="rbxassetid://8773005696",Ft="rbxassetid://8772999470",Bk="rbxassetid://8773003048",Dn="rbxassetid://8773048741"},
+        Evangelion={Up="rbxassetid://18705044890",Rt="rbxassetid://18705041280",Lf="rbxassetid://18705037452",Ft="rbxassetid://18705034432",Bk="rbxassetid://18705029692",Dn="rbxassetid://18705031833"},
+        galaxy={Up="rbxassetid://10542144815",Rt="rbxassetid://10542160123",Lf="rbxassetid://10542168961",Ft="rbxassetid://10542165376",Bk="rbxassetid://10542151848",Dn="rbxassetid://10542185888"},
+        Dark_Sky1={Up="rbxassetid://12439607581",Rt="rbxassetid://12439607950",Lf="rbxassetid://12439608186",Ft="rbxassetid://12439608455",Bk="rbxassetid://12439608844",Dn="rbxassetid://12439608685"},
+        foggy_ocean={Up="rbxassetid://14365033585",Rt="rbxassetid://14365031934",Lf="rbxassetid://14365032507",Ft="rbxassetid://14365032240",Bk="rbxassetid://14365032806",Dn="rbxassetid://14365033150"},
+        Skybox_34={Up="rbxassetid://171410789",Rt="rbxassetid://171410798",Lf="rbxassetid://171410807",Ft="rbxassetid://171410775",Bk="rbxassetid://171410784",Dn="rbxassetid://171410792"},
+        Warped_Void={Up="rbxassetid://121817740729732",Rt="rbxassetid://112228356210291",Lf="rbxassetid://95118757111741",Ft="rbxassetid://137075766318919",Bk="rbxassetid://70654291823771",Dn="rbxassetid://85052177900589"},
+        Rain_Sky={Up="rbxassetid://4495867486",Rt="rbxassetid://4495866584",Lf="rbxassetid://4495866035",Ft="rbxassetid://4495865458",Bk="rbxassetid://4495864450",Dn="rbxassetid://4495864887"},
+        Snow={Up="rbxassetid://155674931",Rt="rbxassetid://155657619",Lf="rbxassetid://155657671",Ft="rbxassetid://155657609",Bk="rbxassetid://155657655",Dn="rbxassetid://155674246"},
+        Asteroid={Up="rbxassetid://198433823",Rt="rbxassetid://198437454",Lf="rbxassetid://198437520",Ft="rbxassetid://198433337",Bk="rbxassetid://198433424",Dn="rbxassetid://198442292"},
+        Space3={Up="rbxassetid://15729027326",Rt="rbxassetid://15728919919",Lf="rbxassetid://15728922364",Ft="rbxassetid://15728920952",Bk="rbxassetid://15728920607",Dn="rbxassetid://15728995236"},
+        nebula3={Up="rbxassetid://102883325511503",Rt="rbxassetid://79330588619695",Lf="rbxassetid://76599902191457",Ft="rbxassetid://131992003320527",Bk="rbxassetid://86243508936975",Dn="rbxassetid://89903191408472"},
+        Oblivion={Up="rbxassetid://1013848",Rt="rbxassetid://1013841",Lf="rbxassetid://1013843",Ft="rbxassetid://1013842",Bk="rbxassetid://1013844",Dn="rbxassetid://1013845"},
+        The_Utter_East={Up="rbxassetid://1014352",Rt="rbxassetid://1014347",Lf="rbxassetid://1014349",Ft="rbxassetid://1014348",Bk="rbxassetid://1014350",Dn="rbxassetid://1014351"},
+        Walls_Of_Autumn={Up="rbxassetid://1013854",Rt="rbxassetid://1013849",Lf="rbxassetid://1013851",Ft="rbxassetid://1013850",Bk="rbxassetid://1013852",Dn="rbxassetid://1013853"},
+        Winterness={Up="rbxassetid://1327360",Rt="rbxassetid://1327356",Lf="rbxassetid://1327357",Ft="rbxassetid://1327355",Bk="rbxassetid://1327358",Dn="rbxassetid://1327359"},
+        Sunset_Orange={Up="rbxassetid://458016792",Rt="rbxassetid://458016782",Lf="rbxassetid://458016655",Ft="rbxassetid://458016532",Bk="rbxassetid://458016711",Dn="rbxassetid://458016826"},
+        green_clouds_v1={Up="rbxassetid://921882259",Rt="rbxassetid://921881989",Lf="rbxassetid://921881811",Ft="rbxassetid://921882121",Bk="rbxassetid://921882045",Dn="rbxassetid://921881907"},
+        Flames_a_Jegabert={Up="rbxassetid://157785145",Rt="rbxassetid://157785104",Lf="rbxassetid://157785128",Ft="rbxassetid://157785081",Bk="rbxassetid://157785163",Dn="rbxassetid://157785059"},
+        Close_to_Heaven={Up="rbxassetid://7951703855",Rt="rbxassetid://7951700251",Lf="rbxassetid://7951697216",Ft="rbxassetid://7951694757",Bk="rbxassetid://7951826533",Dn="rbxassetid://7951706908"},
+        Black_White={Up="rbxassetid://14133942685",Rt="rbxassetid://14133939547",Lf="rbxassetid://14133939547",Ft="rbxassetid://14133939547",Bk="rbxassetid://14133939547",Dn="rbxassetid://14133938465"},
+        Abyssal_blues={Up="rbxassetid://16269829700",Rt="rbxassetid://16269814948",Lf="rbxassetid://16269813852",Ft="rbxassetid://16269798011",Bk="rbxassetid://16269815885",Dn="rbxassetid://16269839652"},
+        Dark_World_Sky={Up="rbxassetid://282641570",Rt="rbxassetid://282641564",Lf="rbxassetid://282641575",Ft="rbxassetid://282641568",Bk="rbxassetid://282641582",Dn="rbxassetid://282641577"},
+        Alien_Moon_Landscape={Up="rbxassetid://167773415",Rt="rbxassetid://167773257",Lf="rbxassetid://167781312",Ft="rbxassetid://167773289",Bk="rbxassetid://167773380",Dn="rbxassetid://167782033"},
+        SpaceEnginePlanet={Up="rbxassetid://87015174865972",Rt="rbxassetid://96985335287535",Lf="rbxassetid://115474632610950",Ft="rbxassetid://96057940895723",Bk="rbxassetid://123450674043674",Dn="rbxassetid://84892181423810"},
+        Pink_v2={Up="rbxassetid://79190209626172",Rt="rbxassetid://87570388049514",Lf="rbxassetid://80395333901607",Ft="rbxassetid://104560113223878",Bk="rbxassetid://71607054149497",Dn="rbxassetid://78865378050055"},
+        Autumn={Up="rbxassetid://921878634",Rt="rbxassetid://921878250",Lf="rbxassetid://921878103",Ft="rbxassetid://921878504",Bk="rbxassetid://921878400",Dn="rbxassetid://921878168"},
+        Warring_Wetlands={Up="rbxassetid://113506887858143",Rt="rbxassetid://138544626872403",Lf="rbxassetid://93686789437855",Ft="rbxassetid://112896929374279",Bk="rbxassetid://110735171905334",Dn="rbxassetid://112900091431292"},
+        Spectral_Sapphire_City={Up="rbxassetid://72481099740761",Rt="rbxassetid://138652243792119",Lf="rbxassetid://101886569555681",Ft="rbxassetid://140362222097849",Bk="rbxassetid://106274872872587",Dn="rbxassetid://125461093276390"},
+        Red5={Up="rbxassetid://36267076",Rt="rbxassetid://36267071",Lf="rbxassetid://36267064",Ft="rbxassetid://36267061",Bk="rbxassetid://36267052",Dn="rbxassetid://36267057"},
+        HL2={Up="rbxassetid://8991307329",Rt="rbxassetid://8991307660",Lf="rbxassetid://8991308038",Ft="rbxassetid://8991308320",Bk="rbxassetid://8991308822",Dn="rbxassetid://8991308505"},
+        Jungle={Up="rbxassetid://525546479",Rt="rbxassetid://525545319",Lf="rbxassetid://525550171",Ft="rbxassetid://525548536",Bk="rbxassetid://525546178",Dn="rbxassetid://525544628"},
+        Sky_Heat={Up="rbxassetid://1836923808",Rt="rbxassetid://1836921497",Lf="rbxassetid://1836922224",Ft="rbxassetid://1836921842",Bk="rbxassetid://1836922613",Dn="rbxassetid://1836928757"},
+        pinkv4={Up="rbxassetid://13695007103",Rt="rbxassetid://13695002700",Lf="rbxassetid://13694998113",Ft="rbxassetid://13694980654",Bk="rbxassetid://13694952867",Dn="rbxassetid://13694968325"},
+        green3={Up="rbxassetid://47974909",Rt="rbxassetid://47974859",Lf="rbxassetid://47974776",Ft="rbxassetid://47974821",Bk="rbxassetid://47974894",Dn="rbxassetid://47974690"},
+        Clouds1={Up="rbxassetid://11809140538",Rt="rbxassetid://11809142163",Lf="rbxassetid://11809143436",Ft="rbxassetid://11809144799",Bk="rbxassetid://11809146646",Dn="rbxassetid://11809145618"},
+        Sun_Walk={Up="rbxassetid://16585819275",Rt="rbxassetid://16585746262",Lf="rbxassetid://16585752140",Ft="rbxassetid://16585739980",Bk="rbxassetid://16585695976",Dn="rbxassetid://16585737244"},
+        TTS_Cursed_Dungeon={Up="rbxassetid://70995614183929",Rt="rbxassetid://130460024662043",Lf="rbxassetid://85184275905908",Ft="rbxassetid://108221764412107",Bk="rbxassetid://81459605791935",Dn="rbxassetid://115255645689819"},
+        Deep_Into_Miasma={Up="rbxassetid://135069128989138",Rt="rbxassetid://79519533052164",Lf="rbxassetid://90741785278939",Ft="rbxassetid://98580344134812",Bk="rbxassetid://77130679029961",Dn="rbxassetid://124419409741010"},
+        monolith={Up="rbxassetid://106290888678594",Rt="rbxassetid://116466339227587",Lf="rbxassetid://130511077687387",Ft="rbxassetid://77493170564247",Bk="rbxassetid://74065908042365",Dn="rbxassetid://136534841768726"},
+        Sky_Halloween={Up="rbxassetid://497258157",Rt="rbxassetid://497258064",Lf="rbxassetid://497258112",Ft="rbxassetid://497258077",Bk="rbxassetid://497258127",Dn="rbxassetid://497258189"},
+        idk={Up="rbxassetid://70945531",Rt="rbxassetid://70945508",Lf="rbxassetid://70945523",Ft="rbxassetid://70945487",Bk="rbxassetid://70945545",Dn="rbxassetid://70945449"},
+        Fog_on_the_water={Up="rbxassetid://15876639348",Rt="rbxassetid://15876595486",Lf="rbxassetid://15876638420",Ft="rbxassetid://15876640231",Bk="rbxassetid://15876597103",Dn="rbxassetid://15876592775"},
+        Blue_Night={Up="rbxassetid://5346761509",Rt="rbxassetid://5346761335",Lf="rbxassetid://5346761102",Ft="rbxassetid://5346760919",Bk="rbxassetid://5346760450",Dn="rbxassetid://5346760689"},
+        Tattletail={Up="rbxassetid://120327360847306",Rt="rbxassetid://104710795412949",Lf="rbxassetid://75856428387182",Ft="rbxassetid://123928107244181",Bk="rbxassetid://140303809601361",Dn="rbxassetid://120327360847306"},
+        Spettra_Sky={Up="rbxassetid://17150193",Rt="rbxassetid://17150186",Lf="rbxassetid://17150180",Ft="rbxassetid://17150163",Bk="rbxassetid://17150136",Dn="rbxassetid://17150148"},
+        Above_the_Clouds={Up="rbxassetid://96933043812138",Rt="rbxassetid://111749399946832",Lf="rbxassetid://91138773974890",Ft="rbxassetid://114547356324218",Bk="rbxassetid://74258544564321",Dn="rbxassetid://75418092548143"},
+        SpaceR={Up="rbxassetid://1735500898",Rt="rbxassetid://1735466772",Lf="rbxassetid://1735467682",Ft="rbxassetid://1735467260",Bk="rbxassetid://1735468027",Dn="rbxassetid://1735500192"},
+        Purple_Space={Up="rbxassetid://137817405681365",Rt="rbxassetid://87408857415924",Lf="rbxassetid://73372229972523",Ft="rbxassetid://104400530594543",Bk="rbxassetid://129876530632297",Dn="rbxassetid://108406529909981"},
+        GalaxyPurple={Up="rbxassetid://15983964246",Rt="rbxassetid://15983966246",Lf="rbxassetid://15983967420",Ft="rbxassetid://15983965025",Bk="rbxassetid://15983968922",Dn="rbxassetid://15983966825"},
+        Star_Space={Up="rbxassetid://139978133063167",Rt="rbxassetid://128695913787010",Lf="rbxassetid://85660931047117",Ft="rbxassetid://95548607759941",Bk="rbxassetid://126758452864724",Dn="rbxassetid://80862418317956"},
+        Uncanny_Sky={Up="rbxassetid://13720335408",Rt="rbxassetid://13720354336",Lf="rbxassetid://13720356894",Ft="rbxassetid://13720423714",Bk="rbxassetid://13720421689",Dn="rbxassetid://13720333936"},
+        HL2BETA18={Up="rbxassetid://8974642505",Rt="rbxassetid://8974643731",Lf="rbxassetid://8974644763",Ft="rbxassetid://8974646042",Bk="rbxassetid://8974647550",Dn="rbxassetid://8974646772"},
+        Amalgamate={Up="rbxassetid://108851549045654",Rt="rbxassetid://87202745437876",Lf="rbxassetid://122268666657177",Ft="rbxassetid://131487205762354",Bk="rbxassetid://105894972155701",Dn="rbxassetid://94242960710341"},
+        Photongative={Up="rbxassetid://94627487431483",Rt="rbxassetid://128035491366705",Lf="rbxassetid://116474481819186",Ft="rbxassetid://72155384220281",Bk="rbxassetid://100907787722690",Dn="rbxassetid://78538004977437"},
+        Torment={Up="rbxassetid://171561009",Rt="rbxassetid://171561026",Lf="rbxassetid://171561065",Ft="rbxassetid://171560968",Bk="rbxassetid://171560994",Dn="rbxassetid://171561019"},
+        CagedBeast={Up="rbxassetid://128364186959855",Rt="rbxassetid://140516331245253",Lf="rbxassetid://79024854946964",Ft="rbxassetid://110109858023307",Bk="rbxassetid://100717462124891",Dn="rbxassetid://99419325764670"},
+        Halloween={Up="rbxassetid://10735997102",Rt="rbxassetid://10735998096",Lf="rbxassetid://10735998682",Ft="rbxassetid://10735998943",Bk="rbxassetid://10735998453",Dn="rbxassetid://10735997670"},
+        Ame_Emerald={Up="rbxassetid://160190474",Rt="rbxassetid://160190478",Lf="rbxassetid://160190486",Ft="rbxassetid://160190467",Bk="rbxassetid://160190417",Dn="rbxassetid://160190420"},
+        Sky_c17={Up="rbxassetid://12446408696",Rt="rbxassetid://12446408511",Lf="rbxassetid://12446409485",Ft="rbxassetid://12446409637",Bk="rbxassetid://12446407892",Dn="rbxassetid://12446408052"},
+        Sky_Mars={Up="rbxassetid://71753420067871",Rt="rbxassetid://76778121603376",Lf="rbxassetid://117145883766059",Ft="rbxassetid://114701180360882",Bk="rbxassetid://125383756066434",Dn="rbxassetid://94218621015509"},
+        Dusty={Up="rbxassetid://16586348931",Rt="rbxassetid://16586347442",Lf="rbxassetid://16586345484",Ft="rbxassetid://16586333428",Bk="rbxassetid://16586327630",Dn="rbxassetid://16586330338"},
+        Riddling={Up="rbxassetid://126564325711034",Rt="rbxassetid://102967958876608",Lf="rbxassetid://88691568829789",Ft="rbxassetid://70675854195087",Bk="rbxassetid://112056446240148",Dn="rbxassetid://136599597706612"},
+        Firestorm={Up="rbxassetid://118584157282137",Rt="rbxassetid://135144997646815",Lf="rbxassetid://72343185589096",Ft="rbxassetid://98305824909316",Bk="rbxassetid://127987072983087",Dn="rbxassetid://129824093617776"},
+        _7thWorld={Up="rbxassetid://87618031968838",Rt="rbxassetid://129868587364678",Lf="rbxassetid://132529615545338",Ft="rbxassetid://140013493187018",Bk="rbxassetid://83662685305307",Dn="rbxassetid://71354245253759"},
+        AWorldThatDoesNotExist={Up="rbxassetid://110966283267842",Rt="rbxassetid://90104715010645",Lf="rbxassetid://134858296780658",Ft="rbxassetid://120342300263855",Bk="rbxassetid://103619731446391",Dn="rbxassetid://130644987951004"},
+        Absolute_Zero={Up="rbxassetid://135764995563017",Rt="rbxassetid://108751650442886",Lf="rbxassetid://93132783922820",Ft="rbxassetid://94166993436571",Bk="rbxassetid://135759842345736",Dn="rbxassetid://131618619061341"},
+        Abyssal_Flames={Up="rbxassetid://83295215834464",Rt="rbxassetid://84246762168898",Lf="rbxassetid://113877479719528",Ft="rbxassetid://114966033937119",Bk="rbxassetid://130432680623409",Dn="rbxassetid://79704090322682"},
+        Accursed_Nocturne={Up="rbxassetid://118221204423574",Rt="rbxassetid://134426370297801",Lf="rbxassetid://120144069402159",Ft="rbxassetid://113314212696290",Bk="rbxassetid://73102975380834",Dn="rbxassetid://128523311870326"},
+        Aero={Up="rbxassetid://91513725397080",Rt="rbxassetid://95302707013256",Lf="rbxassetid://76899879427701",Ft="rbxassetid://123383193198259",Bk="rbxassetid://83503059034904",Dn="rbxassetid://113028334604288"},
+        Aethergrave={Up="rbxassetid://132503158454333",Rt="rbxassetid://92780915143619",Lf="rbxassetid://76682446720030",Ft="rbxassetid://120691824695949",Bk="rbxassetid://92969820764082",Dn="rbxassetid://87895652661462"},
+        After_Storm={Up="rbxassetid://126294943510976",Rt="rbxassetid://137936238812572",Lf="rbxassetid://105862133131731",Ft="rbxassetid://88506726200354",Bk="rbxassetid://119824584843522",Dn="rbxassetid://98042187810047"},
+        Aldebaran={Up="rbxassetid://93689288090492",Rt="rbxassetid://127949444339516",Lf="rbxassetid://111474218298921",Ft="rbxassetid://97075573997799",Bk="rbxassetid://80730701944910",Dn="rbxassetid://106133932287410"},
+        AlienTropic={Up="rbxassetid://89052351475608",Rt="rbxassetid://92135645223283",Lf="rbxassetid://117548298616475",Ft="rbxassetid://104223878213435",Bk="rbxassetid://98862264304349",Dn="rbxassetid://133455685252778"},
+        All_Roads={Up="rbxassetid://78705599095990",Rt="rbxassetid://75881044055224",Lf="rbxassetid://90190885468771",Ft="rbxassetid://98522516617737",Bk="rbxassetid://71445474874238",Dn="rbxassetid://119372515145714"},
+        Zephyr={Up="rbxassetid://98099546963151",Rt="rbxassetid://129423971289613",Lf="rbxassetid://74637332261113",Ft="rbxassetid://96366965773383",Bk="rbxassetid://76893414020568",Dn="rbxassetid://77822179611622"},
+        Ambrosia={Up="rbxassetid://104457048278276",Rt="rbxassetid://113831242587174",Lf="rbxassetid://114617415031683",Ft="rbxassetid://76746637872691",Bk="rbxassetid://88752981309539",Dn="rbxassetid://92897433203639"},
+        Anemometer={Up="rbxassetid://95143298872119",Rt="rbxassetid://128044171873411",Lf="rbxassetid://131092647577353",Ft="rbxassetid://91645681309833",Bk="rbxassetid://129588181646675",Dn="rbxassetid://117389325697191"},
+        Antiquity={Up="rbxassetid://114756225856229",Rt="rbxassetid://90901798550817",Lf="rbxassetid://105476349624478",Ft="rbxassetid://118736231252478",Bk="rbxassetid://79381520462647",Dn="rbxassetid://78192039826513"},
+        ApocSky={Up="rbxassetid://76809713206876",Rt="rbxassetid://70483669688820",Lf="rbxassetid://87748108468781",Ft="rbxassetid://110646450144886",Bk="rbxassetid://107261903030269",Dn="rbxassetid://100844808000363"},
+        Aquaspace={Up="rbxassetid://108485857408038",Rt="rbxassetid://76152772099517",Lf="rbxassetid://90581955859545",Ft="rbxassetid://140391648541306",Bk="rbxassetid://88523152196801",Dn="rbxassetid://115223004558393"},
+        Aquatic_World={Up="rbxassetid://111344532865244",Rt="rbxassetid://110971401278063",Lf="rbxassetid://85974668489038",Ft="rbxassetid://98672970310102",Bk="rbxassetid://73144225252523",Dn="rbxassetid://79036962414464"},
+        Arctic_Circle={Up="rbxassetid://106718315217809",Rt="rbxassetid://132898391114260",Lf="rbxassetid://94278282583686",Ft="rbxassetid://108386011853576",Bk="rbxassetid://96649620439187",Dn="rbxassetid://97847220217058"},
+        Astra={Up="rbxassetid://128467902879354",Rt="rbxassetid://103272481464483",Lf="rbxassetid://85506874778994",Ft="rbxassetid://119193822833750",Bk="rbxassetid://118782045245916",Dn="rbxassetid://131960699845379"},
+        Astray={Up="rbxassetid://128044283040420",Rt="rbxassetid://91705290961229",Lf="rbxassetid://88184968523195",Ft="rbxassetid://73441663553096",Bk="rbxassetid://124374184953812",Dn="rbxassetid://121332671129552"},
+        Atmosphere2={Up="rbxassetid://78248650887105",Rt="rbxassetid://82682371579462",Lf="rbxassetid://109940749190933",Ft="rbxassetid://112735178758893",Bk="rbxassetid://81578897644599",Dn="rbxassetid://97251698868517"},
+        Atmosphere3={Up="rbxassetid://138687755116451",Rt="rbxassetid://106871585128706",Lf="rbxassetid://127066801668855",Ft="rbxassetid://88135337152593",Bk="rbxassetid://112620572259384",Dn="rbxassetid://76401330265974"},
+        Avalon={Up="rbxassetid://87887080251646",Rt="rbxassetid://97810534870343",Lf="rbxassetid://84579319411552",Ft="rbxassetid://123880222194259",Bk="rbxassetid://111706151863487",Dn="rbxassetid://80349583404573"},
+        Azurewrath={Up="rbxassetid://116548738377147",Rt="rbxassetid://118260239525431",Lf="rbxassetid://92285484779867",Ft="rbxassetid://74555940038230",Bk="rbxassetid://92959784890176",Dn="rbxassetid://88931048884703"},
+        Bahia={Up="rbxassetid://82309142664610",Rt="rbxassetid://81616771473209",Lf="rbxassetid://89614055735926",Ft="rbxassetid://87773542547204",Bk="rbxassetid://139789987448571",Dn="rbxassetid://84737047028323"},
+        Baleful_Dusk={Up="rbxassetid://120200548287321",Rt="rbxassetid://78214207350930",Lf="rbxassetid://105777343853266",Ft="rbxassetid://101077748533800",Bk="rbxassetid://86368398761466",Dn="rbxassetid://135687896343411"},
+        BioWaves={Up="rbxassetid://85274111313597",Rt="rbxassetid://96209555850373",Lf="rbxassetid://114081157848860",Ft="rbxassetid://111762076306662",Bk="rbxassetid://122669874272841",Dn="rbxassetid://85526993973353"},
+        Biohazard={Up="rbxassetid://110419560118363",Rt="rbxassetid://139093255508654",Lf="rbxassetid://81053943927813",Ft="rbxassetid://130844636812278",Bk="rbxassetid://134110455800353",Dn="rbxassetid://137033022469922"},
+        Bioluminescence={Up="rbxassetid://119996521618255",Rt="rbxassetid://81798933748828",Lf="rbxassetid://138371735275178",Ft="rbxassetid://90078781700648",Bk="rbxassetid://108980815679814",Dn="rbxassetid://108803938292011"},
+        Bitter_Evening={Up="rbxassetid://96853717322806",Rt="rbxassetid://90095830826586",Lf="rbxassetid://94377147142642",Ft="rbxassetid://71670205357860",Bk="rbxassetid://99060310245891",Dn="rbxassetid://112313979536943"},
+        Black_Magic={Up="rbxassetid://115395907924105",Rt="rbxassetid://75334723154662",Lf="rbxassetid://87322153546646",Ft="rbxassetid://99056270809729",Bk="rbxassetid://88494196679618",Dn="rbxassetid://82523703232569"},
+        Blizzard={Up="rbxassetid://84163705564089",Rt="rbxassetid://95374054662437",Lf="rbxassetid://126900194752494",Ft="rbxassetid://106215989252748",Bk="rbxassetid://129268287314772",Dn="rbxassetid://84786064655282"},
+        Blu_Torrice={Up="rbxassetid://102377757433463",Rt="rbxassetid://137768947112043",Lf="rbxassetid://88310294425658",Ft="rbxassetid://80802838669281",Bk="rbxassetid://126027050580843",Dn="rbxassetid://100097978480503"},
+        Blue_Gem={Up="rbxassetid://87110989970432",Rt="rbxassetid://128920830159142",Lf="rbxassetid://130581310417470",Ft="rbxassetid://114140523171972",Bk="rbxassetid://135988598767904",Dn="rbxassetid://83096140816604"},
+        Blue_Ice={Up="rbxassetid://129690943291210",Rt="rbxassetid://117802704786028",Lf="rbxassetid://126675497045926",Ft="rbxassetid://131769847064706",Bk="rbxassetid://117226309084413",Dn="rbxassetid://139188332401731"},
+        Bluesteel={Up="rbxassetid://83238652393282",Rt="rbxassetid://137662396581041",Lf="rbxassetid://84349687220958",Ft="rbxassetid://102114311769847",Bk="rbxassetid://97967371583461",Dn="rbxassetid://115584895873143"},
+        Bounds={Up="rbxassetid://120379910612270",Rt="rbxassetid://76889886117767",Lf="rbxassetid://84047574816976",Ft="rbxassetid://96630179540990",Bk="rbxassetid://103732260632814",Dn="rbxassetid://74844763985872"},
+        Broken_Nature={Up="rbxassetid://97093679207514",Rt="rbxassetid://97039981652175",Lf="rbxassetid://102066390589104",Ft="rbxassetid://133811551640507",Bk="rbxassetid://88726933256066",Dn="rbxassetid://126437913947764"},
+        BuildSite={Up="rbxassetid://100555704055774",Rt="rbxassetid://122382376576129",Lf="rbxassetid://80726321848158",Ft="rbxassetid://97821928658917",Bk="rbxassetid://130663324673413",Dn="rbxassetid://91826169959939"},
+        BuildSite_LowRes={Up="rbxassetid://131993837984663",Rt="rbxassetid://132652148344611",Lf="rbxassetid://107821074180930",Ft="rbxassetid://84744510180488",Bk="rbxassetid://112717153458546",Dn="rbxassetid://116679289932183"},
+        CORE={Up="rbxassetid://125758354994081",Rt="rbxassetid://136696233166595",Lf="rbxassetid://109538907055107",Ft="rbxassetid://125983921378532",Bk="rbxassetid://131309423383458",Dn="rbxassetid://112031436062556"},
+        Cage_Sky={Up="rbxassetid://103228097221818",Rt="rbxassetid://81130133475980",Lf="rbxassetid://78304287877893",Ft="rbxassetid://98842511600378",Bk="rbxassetid://80117228741142",Dn="rbxassetid://81824593936915"},
+        Candlelight={Up="rbxassetid://103301532444668",Rt="rbxassetid://106516918881325",Lf="rbxassetid://140577797043705",Ft="rbxassetid://90381636269576",Bk="rbxassetid://134929427873950",Dn="rbxassetid://86422192300663"},
+        Canvas={Up="rbxassetid://91017618643188",Rt="rbxassetid://114929351826805",Lf="rbxassetid://135493529958812",Ft="rbxassetid://114593852803618",Bk="rbxassetid://121562230021390",Dn="rbxassetid://76994206205180"},
+        Cascade={Up="rbxassetid://113983773859479",Rt="rbxassetid://117639323770479",Lf="rbxassetid://139550094058487",Ft="rbxassetid://139559205619193",Bk="rbxassetid://127598359438227",Dn="rbxassetid://76150557501420"},
+        Celestial_Tiles={Up="rbxassetid://87094654760400",Rt="rbxassetid://93614408700227",Lf="rbxassetid://114189311478582",Ft="rbxassetid://102771432609350",Bk="rbxassetid://79255205383680",Dn="rbxassetid://96737447799924"},
+        Clean_Slate={Up="rbxassetid://138836672309861",Rt="rbxassetid://135269316530959",Lf="rbxassetid://84483737934563",Ft="rbxassetid://110977893728415",Bk="rbxassetid://72068475634877",Dn="rbxassetid://128084035362620"},
+        Cold_Front={Up="rbxassetid://86105102312765",Rt="rbxassetid://89235828670703",Lf="rbxassetid://98173057585290",Ft="rbxassetid://120342636439535",Bk="rbxassetid://90142082237876",Dn="rbxassetid://77239701780450"},
+        Collision={Up="rbxassetid://121891460835963",Rt="rbxassetid://116415956335424",Lf="rbxassetid://85354656808312",Ft="rbxassetid://87311278292919",Bk="rbxassetid://138801143454740",Dn="rbxassetid://137023334442758"},
+        Compound={Up="rbxassetid://80568302323450",Rt="rbxassetid://115180883721658",Lf="rbxassetid://134756607970631",Ft="rbxassetid://86959807197050",Bk="rbxassetid://136944734869495",Dn="rbxassetid://75959455141791"},
+        Compound_No_Objects={Up="rbxassetid://116583610433169",Rt="rbxassetid://71264664827663",Lf="rbxassetid://136689233950462",Ft="rbxassetid://118425914976653",Bk="rbxassetid://89844171051087",Dn="rbxassetid://90970712226258"},
+        Coupled_Decay={Up="rbxassetid://76945082350815",Rt="rbxassetid://84707990641395",Lf="rbxassetid://94937165714294",Ft="rbxassetid://96551135040603",Bk="rbxassetid://126486130548875",Dn="rbxassetid://92145073329676"},
+        Crystal_Teardrops={Up="rbxassetid://126289688945348",Rt="rbxassetid://84005200650081",Lf="rbxassetid://84016685883120",Ft="rbxassetid://89356801860480",Bk="rbxassetid://115722892948156",Dn="rbxassetid://109725483758578"},
+        Crystalline_Web={Up="rbxassetid://101904753380808",Rt="rbxassetid://111083892579373",Lf="rbxassetid://105292574711923",Ft="rbxassetid://91306398891725",Bk="rbxassetid://94611201709987",Dn="rbxassetid://98503803956351"},
+        Cyber_Tundra={Up="rbxassetid://82371390349352",Rt="rbxassetid://74322015302293",Lf="rbxassetid://129076935342629",Ft="rbxassetid://94135001742121",Bk="rbxassetid://127670256306525",Dn="rbxassetid://91396433107004"},
+        Darkseed_Tempest={Up="rbxassetid://73266889841653",Rt="rbxassetid://132119306856099",Lf="rbxassetid://110326015462164",Ft="rbxassetid://128917736612441",Bk="rbxassetid://133854954580135",Dn="rbxassetid://100031444644192"},
+        Daybreak={Up="rbxassetid://114132345913471",Rt="rbxassetid://103539093037468",Lf="rbxassetid://138768496668157",Ft="rbxassetid://103920069425748",Bk="rbxassetid://119649710796381",Dn="rbxassetid://76811639791167"},
+        Dead_Leaves={Up="rbxassetid://119526466390797",Rt="rbxassetid://137621885253705",Lf="rbxassetid://103266941129857",Ft="rbxassetid://130768807670548",Bk="rbxassetid://139155190854069",Dn="rbxassetid://94049099430291"},
+        Deciduous={Up="rbxassetid://103524822056470",Rt="rbxassetid://131152630286823",Lf="rbxassetid://84559535392961",Ft="rbxassetid://106151354831484",Bk="rbxassetid://77543520536404",Dn="rbxassetid://87492412788594"},
+        Decommissioned={Up="rbxassetid://72293820235920",Rt="rbxassetid://112167028632951",Lf="rbxassetid://111073082891297",Ft="rbxassetid://109823070194342",Bk="rbxassetid://140660141009582",Dn="rbxassetid://139114754083175"},
+        Demo_Sky={Up="rbxassetid://132386333178103",Rt="rbxassetid://133948024280505",Lf="rbxassetid://111533146227237",Ft="rbxassetid://117887011174824",Bk="rbxassetid://102041306808953",Dn="rbxassetid://121581196532937"},
+        Desert_Outpost_Dusk={Up="rbxassetid://107716949901042",Rt="rbxassetid://128339076097313",Lf="rbxassetid://89700695657204",Ft="rbxassetid://118198239518836",Bk="rbxassetid://110525531837345",Dn="rbxassetid://93761100901497"},
+        DesolateWorld={Up="rbxassetid://98899069659815",Rt="rbxassetid://134106854765432",Lf="rbxassetid://117093291982066",Ft="rbxassetid://124803934206947",Bk="rbxassetid://88133015767809",Dn="rbxassetid://140651385939252"},
+        Digital_Ocean={Up="rbxassetid://89383696302712",Rt="rbxassetid://136655464256071",Lf="rbxassetid://80653995391575",Ft="rbxassetid://131093690806418",Bk="rbxassetid://102182089220023",Dn="rbxassetid://103315496705315"},
+        Distant_Beacons={Up="rbxassetid://122570533890970",Rt="rbxassetid://140001333983730",Lf="rbxassetid://70971326814040",Ft="rbxassetid://89786835792749",Bk="rbxassetid://118570390186118",Dn="rbxassetid://89831983791297"},
+        Doorway_to_the_Abyss={Up="rbxassetid://77531517029763",Rt="rbxassetid://115841964665180",Lf="rbxassetid://83759900096153",Ft="rbxassetid://132859617731476",Bk="rbxassetid://134195667886536",Dn="rbxassetid://110684624769187"},
+        Ectoplasm={Up="rbxassetid://122408819800973",Rt="rbxassetid://134449110988555",Lf="rbxassetid://96927881898513",Ft="rbxassetid://73406089961736",Bk="rbxassetid://115197075894668",Dn="rbxassetid://91826534475258"},
+        Enchant={Up="rbxassetid://130777771463549",Rt="rbxassetid://97341458700757",Lf="rbxassetid://80131877671285",Ft="rbxassetid://130332065908561",Bk="rbxassetid://126516810683973",Dn="rbxassetid://116674105465617"},
+        End_Times={Up="rbxassetid://112394465644459",Rt="rbxassetid://133295661436741",Lf="rbxassetid://81084674474897",Ft="rbxassetid://108921679597586",Bk="rbxassetid://107222685097436",Dn="rbxassetid://139305263903135"},
+        EndOfSeason={Up="rbxassetid://107314041503250",Rt="rbxassetid://73754098071285",Lf="rbxassetid://119403005680368",Ft="rbxassetid://102427933851670",Bk="rbxassetid://113747397228795",Dn="rbxassetid://70511288137275"},
+        Energy_Flow={Up="rbxassetid://85718348811159",Rt="rbxassetid://98037765363993",Lf="rbxassetid://85039161518723",Ft="rbxassetid://93848466797566",Bk="rbxassetid://135641913828326",Dn="rbxassetid://127182922880146"},
+        Essence1={Up="rbxassetid://119924914818748",Rt="rbxassetid://133719659908269",Lf="rbxassetid://132682851433625",Ft="rbxassetid://121837569499829",Bk="rbxassetid://92922273829172",Dn="rbxassetid://122924766458910"},
+        Eventide={Up="rbxassetid://109992324761761",Rt="rbxassetid://119813543743499",Lf="rbxassetid://125240332573191",Ft="rbxassetid://119628428633801",Bk="rbxassetid://70788290258528",Dn="rbxassetid://126919164089819"},
+        Exfil={Up="rbxassetid://77271343365989",Rt="rbxassetid://138264362836921",Lf="rbxassetid://104251847582411",Ft="rbxassetid://87111746498318",Bk="rbxassetid://118271786468770",Dn="rbxassetid://76374380971519"},
+        Ezra_s_Lament={Up="rbxassetid://105266086678430",Rt="rbxassetid://114102368832986",Lf="rbxassetid://79895634365895",Ft="rbxassetid://98203700311449",Bk="rbxassetid://82271913882933",Dn="rbxassetid://118836751775005"},
+        Fallen_Sky={Up="rbxassetid://112139243672837",Rt="rbxassetid://81490591698392",Lf="rbxassetid://90412711736777",Ft="rbxassetid://101037027253138",Bk="rbxassetid://104392780233546",Dn="rbxassetid://73439571145025"},
+        Fastlane={Up="rbxassetid://134876183149116",Rt="rbxassetid://84259469635113",Lf="rbxassetid://79971559119990",Ft="rbxassetid://129385162515911",Bk="rbxassetid://119600895367548",Dn="rbxassetid://120997206862534"},
+        File_Select={Up="rbxassetid://138246504974028",Rt="rbxassetid://118371168989536",Lf="rbxassetid://86303659691397",Ft="rbxassetid://123998123488968",Bk="rbxassetid://129115544845598",Dn="rbxassetid://140473238122863"},
+        Firestorm_2={Up="rbxassetid://118584157282137",Rt="rbxassetid://135144997646815",Lf="rbxassetid://72343185589096",Ft="rbxassetid://98305824909316",Bk="rbxassetid://127987072983087",Dn="rbxassetid://129824093617776"},
+        Firmament={Up="rbxassetid://112172731432425",Rt="rbxassetid://123817715945946",Lf="rbxassetid://122138472291175",Ft="rbxassetid://93558125878405",Bk="rbxassetid://113540272886160",Dn="rbxassetid://103159903428913"},
+        Flash_Point={Up="rbxassetid://90386320854672",Rt="rbxassetid://126059389263803",Lf="rbxassetid://78870322947032",Ft="rbxassetid://133127635208882",Bk="rbxassetid://87617830391080",Dn="rbxassetid://76821403561576"},
+        Force_Field={Up="rbxassetid://82108835145115",Rt="rbxassetid://88309658844725",Lf="rbxassetid://108793838053866",Ft="rbxassetid://87308285491201",Bk="rbxassetid://112703644983924",Dn="rbxassetid://87347779644450"},
+        Formation={Up="rbxassetid://110667848320539",Rt="rbxassetid://123940989247130",Lf="rbxassetid://99998029976882",Ft="rbxassetid://110178202130740",Bk="rbxassetid://82535205188255",Dn="rbxassetid://123359899460713"},
+        Frigid_Void={Up="rbxassetid://137495464524905",Rt="rbxassetid://138540784295848",Lf="rbxassetid://122259138221404",Ft="rbxassetid://71319264944150",Bk="rbxassetid://137416817637525",Dn="rbxassetid://140171230318489"},
+        Generic_Day={Up="rbxassetid://119720925351405",Rt="rbxassetid://120426535170775",Lf="rbxassetid://130825273391961",Ft="rbxassetid://129364670229925",Bk="rbxassetid://116615670683631",Dn="rbxassetid://94411411849459"},
+        Golden_Atmosphere={Up="rbxassetid://95516774315162",Rt="rbxassetid://94454559905274",Lf="rbxassetid://127905600318108",Ft="rbxassetid://74780520544846",Bk="rbxassetid://105974132636614",Dn="rbxassetid://126718862147407"},
+        Gridlock={Up="rbxassetid://95190935097362",Rt="rbxassetid://134070390627392",Lf="rbxassetid://70684628521982",Ft="rbxassetid://140337990286031",Bk="rbxassetid://95957029334845",Dn="rbxassetid://79025070740050"},
+        Gridlock2={Up="rbxassetid://127763470426729",Rt="rbxassetid://122766455721874",Lf="rbxassetid://135448136641123",Ft="rbxassetid://129231858918688",Bk="rbxassetid://121593265943010",Dn="rbxassetid://88660294340644"},
+        Hallow_s_Eve={Up="rbxassetid://76505374315791",Rt="rbxassetid://119664342885692",Lf="rbxassetid://76753162901470",Ft="rbxassetid://128035520996613",Bk="rbxassetid://72049075028634",Dn="rbxassetid://123619025855406"},
+        Harvest={Up="rbxassetid://101505436286697",Rt="rbxassetid://120959955311861",Lf="rbxassetid://80732559617526",Ft="rbxassetid://83453401601387",Bk="rbxassetid://101635041889544",Dn="rbxassetid://114555278196655"},
+        Haunted_House={Up="rbxassetid://129200659822783",Rt="rbxassetid://92984246710939",Lf="rbxassetid://121186440657838",Ft="rbxassetid://106479882191174",Bk="rbxassetid://106294281857582",Dn="rbxassetid://79289177868594"},
+        Hollow_Realm={Up="rbxassetid://110535185837388",Rt="rbxassetid://84025580672537",Lf="rbxassetid://134542132457476",Ft="rbxassetid://78915938970277",Bk="rbxassetid://86814052866742",Dn="rbxassetid://122196600448089"},
+        Honeycomb={Up="rbxassetid://127499200029552",Rt="rbxassetid://132257042391786",Lf="rbxassetid://99739731513456",Ft="rbxassetid://86024052434545",Bk="rbxassetid://73758973895627",Dn="rbxassetid://115288403186484"},
+        Ice_Lake={Up="rbxassetid://140406723135316",Rt="rbxassetid://74615595108173",Lf="rbxassetid://127754724816331",Ft="rbxassetid://77284207812785",Bk="rbxassetid://70469813053218",Dn="rbxassetid://115837022979059"},
+        In_Memory={Up="rbxassetid://73150166592363",Rt="rbxassetid://130348071846638",Lf="rbxassetid://134775232792821",Ft="rbxassetid://95291810267706",Bk="rbxassetid://116553839606666",Dn="rbxassetid://77536659938763"},
+        Inferno_Old={Up="rbxassetid://89833562027838",Rt="rbxassetid://83350262775378",Lf="rbxassetid://137135203573237",Ft="rbxassetid://89835467426436",Bk="rbxassetid://99615852307210",Dn="rbxassetid://105944990330585"},
+        Inferno_Sunset={Up="rbxassetid://122609737860352",Rt="rbxassetid://130162906362666",Lf="rbxassetid://127251257979196",Ft="rbxassetid://91335659902084",Bk="rbxassetid://95429228463886",Dn="rbxassetid://131503227407777"},
+        InfoPage={Up="rbxassetid://104299585411932",Rt="rbxassetid://81290090016471",Lf="rbxassetid://86728394405335",Ft="rbxassetid://108531437183094",Bk="rbxassetid://98427422342055",Dn="rbxassetid://75214364196250"},
+        Just_Perfect={Up="rbxassetid://76367907718795",Rt="rbxassetid://76707610244115",Lf="rbxassetid://130395382803391",Ft="rbxassetid://72789051663436",Bk="rbxassetid://118985726606286",Dn="rbxassetid://119140796260420"},
+        Last_Days={Up="rbxassetid://79779097463909",Rt="rbxassetid://125409014744528",Lf="rbxassetid://70375033173187",Ft="rbxassetid://130184127758033",Bk="rbxassetid://74350278906564",Dn="rbxassetid://94630450051158"},
+        Late_Autumn_Night={Up="rbxassetid://86637425582046",Rt="rbxassetid://139538872885067",Lf="rbxassetid://140422476660163",Ft="rbxassetid://86512033475129",Bk="rbxassetid://77121200397957",Dn="rbxassetid://76443849666996"},
+        Lavender={Up="rbxassetid://110919796576251",Rt="rbxassetid://106225185707321",Lf="rbxassetid://100852076364027",Ft="rbxassetid://134592545901104",Bk="rbxassetid://80859009736692",Dn="rbxassetid://83606926893899"},
+        Lichen={Up="rbxassetid://98937239876023",Rt="rbxassetid://85113272197706",Lf="rbxassetid://98576952095350",Ft="rbxassetid://115789622099744",Bk="rbxassetid://117904036372739",Dn="rbxassetid://85588733139448"},
+        Light_Wave={Up="rbxassetid://88224528897401",Rt="rbxassetid://99885408522508",Lf="rbxassetid://129532671282815",Ft="rbxassetid://131678701996071",Bk="rbxassetid://92449042730273",Dn="rbxassetid://94222137710938"},
+        Lilac={Up="rbxassetid://78055639712264",Rt="rbxassetid://101483570792681",Lf="rbxassetid://96368934634208",Ft="rbxassetid://71644753679928",Bk="rbxassetid://96494381856539",Dn="rbxassetid://73413590863839"},
+        Liquid_Plastic={Up="rbxassetid://126337545555991",Rt="rbxassetid://78806017680210",Lf="rbxassetid://94282406383435",Ft="rbxassetid://95683356476744",Bk="rbxassetid://75379419502514",Dn="rbxassetid://71045942062088"},
+        Lotus={Up="rbxassetid://126341168182942",Rt="rbxassetid://127252016785725",Lf="rbxassetid://89801504092291",Ft="rbxassetid://130594720922248",Bk="rbxassetid://130046676156361",Dn="rbxassetid://107897161843366"},
+        Mameshiba={Up="rbxassetid://89773355654703",Rt="rbxassetid://76192642876034",Lf="rbxassetid://105945337643287",Ft="rbxassetid://118305202099561",Bk="rbxassetid://96078167627227",Dn="rbxassetid://80284816825154"},
+        Marble_Gallery={Up="rbxassetid://90650564452229",Rt="rbxassetid://73371000432459",Lf="rbxassetid://117681947279644",Ft="rbxassetid://134706755579898",Bk="rbxassetid://105531630256983",Dn="rbxassetid://114593479828248"},
+        Mirage={Up="rbxassetid://101690318525684",Rt="rbxassetid://114234606369216",Lf="rbxassetid://138395860476738",Ft="rbxassetid://128851302733659",Bk="rbxassetid://129341700282698",Dn="rbxassetid://72200403390416"},
+        Monochrome_Horizon={Up="rbxassetid://113697821997832",Rt="rbxassetid://129400811348015",Lf="rbxassetid://93845403992330",Ft="rbxassetid://107459131946998",Bk="rbxassetid://136367280195640",Dn="rbxassetid://70631820163080"},
+        Monolith={Up="rbxassetid://106290888678594",Rt="rbxassetid://116466339227587",Lf="rbxassetid://130511077687387",Ft="rbxassetid://77493170564247",Bk="rbxassetid://74065908042365",Dn="rbxassetid://136534841768726"},
+        Monowinter={Up="rbxassetid://85936284392151",Rt="rbxassetid://120888253473039",Lf="rbxassetid://110367763729337",Ft="rbxassetid://109116307052886",Bk="rbxassetid://103487155571972",Dn="rbxassetid://104896930231967"},
+        Moonlight={Up="rbxassetid://119018311700084",Rt="rbxassetid://130264551455960",Lf="rbxassetid://76940804922026",Ft="rbxassetid://106864140891426",Bk="rbxassetid://89258740698406",Dn="rbxassetid://136601030375824"},
+        More_Winterness={Up="rbxassetid://127184800626970",Rt="rbxassetid://96787814024791",Lf="rbxassetid://107380786317173",Ft="rbxassetid://96920939052507",Bk="rbxassetid://85197211727598",Dn="rbxassetid://112779172131776"},
+        Motif={Up="rbxassetid://140080098433126",Rt="rbxassetid://81011627135110",Lf="rbxassetid://106956220883166",Ft="rbxassetid://89772559045858",Bk="rbxassetid://78149796135468",Dn="rbxassetid://76096968615142"},
+        Nacht={Up="rbxassetid://81079781097781",Rt="rbxassetid://125297308992449",Lf="rbxassetid://90316502470283",Ft="rbxassetid://139879254315715",Bk="rbxassetid://137092472877638",Dn="rbxassetid://109547601931745"},
+        Nevermoor={Up="rbxassetid://122975292077225",Rt="rbxassetid://123310439121518",Lf="rbxassetid://78607739289723",Ft="rbxassetid://134655523665482",Bk="rbxassetid://109011058956075",Dn="rbxassetid://96605132056708"},
+        NewDay={Up="rbxassetid://74408054834741",Rt="rbxassetid://120026694462039",Lf="rbxassetid://124875718414519",Ft="rbxassetid://131329567940529",Bk="rbxassetid://76505330582189",Dn="rbxassetid://138771251365999"},
+        Night_Sky={Up="rbxassetid://85961336496861",Rt="rbxassetid://94113792116609",Lf="rbxassetid://99335379899605",Ft="rbxassetid://84200355270281",Bk="rbxassetid://70504772380301",Dn="rbxassetid://85385526976694"},
+        Night_on_the_Sea={Up="rbxassetid://99437219622125",Rt="rbxassetid://93311286292026",Lf="rbxassetid://104155473523338",Ft="rbxassetid://87080448753496",Bk="rbxassetid://76164718684754",Dn="rbxassetid://133842076458400"},
+        Northern_Hemisphere={Up="rbxassetid://77002880562809",Rt="rbxassetid://88152092141274",Lf="rbxassetid://129513648700012",Ft="rbxassetid://70894769243360",Bk="rbxassetid://126899901113818",Dn="rbxassetid://88113301492734"},
+        NorthernLight={Up="rbxassetid://117950889232520",Rt="rbxassetid://85408088260363",Lf="rbxassetid://99985397260656",Ft="rbxassetid://132753233231083",Bk="rbxassetid://101081669163254",Dn="rbxassetid://74973848679640"},
+        NorthernValley={Up="rbxassetid://97726745928834",Rt="rbxassetid://80348141054191",Lf="rbxassetid://133033250855142",Ft="rbxassetid://115565465781681",Bk="rbxassetid://117520467869783",Dn="rbxassetid://134793637490421"},
+        Obscurity={Up="rbxassetid://132239109136607",Rt="rbxassetid://86915007381870",Lf="rbxassetid://98686774405670",Ft="rbxassetid://128400496653932",Bk="rbxassetid://95373201131265",Dn="rbxassetid://116012037315741"},
+        Observation_Deck={Up="rbxassetid://110209417283602",Rt="rbxassetid://120626672648445",Lf="rbxassetid://93180437703849",Ft="rbxassetid://105823660923050",Bk="rbxassetid://130010536275007",Dn="rbxassetid://72030417907899"},
+        Ocher_Veil={Up="rbxassetid://123913843330353",Rt="rbxassetid://113722957849983",Lf="rbxassetid://97158305829978",Ft="rbxassetid://108451367123891",Bk="rbxassetid://120104765042487",Dn="rbxassetid://130715749431571"},
+        Orchard={Up="rbxassetid://76588473888208",Rt="rbxassetid://84175080022209",Lf="rbxassetid://112222930616433",Ft="rbxassetid://113849476173081",Bk="rbxassetid://108079595887995",Dn="rbxassetid://96326201643749"},
+        Otherworldly_Overcast={Up="rbxassetid://98696172336807",Rt="rbxassetid://138568751391370",Lf="rbxassetid://96606152231252",Ft="rbxassetid://126173248483769",Bk="rbxassetid://77473193213229",Dn="rbxassetid://78388766364641"},
+        Outbreak={Up="rbxassetid://108823136187254",Rt="rbxassetid://78979479013884",Lf="rbxassetid://116033946162539",Ft="rbxassetid://82399046345873",Bk="rbxassetid://94418952938046",Dn="rbxassetid://75800907070236"},
+        Outer_Wall={Up="rbxassetid://78419105197430",Rt="rbxassetid://92862034990369",Lf="rbxassetid://119888806528215",Ft="rbxassetid://129022574831122",Bk="rbxassetid://111467169010655",Dn="rbxassetid://120727997270498"},
+        Overworld2={Up="rbxassetid://98437320521092",Rt="rbxassetid://140582923623563",Lf="rbxassetid://114307781639354",Ft="rbxassetid://131670489873635",Bk="rbxassetid://95710728677303",Dn="rbxassetid://128084912031789"},
+        PeacefulNight={Up="rbxassetid://96396353505348",Rt="rbxassetid://135276626311052",Lf="rbxassetid://93570260472629",Ft="rbxassetid://106560098614195",Bk="rbxassetid://106471072829278",Dn="rbxassetid://88332612806654"},
+        Permafrost={Up="rbxassetid://86675866351324",Rt="rbxassetid://116745046618753",Lf="rbxassetid://86034262957145",Ft="rbxassetid://125787399877771",Bk="rbxassetid://118269338216867",Dn="rbxassetid://132369942350262"},
+        Photochemical_Smog={Up="rbxassetid://78337530610341",Rt="rbxassetid://105973366673701",Lf="rbxassetid://104870441549457",Ft="rbxassetid://90441657325271",Bk="rbxassetid://114459799251439",Dn="rbxassetid://111298463826808"},
+        Photonegative={Up="rbxassetid://94627487431483",Rt="rbxassetid://128035491366705",Lf="rbxassetid://116474481819186",Ft="rbxassetid://72155384220281",Bk="rbxassetid://100907787722690",Dn="rbxassetid://78538004977437"},
+        Pink_Shell={Up="rbxassetid://99961658475382",Rt="rbxassetid://120970123456421",Lf="rbxassetid://75735698536501",Ft="rbxassetid://86337283235138",Bk="rbxassetid://96062995971236",Dn="rbxassetid://139735964957203"},
+        Planets={Up="rbxassetid://129555505238482",Rt="rbxassetid://132622240593075",Lf="rbxassetid://95532525408808",Ft="rbxassetid://88534895293594",Bk="rbxassetid://110159773931562",Dn="rbxassetid://134900245082822"},
+        Plasma_Globe={Up="rbxassetid://126454883620661",Rt="rbxassetid://137767677843533",Lf="rbxassetid://122772141950664",Ft="rbxassetid://132302631512408",Bk="rbxassetid://85561613801902",Dn="rbxassetid://90900132296822"},
+        Plasma_Grid={Up="rbxassetid://129421913236518",Rt="rbxassetid://114753769542596",Lf="rbxassetid://84154957678866",Ft="rbxassetid://99234358863571",Bk="rbxassetid://114603952006807",Dn="rbxassetid://117994007231833"},
+        Porcelain={Up="rbxassetid://104512200286714",Rt="rbxassetid://100240978991021",Lf="rbxassetid://70625071816364",Ft="rbxassetid://140651884658832",Bk="rbxassetid://135282587104077",Dn="rbxassetid://132514811927832"},
+        Pumpkin_Patch={Up="rbxassetid://138006307730252",Rt="rbxassetid://107508632280744",Lf="rbxassetid://90204023784570",Ft="rbxassetid://134268841801572",Bk="rbxassetid://75792839052585",Dn="rbxassetid://75573727444557"},
+        Pumpkinhead={Up="rbxassetid://77210668991513",Rt="rbxassetid://121381927221673",Lf="rbxassetid://110792895789035",Ft="rbxassetid://108329248917886",Bk="rbxassetid://131355605067630",Dn="rbxassetid://81344191271490"},
+        Recall={Up="rbxassetid://135639354928930",Rt="rbxassetid://136873356202780",Lf="rbxassetid://73030976691381",Ft="rbxassetid://84885870904455",Bk="rbxassetid://108960091841564",Dn="rbxassetid://139668634685801"},
+        Reconnected={Up="rbxassetid://97924003886344",Rt="rbxassetid://122957565915203",Lf="rbxassetid://113962030551390",Ft="rbxassetid://134770057969317",Bk="rbxassetid://77822743340681",Dn="rbxassetid://126769264190752"},
+        Recurrence={Up="rbxassetid://101363766549972",Rt="rbxassetid://85712357801772",Lf="rbxassetid://110858557687445",Ft="rbxassetid://119445524584376",Bk="rbxassetid://128086577524772",Dn="rbxassetid://78303260098252"},
+        Red_Truss={Up="rbxassetid://79617024725954",Rt="rbxassetid://78796831391585",Lf="rbxassetid://73303641956518",Ft="rbxassetid://136127320126395",Bk="rbxassetid://76245894783138",Dn="rbxassetid://135379630216790"},
+        Reflex={Up="rbxassetid://108291314563603",Rt="rbxassetid://72138319933622",Lf="rbxassetid://115188496120009",Ft="rbxassetid://124237728866537",Bk="rbxassetid://77291847927476",Dn="rbxassetid://78523812264114"},
+        Refraction={Up="rbxassetid://123654558736549",Rt="rbxassetid://127791660749706",Lf="rbxassetid://82327956385635",Ft="rbxassetid://136080305658787",Bk="rbxassetid://92789947565804",Dn="rbxassetid://107903080016933"},
+        Rendition={Up="rbxassetid://135238800252320",Rt="rbxassetid://120980285219543",Lf="rbxassetid://94655344055360",Ft="rbxassetid://110874354594380",Bk="rbxassetid://81394679885657",Dn="rbxassetid://86006896447963"},
+        Requiem={Up="rbxassetid://94045963744643",Rt="rbxassetid://91874841281616",Lf="rbxassetid://118516842368424",Ft="rbxassetid://71251312667971",Bk="rbxassetid://78578251824862",Dn="rbxassetid://130677640946658"},
+        Resting_Place={Up="rbxassetid://133768524847431",Rt="rbxassetid://123540928833214",Lf="rbxassetid://93213558411050",Ft="rbxassetid://82789123540403",Bk="rbxassetid://95153918826417",Dn="rbxassetid://86628682809155"},
+        Restless_Jungle={Up="rbxassetid://105563567371496",Rt="rbxassetid://138345330486209",Lf="rbxassetid://114737479634352",Ft="rbxassetid://71756512359312",Bk="rbxassetid://130099895286384",Dn="rbxassetid://101029321375585"},
+        Revenant={Up="rbxassetid://99341763926040",Rt="rbxassetid://116667223354064",Lf="rbxassetid://108693396038468",Ft="rbxassetid://128515897341237",Bk="rbxassetid://99103425749129",Dn="rbxassetid://120224627028036"},
+        Riddling_Sky={Up="rbxassetid://126564325711034",Rt="rbxassetid://102967958876608",Lf="rbxassetid://88691568829789",Ft="rbxassetid://70675854195087",Bk="rbxassetid://112056446240148",Dn="rbxassetid://136599597706612"},
+        Rutaceae={Up="rbxassetid://117627522369851",Rt="rbxassetid://129409996032742",Lf="rbxassetid://75491956900354",Ft="rbxassetid://106993729647419",Bk="rbxassetid://95787549099379",Dn="rbxassetid://126425844970619"},
+        Sapphire={Up="rbxassetid://124851138696276",Rt="rbxassetid://76698338513348",Lf="rbxassetid://110481573705232",Ft="rbxassetid://93036601815673",Bk="rbxassetid://95939056801980",Dn="rbxassetid://77655731493493"},
+        Seeing_Stars={Up="rbxassetid://82233494358076",Rt="rbxassetid://73507088074350",Lf="rbxassetid://123113334415775",Ft="rbxassetid://88408425137498",Bk="rbxassetid://81135332033010",Dn="rbxassetid://122162052771879"},
+        Semiconductor={Up="rbxassetid://87084585802771",Rt="rbxassetid://91075123527804",Lf="rbxassetid://113663237442915",Ft="rbxassetid://137583661731588",Bk="rbxassetid://121141335722574",Dn="rbxassetid://96252168665991"},
+        Serenade={Up="rbxassetid://91284901903530",Rt="rbxassetid://110944149162783",Lf="rbxassetid://135117331568447",Ft="rbxassetid://94615548907952",Bk="rbxassetid://78069745854425",Dn="rbxassetid://74724498948531"},
+        Sherbert={Up="rbxassetid://74159394113670",Rt="rbxassetid://118850118899523",Lf="rbxassetid://119958258734986",Ft="rbxassetid://87443209446007",Bk="rbxassetid://122747794116672",Dn="rbxassetid://131016403097224"},
+        Shroud={Up="rbxassetid://113132408903373",Rt="rbxassetid://108970007211767",Lf="rbxassetid://134637323079756",Ft="rbxassetid://70472027317250",Bk="rbxassetid://80331182091389",Dn="rbxassetid://95047075796753"},
+        Silver_Bullet={Up="rbxassetid://78695466095279",Rt="rbxassetid://129328263845291",Lf="rbxassetid://81247234256576",Ft="rbxassetid://106252020193945",Bk="rbxassetid://135835201505314",Dn="rbxassetid://94715769242480"},
+        Simple_Atmosphere={Up="rbxassetid://73579880904923",Rt="rbxassetid://124648901000860",Lf="rbxassetid://71105321342302",Ft="rbxassetid://90319615102760",Bk="rbxassetid://112890141005522",Dn="rbxassetid://136890881443236"},
+        Simple_Nice={Up="rbxassetid://132960802310480",Rt="rbxassetid://134620499754692",Lf="rbxassetid://122929711896628",Ft="rbxassetid://83516149512132",Bk="rbxassetid://73804117962771",Dn="rbxassetid://89053328878181"},
+        Sixth_Sanctuary={Up="rbxassetid://116748041656542",Rt="rbxassetid://77911629837712",Lf="rbxassetid://78770897891383",Ft="rbxassetid://122136977599218",Bk="rbxassetid://75685751830147",Dn="rbxassetid://119270455112733"},
+        Sky_Grate={Up="rbxassetid://132208868618844",Rt="rbxassetid://89057569793877",Lf="rbxassetid://135165355738925",Ft="rbxassetid://123723617230238",Bk="rbxassetid://107867307239407",Dn="rbxassetid://80685290350552"},
+        Sleepy_Hollow={Up="rbxassetid://103669333067386",Rt="rbxassetid://80292933172277",Lf="rbxassetid://128463472521216",Ft="rbxassetid://116647631063027",Bk="rbxassetid://86424442388701",Dn="rbxassetid://95261308591244"},
+        Slightly_Cloudy={Up="rbxassetid://82994095494631",Rt="rbxassetid://136105744447156",Lf="rbxassetid://112248242487921",Ft="rbxassetid://81450011705272",Bk="rbxassetid://115508035455509",Dn="rbxassetid://140588560233834"},
+        Snow_Level={Up="rbxassetid://73385878883299",Rt="rbxassetid://106911665823902",Lf="rbxassetid://82461595461093",Ft="rbxassetid://84282220720218",Bk="rbxassetid://112235492205308",Dn="rbxassetid://71900751271799"},
+        Snowdon={Up="rbxassetid://127254574460742",Rt="rbxassetid://134506694683787",Lf="rbxassetid://71763376858985",Ft="rbxassetid://135004571760711",Bk="rbxassetid://128965985861678",Dn="rbxassetid://110348980912057"},
+        Snowfall={Up="rbxassetid://126062849245092",Rt="rbxassetid://107426974445077",Lf="rbxassetid://99278869992380",Ft="rbxassetid://125017185069120",Bk="rbxassetid://93880674630038",Dn="rbxassetid://87148454178590"},
+        Snowfall2={Up="rbxassetid://95084147275471",Rt="rbxassetid://138105402858424",Lf="rbxassetid://137284644473913",Ft="rbxassetid://90021477042795",Bk="rbxassetid://115218132364372",Dn="rbxassetid://112778453716611"},
+        Snowglobe={Up="rbxassetid://135664000795769",Rt="rbxassetid://134531548836050",Lf="rbxassetid://110172445228076",Ft="rbxassetid://78449998699868",Bk="rbxassetid://73410321753840",Dn="rbxassetid://127275263042682"},
+        Solitude={Up="rbxassetid://103888793794702",Rt="rbxassetid://94744927603341",Lf="rbxassetid://108880510406395",Ft="rbxassetid://84564591187044",Bk="rbxassetid://101432771094258",Dn="rbxassetid://109829288991652"},
+        Sorting_Operation={Up="rbxassetid://115038801237016",Rt="rbxassetid://92874217443704",Lf="rbxassetid://136433770262275",Ft="rbxassetid://86132070559175",Bk="rbxassetid://72944775385889",Dn="rbxassetid://108472503075536"},
+        Soulbound={Up="rbxassetid://126336981296116",Rt="rbxassetid://74153013470837",Lf="rbxassetid://80596739029240",Ft="rbxassetid://100895490049594",Bk="rbxassetid://89469467362953",Dn="rbxassetid://124659781793026"},
+        Spectre={Up="rbxassetid://111089716530102",Rt="rbxassetid://140359011526969",Lf="rbxassetid://116353449728881",Ft="rbxassetid://124463049080144",Bk="rbxassetid://90602659732998",Dn="rbxassetid://97852258288405"},
+        Spiderweb={Up="rbxassetid://127650442596811",Rt="rbxassetid://99813279159920",Lf="rbxassetid://106685529536255",Ft="rbxassetid://123549211348898",Bk="rbxassetid://127069582939132",Dn="rbxassetid://137235779482807"},
+        Spirit_of_the_Season={Up="rbxassetid://73629202781478",Rt="rbxassetid://118210119057245",Lf="rbxassetid://82740518622457",Ft="rbxassetid://82972773932502",Bk="rbxassetid://127163383659909",Dn="rbxassetid://131180862099497"},
+        Stained_Glass={Up="rbxassetid://140356190688475",Rt="rbxassetid://133379321296494",Lf="rbxassetid://80955407293318",Ft="rbxassetid://76210911608060",Bk="rbxassetid://74057287874349",Dn="rbxassetid://89066844502973"},
+        Stratus1={Up="rbxassetid://80925853824357",Rt="rbxassetid://92324220981430",Lf="rbxassetid://94527217317594",Ft="rbxassetid://123337886173038",Bk="rbxassetid://90615946451162",Dn="rbxassetid://75834421405010"},
+        Subspace={Up="rbxassetid://94807140159597",Rt="rbxassetid://131284324685695",Lf="rbxassetid://122830566598963",Ft="rbxassetid://104528971286225",Bk="rbxassetid://85797675491247",Dn="rbxassetid://123101914829054"},
+        Substrate={Up="rbxassetid://80721894771092",Rt="rbxassetid://105721100032639",Lf="rbxassetid://116623261534017",Ft="rbxassetid://85381969239861",Bk="rbxassetid://80356537958379",Dn="rbxassetid://76077642470612"},
+        Subzero={Up="rbxassetid://112800994038309",Rt="rbxassetid://132148899165073",Lf="rbxassetid://82978361446479",Ft="rbxassetid://119163370963039",Bk="rbxassetid://82979525303080",Dn="rbxassetid://138494036697632"},
+        Summer_Soul={Up="rbxassetid://104594380666782",Rt="rbxassetid://85823484365483",Lf="rbxassetid://110781870058540",Ft="rbxassetid://139904798281863",Bk="rbxassetid://122554935968902",Dn="rbxassetid://90148411736325"},
+        Sunset_Plain={Up="rbxassetid://93361062230743",Rt="rbxassetid://118707710216803",Lf="rbxassetid://126528780579974",Ft="rbxassetid://87973100405334",Bk="rbxassetid://78823265427138",Dn="rbxassetid://137426958880904"},
+        Superstition={Up="rbxassetid://125857959697828",Rt="rbxassetid://84183586704661",Lf="rbxassetid://116597624838380",Ft="rbxassetid://78787167691925",Bk="rbxassetid://113381753254869",Dn="rbxassetid://103778445777949"},
+        Technoblivion={Up="rbxassetid://128677915955843",Rt="rbxassetid://122684869079313",Lf="rbxassetid://120216715804121",Ft="rbxassetid://127832394583049",Bk="rbxassetid://119455248031888",Dn="rbxassetid://122688602170952"},
+        Temperate={Up="rbxassetid://103820962757365",Rt="rbxassetid://84090378218851",Lf="rbxassetid://138374841343096",Ft="rbxassetid://101185512155979",Bk="rbxassetid://115935604700747",Dn="rbxassetid://127805578769403"},
+        Tenebrous={Up="rbxassetid://131698665262227",Rt="rbxassetid://125211566246699",Lf="rbxassetid://80646047709737",Ft="rbxassetid://106928648213093",Bk="rbxassetid://112593468544956",Dn="rbxassetid://109731457224082"},
+        Terminus_Est={Up="rbxassetid://101002226598171",Rt="rbxassetid://126737037609260",Lf="rbxassetid://127950391291489",Ft="rbxassetid://83938954954381",Bk="rbxassetid://97544423536461",Dn="rbxassetid://137545335651438"},
+        Test_Site={Up="rbxassetid://128866049849983",Rt="rbxassetid://140601088554888",Lf="rbxassetid://75972413629531",Ft="rbxassetid://115763676276973",Bk="rbxassetid://100504794494055",Dn="rbxassetid://99001637485839"},
+        The_Seacoast={Up="rbxassetid://97394510624374",Rt="rbxassetid://115278193132476",Lf="rbxassetid://139673352254304",Ft="rbxassetid://114397838517239",Bk="rbxassetid://113586200568511",Dn="rbxassetid://82249902921609"},
+        The_Unknown={Up="rbxassetid://99766920650855",Rt="rbxassetid://114256051084689",Lf="rbxassetid://106242511504352",Ft="rbxassetid://134605237834413",Bk="rbxassetid://80249286771497",Dn="rbxassetid://124889366244980"},
+        Thorns={Up="rbxassetid://129372472090129",Rt="rbxassetid://83334529674695",Lf="rbxassetid://130592373973061",Ft="rbxassetid://112548232836873",Bk="rbxassetid://79057599418167",Dn="rbxassetid://93328177621164"},
+        Through_the_Fog={Up="rbxassetid://106275786351258",Rt="rbxassetid://110722125416130",Lf="rbxassetid://105849831494919",Ft="rbxassetid://83842796397122",Bk="rbxassetid://95148476009586",Dn="rbxassetid://128599105806679"},
+        Tileset={Up="rbxassetid://124075177064188",Rt="rbxassetid://102049446797504",Lf="rbxassetid://123793826057924",Ft="rbxassetid://140123161046837",Bk="rbxassetid://97017814625040",Dn="rbxassetid://109069578635209"},
+        Timeless_Sky={Up="rbxassetid://135283147753201",Rt="rbxassetid://121945916638247",Lf="rbxassetid://107332323417914",Ft="rbxassetid://140378076495519",Bk="rbxassetid://100980167097767",Dn="rbxassetid://103386005400567"},
+        Title_Screen={Up="rbxassetid://119772764421686",Rt="rbxassetid://113266593484750",Lf="rbxassetid://87558234868445",Ft="rbxassetid://109506086757178",Bk="rbxassetid://118705856466636",Dn="rbxassetid://90461091910422"},
+        Torrid_Zone={Up="rbxassetid://121863234491824",Rt="rbxassetid://75288222217410",Lf="rbxassetid://85983798248705",Ft="rbxassetid://120972918055340",Bk="rbxassetid://101376231995481",Dn="rbxassetid://134878439544760"},
+        Traversal={Up="rbxassetid://107803107138716",Rt="rbxassetid://123063422570418",Lf="rbxassetid://104342345351775",Ft="rbxassetid://73736779369038",Bk="rbxassetid://104091251049579",Dn="rbxassetid://75198869783890"},
+        Undead_Sky={Up="rbxassetid://124035240448145",Rt="rbxassetid://124172652899941",Lf="rbxassetid://91123239009284",Ft="rbxassetid://98817607941040",Bk="rbxassetid://131570755110015",Dn="rbxassetid://83644506043375"},
+        Utopia={Up="rbxassetid://130667993174989",Rt="rbxassetid://86830862632715",Lf="rbxassetid://133371480535896",Ft="rbxassetid://105137247624695",Bk="rbxassetid://74343551027851",Dn="rbxassetid://110192998737848"},
+        VenomFoil={Up="rbxassetid://124855801591046",Rt="rbxassetid://115090216625978",Lf="rbxassetid://123688313415768",Ft="rbxassetid://112947233115796",Bk="rbxassetid://123499692234350",Dn="rbxassetid://136299689354639"},
+        Very_Blue={Up="rbxassetid://74809972380735",Rt="rbxassetid://131798635065630",Lf="rbxassetid://126365048155049",Ft="rbxassetid://139418046180382",Bk="rbxassetid://108715727724100",Dn="rbxassetid://109503855131291"},
+        Viridian_Shore={Up="rbxassetid://77476027377440",Rt="rbxassetid://91739342332797",Lf="rbxassetid://109143025186034",Ft="rbxassetid://88415983736428",Bk="rbxassetid://105755456946392",Dn="rbxassetid://91316752702527"},
+        Vortex={Up="rbxassetid://116045937427579",Rt="rbxassetid://128591231863844",Lf="rbxassetid://108286511336959",Ft="rbxassetid://128611491692154",Bk="rbxassetid://125016218210857",Dn="rbxassetid://118072008459667"},
+        Wallpaper={Up="rbxassetid://113917517882944",Rt="rbxassetid://99728816753172",Lf="rbxassetid://124796841385471",Ft="rbxassetid://136643685066360",Bk="rbxassetid://83175916347223",Dn="rbxassetid://129535985148561"},
+        Western_Haze={Up="rbxassetid://105432970334552",Rt="rbxassetid://92045177058177",Lf="rbxassetid://103444130313433",Ft="rbxassetid://86434287626150",Bk="rbxassetid://99839160719568",Dn="rbxassetid://95742862698208"},
+        What_Lies_Beyond_the_Trees={Up="rbxassetid://82140050647885",Rt="rbxassetid://128205959036079",Lf="rbxassetid://105211486426146",Ft="rbxassetid://123737823891201",Bk="rbxassetid://121947164053996",Dn="rbxassetid://113846226775177"},
+        Wild_West={Up="rbxassetid://87032098293001",Rt="rbxassetid://117359398052773",Lf="rbxassetid://122604640601064",Ft="rbxassetid://106750238859843",Bk="rbxassetid://111544984068501",Dn="rbxassetid://134263674550795"},
+        Wingaersheek={Up="rbxassetid://78359832807228",Rt="rbxassetid://111073075612163",Lf="rbxassetid://92998680060140",Ft="rbxassetid://90193683631375",Bk="rbxassetid://114598419159071",Dn="rbxassetid://99270451877857"},
+        Winter_Atmosphere_2={Up="rbxassetid://74700431955895",Rt="rbxassetid://121160068241795",Lf="rbxassetid://134511380642302",Ft="rbxassetid://119125633779324",Bk="rbxassetid://111657809236262",Dn="rbxassetid://76522484367354"},
+        Winter_Atmosphere1={Up="rbxassetid://91574980988140",Rt="rbxassetid://104197535336429",Lf="rbxassetid://132421294830898",Ft="rbxassetid://96609055788972",Bk="rbxassetid://79590458251309",Dn="rbxassetid://102322145261625"},
+        Winter_Day={Up="rbxassetid://132645440880575",Rt="rbxassetid://133782439715579",Lf="rbxassetid://105257399480578",Ft="rbxassetid://95220931821733",Bk="rbxassetid://114315255663271",Dn="rbxassetid://101558296792695"},
+        Winter_Night={Up="rbxassetid://101217480346758",Rt="rbxassetid://111144250094221",Lf="rbxassetid://108120567600064",Ft="rbxassetid://119317723805370",Bk="rbxassetid://101235809925931",Dn="rbxassetid://73790381940532"},
+        Winter_Scene={Up="rbxassetid://86105149667271",Rt="rbxassetid://106741360463350",Lf="rbxassetid://101665301114377",Ft="rbxassetid://122483533880950",Bk="rbxassetid://84791327424422",Dn="rbxassetid://108122894461136"},
+        Winter_Storm={Up="rbxassetid://84634822855545",Rt="rbxassetid://138568623801495",Lf="rbxassetid://73131702893115",Ft="rbxassetid://100106391612523",Bk="rbxassetid://112891312270390",Dn="rbxassetid://132986532267834"},
+        Winterness2={Up="rbxassetid://132830884614932",Rt="rbxassetid://76444838120005",Lf="rbxassetid://85568849803850",Ft="rbxassetid://73598639699982",Bk="rbxassetid://103709603934432",Dn="rbxassetid://77557766543337"},
+        WiredAllWrong={Up="rbxassetid://84644244515095",Rt="rbxassetid://83465238503057",Lf="rbxassetid://134057960839575",Ft="rbxassetid://76480588402735",Bk="rbxassetid://83485645927302",Dn="rbxassetid://127585864305388"},
+        Wispy_Sky={Up="rbxassetid://110847521372147",Rt="rbxassetid://128750195822818",Lf="rbxassetid://104575715984214",Ft="rbxassetid://137631394364179",Bk="rbxassetid://110571369462573",Dn="rbxassetid://111657358850945"},
+        Witching_Hour={Up="rbxassetid://125514389745777",Rt="rbxassetid://123400932970275",Lf="rbxassetid://116708139309155",Ft="rbxassetid://135076363348514",Bk="rbxassetid://119674690870569",Dn="rbxassetid://102909710176802"},
+        WorldAbove={Up="rbxassetid://83903245191059",Rt="rbxassetid://81171946326449",Lf="rbxassetid://84218502716097",Ft="rbxassetid://133322487976445",Bk="rbxassetid://78921566885237",Dn="rbxassetid://85156704190227"},
+        Your_World={Up="rbxassetid://122235153570774",Rt="rbxassetid://126947428036093",Lf="rbxassetid://81964901806245",Ft="rbxassetid://127674810298099",Bk="rbxassetid://123711830741704",Dn="rbxassetid://98472498935029"},
+        Sky_Sunset={Up="rbxassetid://1834275027",Rt="rbxassetid://1834274473",Lf="rbxassetid://1834273831",Ft="rbxassetid://1834274132",Bk="rbxassetid://1834274752",Dn="rbxassetid://1010389"},
+        Sky_Sunny={Up="rbxassetid://1834229758",Rt="rbxassetid://1834228794",Lf="rbxassetid://1834229297",Ft="rbxassetid://1834229057",Bk="rbxassetid://1834229521",Dn="rbxassetid://1834229889"},
+        Sky_Spooky_3={Up="rbxassetid://1834300849",Rt="rbxassetid://1834299629",Lf="rbxassetid://1834300149",Ft="rbxassetid://1834300904",Bk="rbxassetid://1834300604",Dn="rbxassetid://1834301064"},
+        Sky_Spooky_2={Up="rbxassetid://1014344",Rt="rbxassetid://1014339",Lf="rbxassetid://1014341",Ft="rbxassetid://1014340",Bk="rbxassetid://1014342",Dn="rbxassetid://1014343"},
+        Sky_Spooky_1={Up="rbxassetid://1836617387",Rt="rbxassetid://1836610101",Lf="rbxassetid://1836616965",Ft="rbxassetid://1836610655",Bk="rbxassetid://1836609583",Dn="rbxassetid://1836617859"},
+        Sky_Slate_Desert={Up="rbxassetid://1836662216",Rt="rbxassetid://1836658455",Lf="rbxassetid://1836660285",Ft="rbxassetid://1836659589",Bk="rbxassetid://1836661335",Dn="rbxassetid://1836617859"},
+        Sky_Skylands={Up="rbxassetid://1836780535",Rt="rbxassetid://1836786715",Lf="rbxassetid://1836781364",Ft="rbxassetid://1836781747",Bk="rbxassetid://1836781025",Dn="rbxassetid://1836787095"},
+        Pink_v3={Up="rbxassetid://271077958",Rt="rbxassetid://271042467",Lf="rbxassetid://271042310",Ft="rbxassetid://271042556",Bk="rbxassetid://271042516",Dn="rbxassetid://271077243"},
+        Red_Castle={Up="rbxassetid://15832429401",Rt="rbxassetid://15832431198",Lf="rbxassetid://15832430671",Ft="rbxassetid://15832430210",Bk="rbxassetid://15832429892",Dn="rbxassetid://15832430998"},
+        RedNight={Up="rbxassetid://401664936",Rt="rbxassetid://401664901",Lf="rbxassetid://401664881",Ft="rbxassetid://401664960",Bk="rbxassetid://401664839",Dn="rbxassetid://401664862"},
+        Purple_Night_Sky={Up="rbxassetid://5084576400",Rt="rbxassetid://5103948784",Lf="rbxassetid://5103948542",Ft="rbxassetid://5103949679",Bk="rbxassetid://5084575798",Dn="rbxassetid://5084575916"}
     }
+
+    local skyboxNames = {}
+    for name in pairs(skyboxPresets) do
+        table.insert(skyboxNames, name)
+    end
+    table.sort(skyboxNames)
 
     local function applySkybox()
         pcall(function()
@@ -9152,8 +9451,8 @@ do
     skyboxPresetDrop = SkyboxSection:Dropdown({
         Name = "Skybox Preset",
         Flag = "World_SkyboxPreset",
-        Items = {"Purple Nebula", "Red Nebula", "Vaporwave Pink", "Night Sky", "Blossom Pink", "Galaxy Space", "Dark Storm"},
-        Default = "Purple Nebula",
+        Items = skyboxNames,
+        Default = skyboxNames[1] or "Piss",
         Callback = function(val)
             skyboxData.Preset = val
             if skyboxData.Active then
@@ -9448,7 +9747,6 @@ do
         end,
     })
 
-    -- Weather & Particle FX Section
     local RAIN_TEX = "rbxassetid://124528706254337"
     local SPLASH_TEX = "rbxassetid://123240546708836"
     local SNOW_TEX = "rbxassetid://6490035152"
@@ -10134,7 +10432,6 @@ do
             end
         end,
     })
-    -- Shading & Post-Processing FX Section
     local ShadingSection = VisualsPage:Section({
         Name = "Shading & Color FX",
         Icon = ICON_COLOR,
@@ -10246,7 +10543,6 @@ do
         end,
     })
 
-    -- World Material Changer Section
     local WorldMaterialSection = VisualsPage:Section({
         Name = "World Material Changer",
         Icon = ICON_CUBE,
@@ -10268,7 +10564,6 @@ do
         Callback = function(val)
             worldMaterialData.Enabled = val
             if not val then
-                -- Restore original materials
                 for part, original in pairs(worldMaterialData.OriginalMaterials) do
                     pcall(function()
                         part.Material = original
@@ -10286,7 +10581,6 @@ do
         Default = "SmoothPlastic",
         Callback = function(val)
             worldMaterialData.Material = val
-            -- Auto-apply if enabled
             if worldMaterialData.Enabled then
                 local materialMap = {
                     SmoothPlastic = Enum.Material.SmoothPlastic,
@@ -10341,7 +10635,6 @@ do
 
             local targetMaterial = materialMap[worldMaterialData.Material] or Enum.Material.SmoothPlastic
 
-            -- Use GetDescendants but in chunks to prevent lag
             local allParts = {}
             for _, obj in ipairs(Workspace:GetDescendants()) do
                 if obj:IsA("BasePart") and obj.Name ~= "HumanoidRootPart" then
@@ -10358,7 +10651,6 @@ do
                 end
             end
 
-            -- Apply in batches
             task.spawn(function()
                 for i, obj in ipairs(allParts) do
                     if not worldMaterialData.OriginalMaterials[obj] then
@@ -10371,7 +10663,6 @@ do
         end,
     })
 
-    -- Fullbright / No Shadows Section
     local FullbrightSection = VisualsPage:Section({
         Name = "Fullbright & Shadows",
         Icon = ICON_SUN,
