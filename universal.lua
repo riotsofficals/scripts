@@ -6222,7 +6222,7 @@ do
     })
 
     local pullResToggle = HumanizationSection:Toggle({
-        Name = "Pull Resolution",
+        Name = "Pull Resistance",
         Flag = "Combat_PullResToggle",
         Default = false,
         Callback = function(val)
@@ -6232,7 +6232,7 @@ do
     })
 
     pullResXSlider = HumanizationSection:Slider({
-        Name = "Pull Resolution X",
+        Name = "Pull Resistance X",
         Flag = "Combat_PullResX",
         Default = 10,
         Min = 1,
@@ -6240,7 +6240,7 @@ do
     })
 
     pullResYSlider = HumanizationSection:Slider({
-        Name = "Pull Resolution Y",
+        Name = "Pull Resistance Y",
         Flag = "Combat_PullResY",
         Default = 10,
         Min = 1,
@@ -6348,12 +6348,6 @@ do
         Default = 5,
         Min = 1,
         Max = 50,
-    })
-
-    fovRainbowToggle = AimbotFOVSection:Toggle({
-        Name = "Rainbow FOV Color",
-        Flag = "Combat_FOVRainbow",
-        Default = false,
     })
 
     fovPulseToggle = AimbotFOVSection:Toggle({
@@ -9491,6 +9485,94 @@ do
         end,
     })
 
+    local AnimChangerSection = VisualsPage:Section({
+        Name = "Animation Changer & Bundles",
+        Icon = ICON_BOT,
+        Side = 1,
+    })
+    registerVisualsSubtab("Character", AnimChangerSection)
+
+    local animPacks = {
+        ["Default"] = { Idle1 = 180435571, Idle2 = 180435792, Walk = 180436334, Run = 180436148, Jump = 125750702, Fall = 157931322 },
+        ["Mage"] = { Idle1 = 707742142, Idle2 = 707855907, Walk = 707897309, Run = 707861613, Jump = 707853674, Fall = 707829716 },
+        ["Ninja"] = { Idle1 = 656117400, Idle2 = 656118341, Walk = 656121766, Run = 656124103, Jump = 656121766, Fall = 656115606 },
+        ["Zombie"] = { Idle1 = 616158929, Idle2 = 616160626, Walk = 616168032, Run = 616163682, Jump = 616161997, Fall = 616157476 },
+        ["Vampire"] = { Idle1 = 1083445855, Idle2 = 1083450166, Walk = 1083451631, Run = 1083452667, Jump = 1083453712, Fall = 1083443587 },
+        ["Toy"] = { Idle1 = 782841498, Idle2 = 782845736, Walk = 782843345, Run = 782842708, Jump = 782847020, Fall = 782843869 },
+        ["Knight"] = { Idle1 = 657564596, Idle2 = 657565701, Walk = 657552424, Run = 657555620, Jump = 657553854, Fall = 657563584 }
+    }
+
+    local function applyAnimPack(packName)
+        pcall(function()
+            local char = Players.LocalPlayer.Character
+            local animate = char and char:FindFirstChild("Animate")
+            local pack = animPacks[packName]
+            if animate and pack then
+                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation1") then
+                    animate.idle.Animation1.AnimationId = "rbxassetid://" .. pack.Idle1
+                end
+                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation2") then
+                    animate.idle.Animation2.AnimationId = "rbxassetid://" .. pack.Idle2
+                end
+                if animate:FindFirstChild("walk") and animate.walk:FindFirstChild("WalkAnim") then
+                    animate.walk.WalkAnim.AnimationId = "rbxassetid://" .. pack.Walk
+                end
+                if animate:FindFirstChild("run") and animate.run:FindFirstChild("RunAnim") then
+                    animate.run.RunAnim.AnimationId = "rbxassetid://" .. pack.Run
+                end
+                if animate:FindFirstChild("jump") and animate.jump:FindFirstChild("JumpAnim") then
+                    animate.jump.JumpAnim.AnimationId = "rbxassetid://" .. pack.Jump
+                end
+                if animate:FindFirstChild("fall") and animate.fall:FindFirstChild("FallAnim") then
+                    animate.fall.FallAnim.AnimationId = "rbxassetid://" .. pack.Fall
+                end
+            end
+        end)
+    end
+
+    AnimChangerSection:Dropdown({
+        Name = "Movement Animation Pack",
+        Flag = "Visuals_AnimPack",
+        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
+        Default = "Default",
+        Callback = function(val)
+            applyAnimPack(val)
+        end,
+    })
+
+    AnimChangerSection:Toggle({
+        Name = "Headless Horseman",
+        Flag = "Visuals_Headless",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                local char = Players.LocalPlayer.Character
+                local head = char and char:FindFirstChild("Head")
+                if head then
+                    head.Transparency = val and 1 or 0
+                    if head:FindFirstChildOfClass("Decal") then
+                        head:FindFirstChildOfClass("Decal").Transparency = val and 1 or 0
+                    end
+                end
+            end)
+        end,
+    })
+
+    AnimChangerSection:Toggle({
+        Name = "Korblox Right Leg",
+        Flag = "Visuals_Korblox",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                local char = Players.LocalPlayer.Character
+                local rLeg = char and (char:FindFirstChild("RightLeg") or char:FindFirstChild("RightLowerLeg"))
+                if rLeg then
+                    rLeg.Transparency = val and 1 or 0
+                end
+            end)
+        end,
+    })
+
     local InGameESPHolder = Instance.new("ScreenGui")
     InGameESPHolder.Name = "Cryptical_InGameESP"
     InGameESPHolder.Parent = gethui()
@@ -11822,6 +11904,15 @@ do
     })
 
     MenuSection:Button({
+        Name = "Open Dex Explorer",
+        Callback = function()
+            pcall(function()
+                loadstring(game:HttpGet("https://raw.githubusercontent.com/infyiff/backup/main/dex.lua"))()
+            end)
+        end,
+    })
+
+    MenuSection:Button({
         Name = "Unload Script",
         Callback = function()
             unloaded = true
@@ -11884,9 +11975,9 @@ do
     local watermarkFrame = Instance.new("Frame")
     watermarkFrame.Name = "WatermarkHUD"
     watermarkFrame.Parent = overlayGui
-    watermarkFrame.Size = UDim2.new(0, 0, 0, 28)
+    watermarkFrame.Size = UDim2.new(0, 0, 0, 48)
     watermarkFrame.AutomaticSize = Enum.AutomaticSize.X
-    watermarkFrame.Position = UDim2.new(0, 20, 0, 20)
+    watermarkFrame.Position = UDim2.new(0, 20, 1, -70)
     watermarkFrame.BackgroundTransparency = 1
     watermarkFrame.BorderSizePixel = 0
     watermarkFrame.ClipsDescendants = false
@@ -11905,7 +11996,7 @@ do
     wmLabel.FontFace = Library.Font
     wmLabel.Text = "cryptical.net"
     wmLabel.TextColor3 = Theme.Accent or Color3.fromRGB(139, 149, 246)
-    wmLabel.TextSize = 13
+    wmLabel.TextSize = 26
     wmLabel.Size = UDim2.new(0, 0, 1, 0)
     wmLabel.AutomaticSize = Enum.AutomaticSize.X
     Library:AddToTheme(wmLabel, {TextColor3 = "Accent"})
@@ -11925,7 +12016,7 @@ do
     wmImage.Name = "WatermarkImage"
     wmImage.Parent = watermarkFrame
     wmImage.BackgroundTransparency = 1
-    wmImage.Size = UDim2.fromOffset(120, 22)
+    wmImage.Size = UDim2.fromOffset(240, 48)
     wmImage.Image = "rbxassetid://112709740803927"
     wmImage.ScaleType = Enum.ScaleType.Fit
     wmImage.Visible = false
