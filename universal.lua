@@ -1,5 +1,5 @@
-getgenv().CrypticalGen = (tonumber(getgenv().CrypticalGen) or 0) + 1
-local GEN = getgenv().CrypticalGen
+getgenv().AcheronGen = (tonumber(getgenv().AcheronGen) or 0) + 1
+local GEN = getgenv().AcheronGen
 
 pcall(function()
     getgenv().debugInfo = false
@@ -78,7 +78,7 @@ if previousLibrary then
     end
 end
 
-local previousMenuBlur = game:GetService("Lighting"):FindFirstChild("Cryptical_MenuBlur")
+local previousMenuBlur = game:GetService("Lighting"):FindFirstChild("Acheron_MenuBlur")
 if previousMenuBlur then
     pcall(function()
         previousMenuBlur:Destroy()
@@ -87,11 +87,11 @@ end
 
 local Library = (function()
 
-if getgenv().CrypticalPlayerESP then
+if getgenv().AcheronPlayerESP then
     pcall(function()
-        getgenv().CrypticalPlayerESP:Destroy()
+        getgenv().AcheronPlayerESP:Destroy()
     end)
-    getgenv().CrypticalPlayerESP = nil
+    getgenv().AcheronPlayerESP = nil
 end
 
 local Library do
@@ -302,13 +302,13 @@ local Library do
     }
 
     local Themes = {
-                ["Preset"] = {
-            ["Background"] = FromRGB(7, 7, 9),
-            ["Outline"] = FromRGB(22, 22, 28),
-            ["Inline"] = FromRGB(12, 12, 15),
-            ["Accent"] = FromRGB(139, 149, 246),
-            ["Text"] = FromRGB(230, 230, 238),
-            ["Element"] = FromRGB(16, 16, 21)
+        ["Preset"] = {
+            ["Background"] = FromRGB(10, 10, 12),
+            ["Outline"]    = FromRGB(35, 35, 40),
+            ["Inline"]     = FromRGB(16, 16, 18),
+            ["Accent"]     = FromRGB(255, 255, 255),
+            ["Text"]       = FromRGB(240, 240, 245),
+            ["Element"]    = FromRGB(22, 22, 26)
         }
     }
 
@@ -739,21 +739,21 @@ local Library do
         do
             local loaded = pcall(function()
                 Library.Font = CustomFont:New("SFProText", 400, "Regular", {
-                    Id = "Cryptical_SFProText",
+                    Id = "Acheron_SFProText",
                     Url = "https://github.com/sahibjotsaggu/San-Francisco-Pro-Fonts/raw/master/SF-Pro-Text-Regular.otf"
                 })
             end)
             if not loaded then
-                pcall(function() delfile("Cryptical_SFProText") end)
+                pcall(function() delfile("Acheron_SFProText") end)
                 loaded = pcall(function()
                     Library.Font = CustomFont:New("Inter", 400, "Regular", {
-                        Id = "Cryptical_Inter",
+                        Id = "Acheron_Inter",
                         Url = "https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Inter.ttf"
                     })
                 end)
             end
             if not loaded then
-                pcall(function() delfile("Cryptical_Inter") end)
+                pcall(function() delfile("Acheron_Inter") end)
                 pcall(function()
                     Library.Font = CustomFont:New("OutfitMedium", 400, "Regular", {
                         Id = "OutfitMedium",
@@ -769,7 +769,7 @@ local Library do
 
     Library.Holder = Instances:Create("ScreenGui", {
         Parent = gethui(),
-        Name = "Cryptical_MainGui",
+        Name = "Acheron_MainGui",
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         DisplayOrder = 100,
         ResetOnSpawn = false
@@ -805,7 +805,7 @@ local Library do
     })
 
     function Library:Notify(Config, Content, Duration)
-        local Title = "cryptical"
+        local Title = "acheron"
         local Text = ""
         local Time = Duration or 3.5
 
@@ -850,7 +850,7 @@ local Library do
             Name = "AccentBar",
             Position = UDim2New(0, 0, 0, 0),
             Size = UDim2New(0, 4, 1, 0),
-            BackgroundColor3 = Library.Theme["Accent"] or Color3.fromRGB(139, 149, 246),
+            BackgroundColor3 = Library.Theme["Accent"] or Color3.fromRGB(255, 255, 255),
             BorderSizePixel = 0,
             ZIndex = 10001
         }):AddToTheme({BackgroundColor3 = 'Accent'})
@@ -899,7 +899,7 @@ local Library do
             Name = "Title",
             FontFace = Library.Font,
             Text = Title,
-            TextColor3 = Library.Theme["Accent"] or Color3.fromRGB(139, 149, 246),
+            TextColor3 = Library.Theme["Accent"] or Color3.fromRGB(255, 255, 255),
             TextSize = 12,
             BackgroundTransparency = 1,
             Size = UDim2New(1, 0, 1, 0),
@@ -939,7 +939,7 @@ local Library do
             Parent = ProgressBarTrack.Instance,
             Name = "ProgressBar",
             Size = UDim2New(1, 0, 1, 0),
-            BackgroundColor3 = Library.Theme["Accent"] or Color3.fromRGB(139, 149, 246),
+            BackgroundColor3 = Library.Theme["Accent"] or Color3.fromRGB(255, 255, 255),
             BorderSizePixel = 0,
             ZIndex = 10004
         }):AddToTheme({BackgroundColor3 = 'Accent'})
@@ -995,11 +995,11 @@ local Library do
             self.UnusedHolder:Clean()
         end
 
-        if getgenv().CrypticalPlayerESP then
+        if getgenv().AcheronPlayerESP then
             pcall(function()
-                getgenv().CrypticalPlayerESP:Destroy()
+                getgenv().AcheronPlayerESP:Destroy()
             end)
-            getgenv().CrypticalPlayerESP = nil
+            getgenv().AcheronPlayerESP = nil
         end
 
         getgenv().Library = nil
@@ -2202,7 +2202,7 @@ local Library do
             Data = Data or { }
 
             local Window = {
-                Name = Data.Name or Data.name or "cryptical",
+                Name = Data.Name or Data.name or "acheron",
                 SubName = Data.SubName or Data.subname or "",
                 Logo = Data.Logo or Data.logo or "rbxassetid://134242818164054",
                 KeyTime = Data.KeyTime or Data.keytime or "30d left",
@@ -2215,7 +2215,7 @@ local Library do
             local Items = { } do
                 Items["MainFrame"] = Instances:Create("Frame", {
                     Parent = Library.Holder.Instance,
-                    Name = "Cryptical_Main",
+                    Name = "Acheron_Main",
                     AnchorPoint = Vector2New(0.5, 0.5),
                     Position = UDim2New(0.5, 0, 0.5, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
@@ -2363,7 +2363,7 @@ local Library do
                     Name = "TitleText",
                     FontFace = Library.Font,
                     TextColor3 = Library.Theme["Text"],
-                    Text = "build: cryptical beta",
+                    Text = "build: acheron beta",
                     Size = UDim2New(0, 0, 0, 20),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
@@ -5105,13 +5105,13 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         activeTab = tabName
         for name, btn in pairs(tabButtons) do
             local isAct = (name == tabName)
-            local bg = isAct and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(16, 16, 22)
+            local bg = isAct and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(16, 16, 22)
             local txt = isAct and (Theme.Background or Color3.fromRGB(7, 7, 9)) or Color3.fromRGB(160, 165, 185)
             local stroke = btn:FindFirstChildOfClass("UIStroke")
             if stroke then
                 TweenService:Create(stroke, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                     Transparency = isAct and 0.2 or 0.8,
-                    Color = isAct and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(32, 32, 44)
+                    Color = isAct and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(32, 32, 44)
                 }):Play()
             end
             TweenService:Create(btn, TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
@@ -5140,7 +5140,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
         btn.Name = "SubtabBtn_" .. tabName:gsub("%s+", "")
         btn.Parent = subtabHolder
         btn.Size = UDim2.new(1 / numTabs, -4, 1, 0)
-        btn.BackgroundColor3 = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(16, 16, 22)
+        btn.BackgroundColor3 = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(16, 16, 22)
         btn.BorderSizePixel = 0
         btn.FontFace = Library.Font
         btn.Text = tabName
@@ -5154,7 +5154,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
 
         local bs = Instance.new("UIStroke")
         bs.Thickness = 1
-        bs.Color = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(139, 149, 246)) or Color3.fromRGB(32, 32, 44)
+        bs.Color = (tabName == activeTab) and (Theme.Accent or Color3.fromRGB(255, 255, 255)) or Color3.fromRGB(32, 32, 44)
         bs.Transparency = (tabName == activeTab) and 0.2 or 0.8
         bs.Parent = btn
 
@@ -5247,7 +5247,7 @@ if holderGui then
 end
 
 local Window = Library:Window({
-    Name = "cryptical",
+    Name = "acheron",
     Logo = LOGO,
 })
 
@@ -5277,7 +5277,7 @@ local function applyMenuVisuals(open)
     if open and menuBlurSize > 0 then
         if not menuBlur then
             menuBlur = Instance.new("BlurEffect")
-            menuBlur.Name = "Cryptical_MenuBlur"
+            menuBlur.Name = "Acheron_MenuBlur"
             menuBlur.Size = 0
             menuBlur.Parent = Lighting
         end
@@ -5306,8 +5306,8 @@ function Library:Unload()
     cleanupComplete = true
     unloaded = true
 
-    if getgenv().CrypticalGen == GEN then
-        getgenv().CrypticalGen = GEN + 1
+    if getgenv().AcheronGen == GEN then
+        getgenv().AcheronGen = GEN + 1
     end
 
     if menuBlur then
@@ -5329,7 +5329,7 @@ end
 local function safeConnect(event, handler)
     local conn
     conn = event:Connect(function(...)
-        if getgenv().CrypticalGen ~= GEN then
+        if getgenv().AcheronGen ~= GEN then
             conn:Disconnect()
             return
         end
@@ -5350,10 +5350,10 @@ function Window:SetOpen(v)
     end
 
     local mainFrame = Window.Items["MainFrame"].Instance
-    local uiScale = mainFrame:FindFirstChild("Cryptical_Pop")
+    local uiScale = mainFrame:FindFirstChild("Acheron_Pop")
     if not uiScale then
         uiScale = Instance.new("UIScale")
-        uiScale.Name = "Cryptical_Pop"
+        uiScale.Name = "Acheron_Pop"
         uiScale.Parent = mainFrame
     end
 
@@ -5381,7 +5381,7 @@ do
         frames = frames + 1
     end)
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             task.wait(0.5)
             fps = frames * 2
             frames = 0
@@ -5389,10 +5389,10 @@ do
     end)
 end
 
-local CrypticalAPI = {
+local AcheronAPI = {
     Users = {},
     Loaded = false,
-    Url = "https://cryptical-api.avgavg193.workers.dev/users.txt",
+    Url = "https://acheron-api.avgavg193.workers.dev/users.txt",
     TagColors = {
         ["owner"]     = { Text = Color3.fromRGB(255, 215, 0), Bg = Color3.fromRGB(45, 36, 10), Border = Color3.fromRGB(180, 140, 20) },
         ["admin"]     = { Text = Color3.fromRGB(255, 75, 95), Bg = Color3.fromRGB(42, 14, 18), Border = Color3.fromRGB(150, 30, 45) },
@@ -5415,12 +5415,24 @@ local CrypticalAPI = {
     }
 }
 
-function CrypticalAPI:GetTagStyle(rawTag)
-    local t = string.lower(rawTag or "user"):gsub("%s+", "")
-    return self.TagColors[t] or self.TagColors["user"]
+function AcheronAPI:GetTagStyle(rawTag)
+    local t = string.lower(tostring(rawTag or "user")):gsub("%s+", "")
+    if self.TagColors[t] then
+        return self.TagColors[t]
+    end
+    local hash = 0
+    for i = 1, #t do
+        hash = (hash * 31 + string.byte(t, i)) % 360
+    end
+    local col = Color3.fromHSV(hash / 360, 0.65, 0.95)
+    return {
+        Text = col,
+        Bg = Color3.fromRGB(math.floor(col.R * 45), math.floor(col.G * 45), math.floor(col.B * 45)),
+        Border = col
+    }
 end
 
-function CrypticalAPI:GetTags(username)
+function AcheronAPI:GetTags(username)
     if not username then return {"user"} end
     local u = string.lower(tostring(username)):gsub("%s+", "")
     local data = self.Users[u]
@@ -5430,109 +5442,174 @@ function CrypticalAPI:GetTags(username)
     return {"user"}
 end
 
-function CrypticalAPI:IsRegistered(username)
+function AcheronAPI:IsRegistered(username)
     if not username then return false end
     local u = string.lower(tostring(username)):gsub("%s+", "")
     return self.Users[u] ~= nil
 end
 
-function CrypticalAPI:AutoRegister()
+function AcheronAPI:AutoRegister()
+    task.spawn(function()
+        pcall(function()
+            local lp = Players.LocalPlayer
+            if not lp then return end
+            local httpReq = (typeof(request) == "function" and request)
+                or (typeof(http_request) == "function" and http_request)
+                or (syn and syn.request)
+                or (http and http.request)
+            if httpReq then
+                pcall(httpReq, {
+                    Url = "https://acheron-api.avgavg193.workers.dev/register",
+                    Method = "POST",
+                    Headers = { ["Content-Type"] = "application/json" },
+                    Body = HttpService:JSONEncode({
+                        username = lp.Name,
+                        userId = tostring(lp.UserId),
+                        executor = (identifyexecutor and identifyexecutor()) or "Acheron"
+                    })
+                })
+            end
+        end)
+    end)
 end
 
-function CrypticalAPI:Fetch()
-    self.Users = {}
-    self.Loaded = true
+function AcheronAPI:Fetch()
+    task.spawn(function()
+        local body = nil
+        local httpReq = (typeof(request) == "function" and request)
+            or (typeof(http_request) == "function" and http_request)
+            or (syn and syn.request)
+            or (http and http.request)
+
+        pcall(function()
+            if game and game.HttpGet then
+                body = game:HttpGet(self.Url)
+            end
+        end)
+
+        if not body and httpReq then
+            pcall(function()
+                local res = httpReq({Url = self.Url, Method = "GET"})
+                if res then
+                    body = res.Body or res.body
+                end
+            end)
+        end
+
+        local parsedUsers = {}
+
+        local function processItem(item)
+            if type(item) ~= "table" then return end
+            local uname = item.username or item.Name or item.name or item.user
+            if not uname or uname == "" then return end
+            local lowerU = string.lower(tostring(uname)):gsub("%s+", "")
+            local rawTags = item.tags or item.Tags or {"user"}
+            if type(rawTags) == "string" then rawTags = {rawTags} end
+            local uId = item.userId or item.user_id or item.UserId or item.id
+            if uId then uId = tonumber(uId) or tostring(uId) end
+            local exec = item.executor or item.Executor or item.exec or "Unknown"
+
+            parsedUsers[lowerU] = {
+                Raw = tostring(uname),
+                Tags = rawTags,
+                UserId = uId,
+                Executor = tostring(exec)
+            }
+        end
+
+        if body and type(body) == "string" and #body > 0 then
+            local jsonOk, jsonVal = pcall(function()
+                return HttpService:JSONDecode(body)
+            end)
+
+            if jsonOk and type(jsonVal) == "table" then
+                if #jsonVal > 0 then
+                    for _, item in ipairs(jsonVal) do
+                        processItem(item)
+                    end
+                else
+                    processItem(jsonVal)
+                end
+            end
+
+            for line in string.gmatch(body, "[^
+
+]+") do
+                line = line:match("^%s*(.-)%s*$")
+                if #line > 0 then
+                    local lineOk, lineVal = pcall(function()
+                        return HttpService:JSONDecode(line)
+                    end)
+                    if lineOk and type(lineVal) == "table" then
+                        processItem(lineVal)
+                    end
+                end
+            end
+        end
+
+        local lp = Players.LocalPlayer
+        if lp then
+            local myLower = string.lower(lp.Name):gsub("%s+", "")
+            if not parsedUsers[myLower] then
+                parsedUsers[myLower] = {
+                    Raw = lp.Name,
+                    Tags = {"user"},
+                    UserId = lp.UserId,
+                    Executor = (identifyexecutor and identifyexecutor()) or "Acheron"
+                }
+            end
+        end
+
+        self.Users = parsedUsers
+        self.Loaded = true
+
+        if refreshPlayerListUI then
+            pcall(refreshPlayerListUI)
+        end
+    end)
 end
 
-CrypticalAPI:AutoRegister()
-CrypticalAPI:Fetch()
+AcheronAPI:AutoRegister()
+AcheronAPI:Fetch()
 task.spawn(function()
-    while not unloaded and getgenv().CrypticalGen == GEN do
+    while not unloaded and getgenv().AcheronGen == GEN do
         task.wait(45)
-        CrypticalAPI:Fetch()
+        AcheronAPI:Fetch()
     end
 end)
 
 local BUILT_IN_THEMES = {
-    ["Violet"] = {
-        Background = Color3.fromRGB(7, 7, 9),
-        Inline = Color3.fromRGB(12, 12, 15),
-        Element = Color3.fromRGB(16, 16, 21),
-        Outline = Color3.fromRGB(28, 28, 36),
-        Accent = Color3.fromRGB(139, 149, 246),
-        Text = Color3.fromRGB(235, 235, 245)
-    },
-    ["Cyan"] = {
-        Background = Color3.fromRGB(6, 10, 14),
-        Inline = Color3.fromRGB(10, 16, 22),
-        Element = Color3.fromRGB(14, 22, 30),
-        Outline = Color3.fromRGB(22, 38, 52),
-        Accent = Color3.fromRGB(0, 240, 255),
-        Text = Color3.fromRGB(230, 245, 255)
-    },
-    ["Crimson"] = {
-        Background = Color3.fromRGB(10, 6, 7),
-        Inline = Color3.fromRGB(16, 10, 11),
-        Element = Color3.fromRGB(22, 13, 15),
-        Outline = Color3.fromRGB(42, 20, 24),
-        Accent = Color3.fromRGB(255, 59, 78),
-        Text = Color3.fromRGB(255, 235, 238)
-    },
-    ["Emerald"] = {
-        Background = Color3.fromRGB(5, 10, 7),
-        Inline = Color3.fromRGB(9, 16, 12),
-        Element = Color3.fromRGB(13, 23, 17),
-        Outline = Color3.fromRGB(20, 42, 28),
-        Accent = Color3.fromRGB(46, 234, 138),
-        Text = Color3.fromRGB(230, 255, 240)
-    },
-    ["Amber"] = {
-        Background = Color3.fromRGB(10, 8, 6),
-        Inline = Color3.fromRGB(16, 12, 9),
-        Element = Color3.fromRGB(23, 17, 12),
-        Outline = Color3.fromRGB(45, 30, 18),
-        Accent = Color3.fromRGB(255, 165, 38),
-        Text = Color3.fromRGB(255, 243, 230)
-    },
-    ["Tokyo"] = {
-        Background = Color3.fromRGB(8, 7, 14),
-        Inline = Color3.fromRGB(13, 11, 22),
-        Element = Color3.fromRGB(18, 15, 30),
-        Outline = Color3.fromRGB(35, 28, 58),
-        Accent = Color3.fromRGB(244, 91, 211),
-        Text = Color3.fromRGB(245, 235, 255)
-    },
-    ["Frost"] = {
-        Background = Color3.fromRGB(8, 12, 16),
-        Inline = Color3.fromRGB(13, 18, 24),
-        Element = Color3.fromRGB(18, 25, 33),
-        Outline = Color3.fromRGB(28, 42, 56),
-        Accent = Color3.fromRGB(114, 195, 255),
-        Text = Color3.fromRGB(235, 245, 255)
-    },
     ["Monochrome"] = {
-        Background = Color3.fromRGB(10, 10, 10),
-        Inline = Color3.fromRGB(16, 16, 16),
-        Element = Color3.fromRGB(22, 22, 22),
-        Outline = Color3.fromRGB(36, 36, 36),
+        Background = Color3.fromRGB(10, 10, 12),
+        Inline = Color3.fromRGB(16, 16, 18),
+        Element = Color3.fromRGB(22, 22, 26),
+        Outline = Color3.fromRGB(35, 35, 40),
+        Accent = Color3.fromRGB(255, 255, 255),
+        Text = Color3.fromRGB(240, 240, 245)
+    },
+    ["Dark Classic"] = {
+        Background = Color3.fromRGB(12, 12, 14),
+        Inline = Color3.fromRGB(18, 18, 20),
+        Element = Color3.fromRGB(24, 24, 28),
+        Outline = Color3.fromRGB(42, 42, 48),
         Accent = Color3.fromRGB(220, 220, 225),
+        Text = Color3.fromRGB(235, 235, 240)
+    },
+    ["Slate Grey"] = {
+        Background = Color3.fromRGB(14, 15, 18),
+        Inline = Color3.fromRGB(20, 22, 26),
+        Element = Color3.fromRGB(28, 30, 36),
+        Outline = Color3.fromRGB(48, 52, 60),
+        Accent = Color3.fromRGB(200, 205, 215),
+        Text = Color3.fromRGB(240, 242, 245)
+    },
+    ["Pure Night"] = {
+        Background = Color3.fromRGB(6, 6, 8),
+        Inline = Color3.fromRGB(12, 12, 14),
+        Element = Color3.fromRGB(18, 18, 20),
+        Outline = Color3.fromRGB(30, 30, 34),
+        Accent = Color3.fromRGB(255, 255, 255),
         Text = Color3.fromRGB(250, 250, 250)
-    },
-    ["Sunset"] = {
-        Background = Color3.fromRGB(12, 7, 12),
-        Inline = Color3.fromRGB(18, 11, 18),
-        Element = Color3.fromRGB(25, 15, 25),
-        Outline = Color3.fromRGB(48, 26, 48),
-        Accent = Color3.fromRGB(255, 94, 148),
-        Text = Color3.fromRGB(255, 235, 245)
-    },
-    ["Tactical"] = {
-        Background = Color3.fromRGB(8, 9, 11),
-        Inline = Color3.fromRGB(13, 15, 18),
-        Element = Color3.fromRGB(18, 21, 26),
-        Outline = Color3.fromRGB(30, 36, 46),
-        Accent = Color3.fromRGB(77, 166, 255),
-        Text = Color3.fromRGB(235, 240, 248)
     }
 }
 
@@ -5550,13 +5627,13 @@ do
     local titleArea = Window.Items["TitleArea"] and Window.Items["TitleArea"].Instance
     if titleArea then
         for _, child in ipairs(titleArea:GetChildren()) do
-            if child.Name == "Cryptical_TitleGroup" or child.Name == "Cryptical_Logo" then
+            if child.Name == "Acheron_TitleGroup" or child.Name == "Acheron_Logo" then
                 child:Destroy()
             end
         end
 
         local titleGroup = Instance.new("Frame")
-        titleGroup.Name = "Cryptical_TitleGroup"
+        titleGroup.Name = "Acheron_TitleGroup"
         titleGroup.Parent = titleArea
         Window.Items["MainFrame"]:MakeDraggable(titleGroup)
         titleGroup.BackgroundTransparency = 1
@@ -5576,7 +5653,7 @@ do
         brandLabel.Parent = titleGroup
         brandLabel.BackgroundTransparency = 1
         brandLabel.FontFace = Library.Font
-        brandLabel.Text = "cryptical"
+        brandLabel.Text = "acheron"
         brandLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         brandLabel.TextSize = 17
         brandLabel.Size = UDim2.new(0, 0, 1, 0)
@@ -5588,9 +5665,9 @@ do
         brandGradient.Rotation = 0
 
         task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             local t = tick()
-            local accent = Library.Theme.Accent or Color3.fromRGB(139, 149, 246)
+            local accent = Library.Theme.Accent or Color3.fromRGB(255, 255, 255)
             local white = Color3.fromRGB(255, 255, 255)
             local wavePos = (math.sin(t * 2.2) + 1) * 0.5
             brandGradient.Color = ColorSequence.new({
@@ -5775,9 +5852,9 @@ do
         ebLabel.Size = UDim2.new(0, 0, 1, 0)
         ebLabel.AutomaticSize = Enum.AutomaticSize.X
 
-        local myTags = CrypticalAPI:GetTags(userName)
+        local myTags = AcheronAPI:GetTags(userName)
         for _, rawTag in ipairs(myTags) do
-            local tagStyle = CrypticalAPI:GetTagStyle(rawTag)
+            local tagStyle = AcheronAPI:GetTagStyle(rawTag)
             local badge = Instance.new("Frame")
             badge.Name = "TagBadge_" .. tostring(rawTag)
             badge.Parent = badgesRow
@@ -5815,7 +5892,7 @@ do
 
     updateHomeProfileBadges()
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             task.wait(4)
             pcall(updateHomeProfileBadges)
         end
@@ -5905,10 +5982,10 @@ do
     local execStat = makeHomeStat("Executor", execName, 3)
     local fpsStat = makeHomeStat("Client FPS", "60 FPS", 4)
     local pingStat = makeHomeStat("Server Ping", tostring(getPing()) .. " ms", 5)
-    local tierStat = makeHomeStat("User Tier", string.upper(CrypticalAPI:GetTags(userName)[1] or "USER"), 6)
+    local tierStat = makeHomeStat("User Tier", string.upper(AcheronAPI:GetTags(userName)[1] or "USER"), 6)
 
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             task.wait(0.5)
             if fpsStat and fpsStat.Label then
                 pcall(function()
@@ -5918,7 +5995,7 @@ do
         end
     end)
 
-    ProfileSection:Label("Build: CRYPTICAL v2.4 (Enterprise)")
+    ProfileSection:Label("Build: ACHERON v2.4 (Enterprise)")
     ProfileSection:Label("Status: Active • Premium")
 
     local ActionSection = HomePage:Section({
@@ -5931,7 +6008,7 @@ do
         Name = "Copy Discord Invite",
         Callback = function()
             if setclipboard then
-                setclipboard("https://discord.gg/cryptical")
+                setclipboard("https://discord.gg/acheron")
                 Library:Notify("Discord link copied to clipboard!")
             end
         end,
@@ -5996,12 +6073,12 @@ do
 
     
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             task.wait(0.5)
             pcall(function()
                 accountStat.Text = tostring(accountAge) .. " days"
                 userIdStat.Text = tostring(userId)
-                tierStat.Text = string.upper(CrypticalAPI:GetTags(userName)[1] or "USER")
+                tierStat.Text = string.upper(AcheronAPI:GetTags(userName)[1] or "USER")
                 playersStat:SetText(
                     string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
                 )
@@ -6190,7 +6267,7 @@ do
         Name = "Target Checks",
         Flag = "Combat_Checks",
         Multi = true,
-        Items = {"Team Check", "Wall Check", "Dead Check", "Knocked Check", "ForceField Check", "Ignore Cryptical Users"},
+        Items = {"Team Check", "Wall Check", "Dead Check", "Knocked Check", "ForceField Check", "Ignore Acheron Users"},
         Default = {"Team Check", "Wall Check", "Dead Check"},
     })
 
@@ -6295,11 +6372,11 @@ do
     })
     drawFovToggle:Colorpicker({
         Flag = "Combat_FOVColor",
-        Default = Theme.Accent or Color3.fromRGB(139, 149, 246),
+        Default = Theme.Accent or Color3.fromRGB(255, 255, 255),
     })
     drawFovToggle:Colorpicker({
         Flag = "Combat_FOVFillColor",
-        Default = Color3.fromRGB(139, 149, 246),
+        Default = Color3.fromRGB(255, 255, 255),
     })
 
     fovSizeSlider = AimbotFOVSection:Slider({
@@ -6507,7 +6584,7 @@ do
         Name = "Silent Aim Checks",
         Flag = "SilentAim_Checks",
         Multi = true,
-        Items = {"Team Check", "Wall Check", "Ignore Cryptical Users"},
+        Items = {"Team Check", "Wall Check", "Ignore Acheron Users"},
         Default = {"Team Check", "Wall Check"},
     })
 
@@ -6794,7 +6871,7 @@ do
 
 
     local fovGui = Instance.new("ScreenGui")
-    fovGui.Name = "Cryptical_FOVOverlays"
+    fovGui.Name = "Acheron_FOVOverlays"
     fovGui.ResetOnSpawn = false
     fovGui.DisplayOrder = 999
     fovGui.IgnoreGuiInset = true
@@ -6816,7 +6893,7 @@ do
 
     local fovStroke = Instance.new("UIStroke")
     fovStroke.Thickness = 1.5
-    fovStroke.Color = Theme.Accent or Color3.fromRGB(139, 149, 246)
+    fovStroke.Color = Theme.Accent or Color3.fromRGB(255, 255, 255)
     fovStroke.Parent = fovCircleFrame
 
     local sFovCircleFrame = Instance.new("Frame")
@@ -6936,8 +7013,8 @@ do
             if isKnocked then return false end
         end
 
-        if hasCheck("Ignore Cryptical Users") or hasCheck("Ignore Users - Cryptical Users") then
-            if p:GetAttribute("CrypticalUser") or p:FindFirstChild("CrypticalUser") then
+        if hasCheck("Ignore Acheron Users") or hasCheck("Ignore Users - Acheron Users") then
+            if p:GetAttribute("AcheronUser") or p:FindFirstChild("AcheronUser") then
                 return false
             end
         end
@@ -6984,6 +7061,28 @@ do
         return screenCenter
     end
 
+    local botCandidateCache = setmetatable({}, {__mode = "k"})
+
+    local function getBotCandidate(child)
+        local existing = botCandidateCache[child]
+        if not existing then
+            existing = {
+                Name = child.Name,
+                DisplayName = child.Name,
+                UserId = 1,
+                Character = child,
+                IsBot = true,
+                Team = nil
+            }
+            botCandidateCache[child] = existing
+        else
+            existing.Character = child
+            existing.Name = child.Name
+            existing.DisplayName = child.Name
+        end
+        return existing
+    end
+
     local function getAllTargetCandidates()
         local candidates = {}
         local added = {}
@@ -6991,30 +7090,36 @@ do
         for _, p in ipairs(Players:GetPlayers()) do
             if p ~= Players.LocalPlayer then
                 table.insert(candidates, p)
-                if p.Character then added[p.Character] = true end
+                local char = p.Character or Workspace:FindFirstChild(p.Name)
+                if char then added[char] = true end
             end
         end
 
-        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies"}
+        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies", "Entities", "Zombies", "Characters"}
         for _, folderName in ipairs(searchFolders) do
             local folder = Workspace:FindFirstChild(folderName)
             if folder then
                 for _, child in ipairs(folder:GetChildren()) do
                     if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
-                        local hum = child:FindFirstChildOfClass("Humanoid")
-                        local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso") or child.PrimaryPart
-                        if hum and root then
-                            table.insert(candidates, {
-                                Name = child.Name,
-                                DisplayName = child.Name,
-                                UserId = 1,
-                                Character = child,
-                                IsBot = true,
-                                Team = nil
-                            })
+                        local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso") or child:FindFirstChild("Head") or child.PrimaryPart
+                        if root then
+                            local botCand = getBotCandidate(child)
+                            table.insert(candidates, botCand)
                             added[child] = true
                         end
                     end
+                end
+            end
+        end
+
+        for _, child in ipairs(Workspace:GetChildren()) do
+            if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
+                local hum = child:FindFirstChildOfClass("Humanoid")
+                local root = child:FindFirstChild("HumanoidRootPart") or child:FindFirstChild("Torso")
+                if hum and root and not Players:GetPlayerFromCharacter(child) then
+                    local botCand = getBotCandidate(child)
+                    table.insert(candidates, botCand)
+                    added[child] = true
                 end
             end
         end
@@ -7186,7 +7291,7 @@ do
     end)
 
     Library:Connect(RunService.RenderStepped, function(dt)
-        if unloaded or getgenv().CrypticalGen ~= GEN then return end
+        if unloaded or getgenv().AcheronGen ~= GEN then return end
         local cam = Workspace.CurrentCamera
         if not cam then return end
 
@@ -7208,7 +7313,7 @@ do
 
             local outlineAlpha = (Library.Flags["Combat_FOVOutlineAlpha"] or 0) / 100
             local fillAlpha = (Library.Flags["Combat_FOVFillAlpha"] or 85) / 100
-            local fovColor = Library.Flags["Combat_FOVColor"] or (Theme.Accent or Color3.fromRGB(139, 149, 246))
+            local fovColor = Library.Flags["Combat_FOVColor"] or (Theme.Accent or Color3.fromRGB(255, 255, 255))
             local fovFillColor = Library.Flags["Combat_FOVFillColor"] or fovColor
 
             if Library.Flags["Combat_FOVRainbow"] then
@@ -7395,7 +7500,7 @@ do
     end)
 
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             if not Library.Flags["Triggerbot_Enable"] then
                 task.wait(0.1)
             else
@@ -7469,7 +7574,7 @@ do
 
         Box = false,
         BoxStyle = "Corner Box",
-        BoxColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
+        BoxColor = Theme.Accent or Color3.fromRGB(255, 255, 255),
 
         Name = false,
         NameColor = Color3.fromRGB(255, 255, 255),
@@ -7493,24 +7598,24 @@ do
         GradientText = false,
         GradientMode = "Static Dual Color",
         GradientColor1 = Color3.fromRGB(255, 255, 255),
-        GradientColor2 = Theme.Accent or Color3.fromRGB(139, 149, 246),
+        GradientColor2 = Theme.Accent or Color3.fromRGB(255, 255, 255),
         AnimatedGradientText = false,
 
         Skeleton = false,
         SkeletonColor = Color3.fromRGB(255, 255, 255),
 
         Tracers = false,
-        TracerColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
+        TracerColor = Theme.Accent or Color3.fromRGB(255, 255, 255),
         TracerOrigin = "Bottom Screen",
         TracerThickness = 1,
 
         Offscreen = false,
-        OffscreenColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
+        OffscreenColor = Theme.Accent or Color3.fromRGB(255, 255, 255),
         OffscreenRadius = 220,
         OffscreenSize = 14,
 
         Chams = false,
-        ChamsColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
+        ChamsColor = Theme.Accent or Color3.fromRGB(255, 255, 255),
         ChamsOutlineColor = Color3.fromRGB(255, 255, 255),
         ChamsMaterial = "Highlight",
         ChamsFillTransparency = 0.4,
@@ -7524,7 +7629,7 @@ do
 
         RainbowESP = false,
         TextOutline = true,
-        TeamCheck = true,
+        TeamCheck = false,
         UseTeamColors = false,
         MaxDistance = 2500
     }
@@ -7532,7 +7637,7 @@ do
 
     local function getEspTextGradientSequence(mode, c1, c2)
         c1 = c1 or espConfig.GradientColor1 or Color3.fromRGB(255, 255, 255)
-        c2 = c2 or espConfig.GradientColor2 or (Library.Theme.Accent or Color3.fromRGB(139, 149, 246))
+        c2 = c2 or espConfig.GradientColor2 or (Library.Theme.Accent or Color3.fromRGB(255, 255, 255))
         if mode == "Monochrome Wave" then
             return ColorSequence.new({
                 ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
@@ -7646,7 +7751,7 @@ do
     })
     boxToggle:Colorpicker({
         Flag = "Visuals_BoxColor",
-        Default = Color3.fromRGB(139, 149, 246),
+        Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.BoxColor = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -7702,7 +7807,7 @@ do
     })
     gradToggle:Colorpicker({
         Flag = "Visuals_GradColor2",
-        Default = Color3.fromRGB(139, 149, 246),
+        Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.GradientColor2 = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -7870,7 +7975,7 @@ do
     })
     tracerToggle:Colorpicker({
         Flag = "Visuals_TracerColor",
-        Default = Color3.fromRGB(139, 149, 246),
+        Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.TracerColor = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -7898,7 +8003,7 @@ do
     })
     offscreenToggle:Colorpicker({
         Flag = "Visuals_OffscreenColor",
-        Default = Color3.fromRGB(139, 149, 246),
+        Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.OffscreenColor = val
         end,
@@ -7991,7 +8096,7 @@ do
     })
     chamsToggle:Colorpicker({
         Flag = "Visuals_ChamsFillColor",
-        Default = Color3.fromRGB(139, 149, 246),
+        Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.ChamsColor = val
             if updatePreviewOverlay then updatePreviewOverlay() end
@@ -8087,7 +8192,7 @@ do
     PreviewSection.Items["SectionOutline"].Instance.LayoutOrder = -10
 
     local previewWindow = Instance.new("Frame")
-    previewWindow.Name = "Cryptical_DockedESPPreview"
+    previewWindow.Name = "Acheron_DockedESPPreview"
     previewWindow.Parent = holderGui
     previewWindow.Size = UDim2.new(0, 230, 0, 310)
     previewWindow.BackgroundColor3 = Theme.Background
@@ -8821,7 +8926,7 @@ do
     local previewRotAngle = 0
     local previewRenderConn = nil
     previewRenderConn = RunService.RenderStepped:Connect(function(dt)
-        if unloaded or getgenv().CrypticalGen ~= GEN then
+        if unloaded or getgenv().AcheronGen ~= GEN then
             if previewRenderConn then
                 previewRenderConn:Disconnect()
                 previewRenderConn = nil
@@ -9305,7 +9410,7 @@ do
 
             if not skyboxData.SkyInstance then
                 local s = Instance.new("Sky")
-                s.Name = "Cryptical_Sky"
+                s.Name = "Acheron_Sky"
                 s.Parent = Lighting
                 skyboxData.SkyInstance = s
             end
@@ -9333,7 +9438,7 @@ do
     end
 
     Library:Connect(RunService.Heartbeat, function(dt)
-        if unloaded or getgenv().CrypticalGen ~= GEN then return end
+        if unloaded or getgenv().AcheronGen ~= GEN then return end
         if skyboxData.Active and skyboxData.Spin then
             local sky = skyboxData.SkyInstance or Lighting:FindFirstChildOfClass("Sky")
             if sky then
@@ -9760,7 +9865,7 @@ do
         end
         local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
         if not atmo then atmo = Instance.new("Atmosphere") atmo.Parent = Lighting end
-        atmo.Name = "CrypticalWeatherAtmo"
+        atmo.Name = "AcheronWeatherAtmo"
         atmo.Color = color
         atmo.Decay = color
         atmo.Density = density
@@ -10373,7 +10478,7 @@ do
                 if val then
                     if not ccEffect then
                         ccEffect = Instance.new("ColorCorrectionEffect")
-                        ccEffect.Name = "Cryptical_CC"
+                        ccEffect.Name = "Acheron_CC"
                         ccEffect.Parent = Lighting
                     end
                     ccEffect.Enabled = true
@@ -10421,7 +10526,7 @@ do
                 if val then
                     if not bloomEffect then
                         bloomEffect = Instance.new("BloomEffect")
-                        bloomEffect.Name = "Cryptical_Bloom"
+                        bloomEffect.Name = "Acheron_Bloom"
                         bloomEffect.Parent = Lighting
                     end
                     bloomEffect.Enabled = true
@@ -10455,7 +10560,7 @@ do
                 if val then
                     if not sunRaysEffect then
                         sunRaysEffect = Instance.new("SunRaysEffect")
-                        sunRaysEffect.Name = "Cryptical_SunRays"
+                        sunRaysEffect.Name = "Acheron_SunRays"
                         sunRaysEffect.Parent = Lighting
                     end
                     sunRaysEffect.Enabled = true
@@ -10580,7 +10685,7 @@ do
                         worldMaterialData.OriginalMaterials[obj] = obj.Material
                     end
                     pcall(function() obj.Material = targetMaterial end)
-                    if i % 100 == 0 then task.wait() end -- Prevent lag spike
+                    if i % 100 == 0 then task.wait() end
                 end
             end)
         end,
@@ -10640,12 +10745,12 @@ do
 
 
     local InGameESPHolder = Instance.new("ScreenGui")
-    InGameESPHolder.Name = "Cryptical_InGameESP"
+    InGameESPHolder.Name = "Acheron_InGameESP"
     InGameESPHolder.Parent = gethui()
     InGameESPHolder.ResetOnSpawn = false
     InGameESPHolder.DisplayOrder = 1
     InGameESPHolder.IgnoreGuiInset = true
-    getgenv().CrypticalPlayerESP = InGameESPHolder
+    getgenv().AcheronPlayerESP = InGameESPHolder
 
     local playerESPCache = {}
     local playerMaterialCache = {}
@@ -10882,7 +10987,7 @@ do
 
     Library:Connect(RunService.RenderStepped, function()
         local masterOn = espConfig.MasterEnabled or espConfig.Box or espConfig.Name or espConfig.Health or espConfig.Distance or espConfig.Weapon or espConfig.Tracers or espConfig.Skeleton or espConfig.Chams or espConfig.HeadDot or espConfig.Offscreen
-        if not masterOn or unloaded or getgenv().CrypticalGen ~= GEN then
+        if not masterOn or unloaded or getgenv().AcheronGen ~= GEN then
             for _, data in pairs(playerESPCache) do
                 hidePlayerESP(data)
             end
@@ -10911,9 +11016,9 @@ do
             if not isLocal then
                 currentFrameCandidates[p] = true
                 local data = playerESPCache[p] or createPlayerESP(p)
-                local char = p.Character
+                local char = (isRealPlayer and p.Character) or (typeof(p) == "table" and p.Character) or Workspace:FindFirstChild(p.Name)
                 if not char and isRealPlayer then
-                    local pFolder = Workspace:FindFirstChild("Players") or Workspace:FindFirstChild("players")
+                    local pFolder = Workspace:FindFirstChild("Players") or Workspace:FindFirstChild("players") or Workspace:FindFirstChild("Characters")
                     if pFolder then
                         char = pFolder:FindFirstChild(p.Name)
                     end
@@ -10927,7 +11032,7 @@ do
                     local root = char:FindFirstChild("HumanoidRootPart") or char:FindFirstChild("Torso") or char:FindFirstChild("UpperTorso") or char.PrimaryPart
                     local hum = char:FindFirstChildOfClass("Humanoid")
 
-                    if root and hum and hum.Health > 0 then
+                    if root and (not hum or hum.Health > 0) then
                         local dist = localRoot and (root.Position - localRoot.Position).Magnitude or 0
 
                         if dist <= espConfig.MaxDistance then
@@ -12007,7 +12112,7 @@ do
                     end
                     if not miscState.VoidPlatform then
                         local p = Instance.new("Part")
-                        p.Name = "Cryptical_VoidPlatform"
+                        p.Name = "Acheron_VoidPlatform"
                         p.Size = Vector3.new(30, 2, 30)
                         p.Position = Vector3.new(0, 30000, 0)
                         p.Anchored = true
@@ -12188,7 +12293,7 @@ do
 
     local spinAngle = 0
     Library:Connect(RunService.Heartbeat, function(dt)
-        if unloaded or getgenv().CrypticalGen ~= GEN then return end
+        if unloaded or getgenv().AcheronGen ~= GEN then return end
 
         local char = Players.LocalPlayer.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -12271,7 +12376,7 @@ do
     end)
 
     Library:Connect(RunService.Stepped, function()
-        if unloaded or getgenv().CrypticalGen ~= GEN then return end
+        if unloaded or getgenv().AcheronGen ~= GEN then return end
         if not miscState.Noclip then return end
 
         local char = Players.LocalPlayer.Character
@@ -12286,7 +12391,7 @@ do
 end
 
 do
-    local PlayerlistPage = Window:Page({
+        local PlayerlistPage = Window:Page({
         Name = "Playerlist",
         Icon = ICON_CLIENT,
     })
@@ -12296,7 +12401,7 @@ do
     local activeSubtab = "local"
 
     local function createTagBadge(parent, rawTag)
-        local tagStyle = CrypticalAPI:GetTagStyle(rawTag)
+        local tagStyle = AcheronAPI:GetTagStyle(rawTag)
         local badge = Instance.new("Frame")
         badge.Name = "TagBadge_" .. tostring(rawTag)
         badge.Parent = parent
@@ -12311,25 +12416,24 @@ do
 
         local bStroke = Instance.new("UIStroke")
         bStroke.Color = tagStyle.Border
-        bStroke.Thickness = 1
-        bStroke.Transparency = 0.2
+        bStroke.Transparency = 0.3
         bStroke.Parent = badge
 
         local bPad = Instance.new("UIPadding")
+        bPad.Parent = badge
         bPad.PaddingLeft = UDim.new(0, 6)
         bPad.PaddingRight = UDim.new(0, 6)
-        bPad.Parent = badge
 
-        local bLabel = Instance.new("TextLabel")
-        bLabel.Parent = badge
-        bLabel.BackgroundTransparency = 1
-        bLabel.FontFace = Library.Font
-        bLabel.Text = string.upper(tostring(rawTag))
-        bLabel.TextColor3 = tagStyle.Text
-        bLabel.TextSize = 9
-        bLabel.Size = UDim2.new(0, 0, 1, 0)
-        bLabel.AutomaticSize = Enum.AutomaticSize.X
-        return badge
+        local ebLabel = Instance.new("TextLabel")
+        ebLabel.Name = "TagText"
+        ebLabel.Parent = badge
+        ebLabel.BackgroundTransparency = 1
+        ebLabel.FontFace = Library.Font
+        ebLabel.Text = string.upper(tostring(rawTag))
+        ebLabel.TextColor3 = tagStyle.Text
+        ebLabel.TextSize = 9
+        ebLabel.Size = UDim2.new(0, 0, 1, 0)
+        ebLabel.AutomaticSize = Enum.AutomaticSize.X
     end
 
     local PlayersListSection = PlayerlistPage:Section({
@@ -12341,23 +12445,15 @@ do
     local leftContent = PlayersListSection.Items["Content"].Instance
 
     local subtabContainer = Instance.new("Frame")
-    subtabContainer.Name = "SubtabSwitcher"
+    subtabContainer.Name = "SubtabContainer"
     subtabContainer.Parent = leftContent
     subtabContainer.Size = UDim2.new(1, 0, 0, 32)
-    subtabContainer.BackgroundColor3 = Theme.Background
+    subtabContainer.BackgroundColor3 = Theme.Inline
     subtabContainer.BorderSizePixel = 0
-    subtabContainer.LayoutOrder = -10
-    Library:AddToTheme(subtabContainer, {BackgroundColor3 = "Background"})
 
     local stCorner = Instance.new("UICorner")
     stCorner.CornerRadius = UDim.new(0, 8)
     stCorner.Parent = subtabContainer
-
-    local stStroke = Instance.new("UIStroke")
-    stStroke.Color = Theme.Outline
-    stStroke.Transparency = 0.4
-    stStroke.Parent = subtabContainer
-    Library:AddToTheme(stStroke, {Color = "Outline"})
 
     local stLayout = Instance.new("UIListLayout")
     stLayout.Parent = subtabContainer
@@ -12377,74 +12473,50 @@ do
     localTabBtn.TextColor3 = Theme.Background
     localTabBtn.TextSize = 11
     localTabBtn.AutoButtonColor = false
-    Library:AddToTheme(localTabBtn, {
-        BackgroundColor3 = function() return activeSubtab == "local" and Theme.Accent or Theme.Element end,
-        TextColor3 = function() return activeSubtab == "local" and Theme.Background or Theme.Text end
-    })
 
     local lCorner = Instance.new("UICorner")
     lCorner.CornerRadius = UDim.new(0, 6)
     lCorner.Parent = localTabBtn
 
-    local crypticalTabBtn = Instance.new("TextButton")
-    crypticalTabBtn.Name = "CrypticalUsersTab"
-    crypticalTabBtn.Parent = subtabContainer
-    crypticalTabBtn.Size = UDim2.new(0.5, -4, 1, -6)
-    crypticalTabBtn.BackgroundColor3 = Theme.Element
-    crypticalTabBtn.BorderSizePixel = 0
-    crypticalTabBtn.FontFace = Library.Font
-    crypticalTabBtn.Text = "Cryptical Users"
-    crypticalTabBtn.TextColor3 = Theme.Text
-    crypticalTabBtn.TextSize = 11
-    crypticalTabBtn.AutoButtonColor = false
-    Library:AddToTheme(crypticalTabBtn, {
-        BackgroundColor3 = function() return activeSubtab == "cryptical" and Theme.Accent or Theme.Element end,
-        TextColor3 = function() return activeSubtab == "cryptical" and Theme.Background or Theme.Text end
-    })
+    local acheronTabBtn = Instance.new("TextButton")
+    acheronTabBtn.Name = "AcheronUsersTab"
+    acheronTabBtn.Parent = subtabContainer
+    acheronTabBtn.Size = UDim2.new(0.5, -4, 1, -6)
+    acheronTabBtn.BackgroundColor3 = Theme.Element
+    acheronTabBtn.BorderSizePixel = 0
+    acheronTabBtn.FontFace = Library.Font
+    acheronTabBtn.Text = "Acheron Users"
+    acheronTabBtn.TextColor3 = Theme.Text
+    acheronTabBtn.TextSize = 11
+    acheronTabBtn.AutoButtonColor = false
 
     local sCorner = Instance.new("UICorner")
     sCorner.CornerRadius = UDim.new(0, 6)
-    sCorner.Parent = crypticalTabBtn
+    sCorner.Parent = acheronTabBtn
 
     local refreshPlayerListUI
 
     local function setSubtab(tab)
-        if activeSubtab == tab and playerListContainer and #playerListContainer:GetChildren() > 1 then return end
+        if activeSubtab == tab and playerListContainer and #playerListContainer:GetChildren() > 0 then return end
         activeSubtab = tab
 
-        local activeBg = Theme.Accent or Color3.fromRGB(139, 149, 246)
+        local activeBg = Theme.Accent or Color3.fromRGB(255, 255, 255)
         local inactiveBg = Theme.Element or Color3.fromRGB(16, 16, 21)
         local activeTxt = Theme.Background or Color3.fromRGB(7, 7, 9)
         local inactiveTxt = Theme.Text or Color3.fromRGB(235, 235, 245)
 
-        local twInfo = TweenInfo.new(0.25, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        local twInfo = TweenInfo.new(0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
 
         if activeSubtab == "local" then
             TweenService:Create(localTabBtn, twInfo, {BackgroundColor3 = activeBg, TextColor3 = activeTxt}):Play()
-            TweenService:Create(crypticalTabBtn, twInfo, {BackgroundColor3 = inactiveBg, TextColor3 = inactiveTxt}):Play()
+            TweenService:Create(acheronTabBtn, twInfo, {BackgroundColor3 = inactiveBg, TextColor3 = inactiveTxt}):Play()
         else
-            TweenService:Create(crypticalTabBtn, twInfo, {BackgroundColor3 = activeBg, TextColor3 = activeTxt}):Play()
+            TweenService:Create(acheronTabBtn, twInfo, {BackgroundColor3 = activeBg, TextColor3 = activeTxt}):Play()
             TweenService:Create(localTabBtn, twInfo, {BackgroundColor3 = inactiveBg, TextColor3 = inactiveTxt}):Play()
         end
 
-        if playerListContainer then
-            local fadeOut = TweenService:Create(playerListContainer, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.In), {
-                Position = UDim2.new(0, -8, 0, 0)
-            })
-            fadeOut.Completed:Connect(function()
-                if refreshPlayerListUI then
-                    refreshPlayerListUI()
-                end
-                playerListContainer.Position = UDim2.new(0, 8, 0, 0)
-                TweenService:Create(playerListContainer, TweenInfo.new(0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out), {
-                    Position = UDim2.new(0, 0, 0, 0)
-                }):Play()
-            end)
-            fadeOut:Play()
-        else
-            if refreshPlayerListUI then
-                refreshPlayerListUI()
-            end
+        if refreshPlayerListUI then
+            refreshPlayerListUI()
         end
     end
 
@@ -12452,8 +12524,8 @@ do
         setSubtab("local")
     end)
 
-    crypticalTabBtn.MouseButton1Click:Connect(function()
-        setSubtab("cryptical")
+    acheronTabBtn.MouseButton1Click:Connect(function()
+        setSubtab("acheron")
     end)
 
     local filterInput = PlayersListSection:Textbox({
@@ -12561,7 +12633,7 @@ do
     targetInfoLabel.Parent = targetCard
     targetInfoLabel.BackgroundTransparency = 1
     targetInfoLabel.FontFace = Library.Font
-    targetInfoLabel.Text = "Status: Idle • Select from list"
+    targetInfoLabel.Text = "Status: Idle - Select from list"
     targetInfoLabel.TextColor3 = Theme.Text
     targetInfoLabel.TextTransparency = 0.4
     targetInfoLabel.TextSize = 11
@@ -12593,13 +12665,13 @@ do
         if not selectedTarget then
             targetNameLabel.Text = "Select a target"
             targetUserLabel.Text = "@none"
-            targetInfoLabel.Text = "Status: Idle • Select from list"
+            targetInfoLabel.Text = "Status: Idle - Select from list"
             targetAvatar.Image = ""
             return
         end
 
         targetNameLabel.Text = selectedTarget.DisplayName or selectedTarget.Name
-        targetUserLabel.Text = "@" .. selectedTarget.Name .. (selectedTarget.UserId and (" (ID: " .. selectedTarget.UserId .. ")") or "")
+        targetUserLabel.Text = "@" .. selectedTarget.Name .. (selectedTarget.UserId and (" (ID: " .. tostring(selectedTarget.UserId) .. ")") or "")
 
         if selectedTarget.Player and selectedTarget.Player.Character then
             local myRoot = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -12607,14 +12679,15 @@ do
             local dist = (myRoot and tRoot) and math.floor((myRoot.Position - tRoot.Position).Magnitude) or 0
             local tHum = selectedTarget.Player.Character:FindFirstChildOfClass("Humanoid")
             local hp = tHum and math.floor(tHum.Health) or 100
-            targetInfoLabel.Text = string.format("Health: %d HP • Dist: %d studs • Online", hp, dist)
+            targetInfoLabel.Text = string.format("Health: %d HP - Dist: %d studs - Online", hp, dist)
         elseif selectedTarget.IsInServer then
             targetInfoLabel.Text = "In Current Server (Spawning...)"
         else
-            targetInfoLabel.Text = "Cryptical Database Registry • Offline / Other Server"
+            local execStr = selectedTarget.Executor and (" - " .. tostring(selectedTarget.Executor)) or ""
+            targetInfoLabel.Text = "Acheron Database Registry - Offline / Other Server" .. execStr
         end
 
-        local tags = selectedTarget.Tags or CrypticalAPI:GetTags(selectedTarget.Name)
+        local tags = selectedTarget.Tags or AcheronAPI:GetTags(selectedTarget.Name)
         for _, tag in ipairs(tags) do
             createTagBadge(targetBadgesRow, tag)
         end
@@ -12624,7 +12697,7 @@ do
                 local ok, img = pcall(function()
                     return Players:GetUserThumbnailAsync(selectedTarget.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size150x150)
                 end)
-                if ok and targetAvatar.Parent then
+                if ok and targetAvatar and targetAvatar.Parent then
                     targetAvatar.Image = img
                 end
             end)
@@ -12672,7 +12745,7 @@ do
         Name = "Prioritize Target (Aimbot)",
         Callback = function()
             if selectedTarget and selectedTarget.Player then
-                getgenv().CrypticalPriorityTarget = selectedTarget.Player
+                getgenv().AcheronPriorityTarget = selectedTarget.Player
             end
         end,
     })
@@ -12698,7 +12771,7 @@ do
     TargetDetailsSection:Button({
         Name = "Refresh Database & Players",
         Callback = function()
-            CrypticalAPI:Fetch()
+            AcheronAPI:Fetch()
             if refreshPlayerListUI then
                 refreshPlayerListUI()
             end
@@ -12706,16 +12779,17 @@ do
     })
 
     refreshPlayerListUI = function()
-        if not playerListContainer.Parent then return end
+        if not playerListContainer or not playerListContainer.Parent then return end
 
         for _, child in ipairs(playerListContainer:GetChildren()) do
-            if child:IsA("TextButton") or child:IsA("Frame") then
+            if child:IsA("TextButton") or child:IsA("Frame") or child:IsA("TextLabel") then
                 child:Destroy()
             end
         end
 
-        if activeSubtab == "local" then
+        local count = 0
 
+        if activeSubtab == "local" then
             local allPlayers = Players:GetPlayers()
             for _, p in ipairs(allPlayers) do
                 local matches = searchQuery == ""
@@ -12723,6 +12797,7 @@ do
                     or string.find(string.lower(p.DisplayName), searchQuery, 1, true)
 
                 if matches then
+                    count = count + 1
                     local isLocal = (p == Players.LocalPlayer)
                     local isSelected = selectedTarget and selectedTarget.Name == p.Name
 
@@ -12761,7 +12836,7 @@ do
                         local ok, img = pcall(function()
                             return Players:GetUserThumbnailAsync(p.UserId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
                         end)
-                        if ok and pAvatar.Parent then
+                        if ok and pAvatar and pAvatar.Parent then
                             pAvatar.Image = img
                         end
                     end)
@@ -12808,7 +12883,7 @@ do
                     pTagLayout.VerticalAlignment = Enum.VerticalAlignment.Center
                     pTagLayout.Padding = UDim.new(0, 4)
 
-                    local pTags = CrypticalAPI:GetTags(p.Name)
+                    local pTags = AcheronAPI:GetTags(p.Name)
                     for _, tag in ipairs(pTags) do
                         createTagBadge(pTagWrap, tag)
                     end
@@ -12827,15 +12902,26 @@ do
                     end)
                 end
             end
-        else
 
-            local count = 0
-            for lowerU, uData in pairs(CrypticalAPI.Users) do
+            if count == 0 then
+                local emptyLabel = Instance.new("TextLabel")
+                emptyLabel.Name = "EmptyLabel"
+                emptyLabel.Parent = playerListContainer
+                emptyLabel.BackgroundTransparency = 1
+                emptyLabel.Size = UDim2.new(1, 0, 0, 36)
+                emptyLabel.FontFace = Library.Font
+                emptyLabel.Text = "No local players match filter"
+                emptyLabel.TextColor3 = Theme.Text
+                emptyLabel.TextTransparency = 0.5
+                emptyLabel.TextSize = 11
+            end
+        else
+            for lowerU, uData in pairs(AcheronAPI.Users) do
                 local rawName = uData.Raw or lowerU
                 local tags = uData.Tags or {"user"}
                 local tagMatch = false
                 for _, t in ipairs(tags) do
-                    if string.find(t, searchQuery, 1, true) then
+                    if string.find(string.lower(t), searchQuery, 1, true) then
                         tagMatch = true
                         break
                     end
@@ -12858,7 +12944,7 @@ do
                     local isSelected = selectedTarget and string.lower(selectedTarget.Name) == lowerU
 
                     local row = Instance.new("TextButton")
-                    row.Name = "CrypticalUser_" .. rawName
+                    row.Name = "AcheronUser_" .. rawName
                     row.Parent = playerListContainer
                     row.Size = UDim2.new(1, 0, 0, 44)
                     row.BackgroundColor3 = isSelected and Theme.Accent or Theme.Element
@@ -12889,18 +12975,17 @@ do
                     paCorner.Parent = pAvatar
 
                     task.spawn(function()
-                        local uId = inServerPlayer and inServerPlayer.UserId
+                        local uId = (inServerPlayer and inServerPlayer.UserId) or uData.UserId
                         if not uId then
-                            local ok, id = pcall(function()
-                                return Players:GetUserIdFromNameAsync(rawName)
+                            pcall(function()
+                                uId = Players:GetUserIdFromNameAsync(rawName)
                             end)
-                            if ok then uId = id end
                         end
                         if uId then
                             local ok, img = pcall(function()
                                 return Players:GetUserThumbnailAsync(uId, Enum.ThumbnailType.HeadShot, Enum.ThumbnailSize.Size100x100)
                             end)
-                            if ok and pAvatar.Parent then
+                            if ok and pAvatar and pAvatar.Parent then
                                 pAvatar.Image = img
                             end
                         end
@@ -12924,7 +13009,7 @@ do
                     pStatus.Parent = row
                     pStatus.BackgroundTransparency = 1
                     pStatus.FontFace = Library.Font
-                    pStatus.Text = inServerPlayer and "• IN SERVER" or "• CRYPTICAL USER"
+                    pStatus.Text = inServerPlayer and "IN SERVER" or ("ACHERON USER (" .. tostring(uData.Executor or "Client") .. ")")
                     pStatus.TextColor3 = inServerPlayer and Color3.fromRGB(60, 245, 145) or Theme.Accent
                     pStatus.TextTransparency = 0.2
                     pStatus.TextSize = 10
@@ -12953,19 +13038,14 @@ do
                     end
 
                     row.MouseButton1Click:Connect(function()
-                        local resolvedId = inServerPlayer and inServerPlayer.UserId
-                        if not resolvedId then
-                            pcall(function()
-                                resolvedId = Players:GetUserIdFromNameAsync(rawName)
-                            end)
-                        end
                         selectedTarget = {
                             Name = rawName,
                             DisplayName = inServerPlayer and inServerPlayer.DisplayName or rawName,
-                            UserId = resolvedId,
+                            UserId = (inServerPlayer and inServerPlayer.UserId) or uData.UserId,
                             Tags = tags,
                             IsInServer = inServerPlayer ~= nil,
-                            Player = inServerPlayer
+                            Player = inServerPlayer,
+                            Executor = uData.Executor
                         }
                         updateTargetDetailsUI()
                         refreshPlayerListUI()
@@ -12980,7 +13060,7 @@ do
                 emptyLabel.BackgroundTransparency = 1
                 emptyLabel.Size = UDim2.new(1, 0, 0, 36)
                 emptyLabel.FontFace = Library.Font
-                emptyLabel.Text = CrypticalAPI.Loaded and "No registered Cryptical users match filter" or "Fetching Cryptical API database..."
+                emptyLabel.Text = AcheronAPI.Loaded and "No registered Acheron users match filter" or "Fetching Acheron API database..."
                 emptyLabel.TextColor3 = Theme.Text
                 emptyLabel.TextTransparency = 0.5
                 emptyLabel.TextSize = 11
@@ -12989,7 +13069,7 @@ do
     end
 
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             pcall(refreshPlayerListUI)
             task.wait(2.5)
         end
@@ -12997,12 +13077,13 @@ do
 end
 
 local hudConfig = {
-    Master = false,
-    Watermark = false,
-    WatermarkType = "Text",
+    Master = true,
+    Watermark = true,
     Keybinds = false,
     GameData = false,
     TargetHUD = false,
+    Spectators = false,
+    Velocity = false
 }
 Library.HUDConfig = hudConfig
 
@@ -13131,7 +13212,7 @@ do
     })
 
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             if rgbMenuOn then
                 local dynamicColor = Color3.fromHSV((tick() * rgbMenuSpeed * 0.35) % 1, 1, 1)
                 Library.Theme.Accent = dynamicColor
@@ -13255,21 +13336,9 @@ do
     OverlaysSection:Toggle({
         Name = "Watermark Overlay",
         Flag = "Overlay_Watermark",
-        Default = false,
+        Default = true,
         Callback = function(val)
             hudConfig.Watermark = val
-            if wmTypeDrop then wmTypeDrop:SetVisibility(val) end
-            if Library.UpdateOverlays then Library.UpdateOverlays() end
-        end,
-    })
-
-    wmTypeDrop = OverlaysSection:Dropdown({
-        Name = "Watermark Type",
-        Flag = "Overlay_WatermarkType",
-        Items = {"Text", "Image"},
-        Default = "Text",
-        Callback = function(val)
-            hudConfig.WatermarkType = val
             if Library.UpdateOverlays then Library.UpdateOverlays() end
         end,
     })
@@ -13300,6 +13369,26 @@ do
         Default = false,
         Callback = function(val)
             hudConfig.TargetHUD = val
+            if Library.UpdateOverlays then Library.UpdateOverlays() end
+        end,
+    })
+
+    OverlaysSection:Toggle({
+        Name = "Spectator List Overlay",
+        Flag = "Overlay_Spectators",
+        Default = false,
+        Callback = function(val)
+            hudConfig.Spectators = val
+            if Library.UpdateOverlays then Library.UpdateOverlays() end
+        end,
+    })
+
+    OverlaysSection:Toggle({
+        Name = "Velocity Overlay",
+        Flag = "Overlay_Velocity",
+        Default = false,
+        Callback = function(val)
+            hudConfig.Velocity = val
             if Library.UpdateOverlays then Library.UpdateOverlays() end
         end,
     })
@@ -13388,7 +13477,7 @@ end
 
 do
     local overlayGui = Instance.new("ScreenGui")
-    overlayGui.Name = "Cryptical_TacticalHUDOverlays"
+    overlayGui.Name = "Acheron_TacticalHUDOverlays"
     overlayGui.ResetOnSpawn = false
     overlayGui.DisplayOrder = 9999
     overlayGui.IgnoreGuiInset = true
@@ -13429,20 +13518,31 @@ do
         end)
     end
 
-
     local watermarkFrame = Instance.new("Frame")
     watermarkFrame.Name = "WatermarkHUD"
     watermarkFrame.Parent = overlayGui
-    watermarkFrame.Size = UDim2.new(0, 0, 0, 48)
+    watermarkFrame.Size = UDim2.new(0, 0, 0, 26)
     watermarkFrame.AutomaticSize = Enum.AutomaticSize.X
-    watermarkFrame.Position = UDim2.new(0, 20, 1, -70)
-    watermarkFrame.BackgroundTransparency = 1
+    watermarkFrame.Position = UDim2.new(1, -20, 0, 20)
+    watermarkFrame.AnchorPoint = Vector2.new(1, 0)
+    watermarkFrame.BackgroundColor3 = Theme.Background
     watermarkFrame.BorderSizePixel = 0
-    watermarkFrame.ClipsDescendants = false
+    watermarkFrame.ClipsDescendants = true
+    Library:AddToTheme(watermarkFrame, {BackgroundColor3 = "Background"})
+
+    local wmCorner = Instance.new("UICorner")
+    wmCorner.CornerRadius = UDim.new(0, 6)
+    wmCorner.Parent = watermarkFrame
+
+    local wmStroke = Instance.new("UIStroke")
+    wmStroke.Color = Theme.Outline
+    wmStroke.Thickness = 1
+    wmStroke.Parent = watermarkFrame
+    Library:AddToTheme(wmStroke, {Color = "Outline"})
 
     local wmPad = Instance.new("UIPadding")
-    wmPad.PaddingLeft = UDim.new(0, 0)
-    wmPad.PaddingRight = UDim.new(0, 0)
+    wmPad.PaddingLeft = UDim.new(0, 10)
+    wmPad.PaddingRight = UDim.new(0, 10)
     wmPad.PaddingTop = UDim.new(0, 0)
     wmPad.PaddingBottom = UDim.new(0, 0)
     wmPad.Parent = watermarkFrame
@@ -13452,32 +13552,13 @@ do
     wmLabel.Parent = watermarkFrame
     wmLabel.BackgroundTransparency = 1
     wmLabel.FontFace = Library.Font
-    wmLabel.Text = "cryptical.net"
-    wmLabel.TextColor3 = Theme.Accent or Color3.fromRGB(139, 149, 246)
-    wmLabel.TextSize = 26
+    wmLabel.Text = "acheron | " .. userName .. " | 60 FPS | 0 ms | 00:00:00"
+    wmLabel.TextColor3 = Theme.Text
+    wmLabel.TextSize = 11
     wmLabel.Size = UDim2.new(0, 0, 1, 0)
     wmLabel.AutomaticSize = Enum.AutomaticSize.X
-    Library:AddToTheme(wmLabel, {TextColor3 = "Accent"})
-
-    local wmGrad = Instance.new("UIGradient")
-    wmGrad.Name = "MonoWaveGrad"
-    wmGrad.Parent = wmLabel
-    wmGrad.Color = ColorSequence.new({
-        ColorSequenceKeypoint.new(0.0, Color3.fromRGB(255, 255, 255)),
-        ColorSequenceKeypoint.new(0.3, Color3.fromRGB(180, 180, 195)),
-        ColorSequenceKeypoint.new(0.5, Color3.fromRGB(40, 40, 50)),
-        ColorSequenceKeypoint.new(0.7, Color3.fromRGB(180, 180, 195)),
-        ColorSequenceKeypoint.new(1.0, Color3.fromRGB(255, 255, 255)),
-    })
-
-    local wmImage = Instance.new("ImageLabel")
-    wmImage.Name = "WatermarkImage"
-    wmImage.Parent = watermarkFrame
-    wmImage.BackgroundTransparency = 1
-    wmImage.Size = UDim2.fromOffset(240, 48)
-    wmImage.Image = "rbxassetid://112709740803927"
-    wmImage.ScaleType = Enum.ScaleType.Fit
-    wmImage.Visible = false
+    wmLabel.TextXAlignment = Enum.TextXAlignment.Center
+    Library:AddToTheme(wmLabel, {TextColor3 = "Text"})
 
     watermarkFrame.Visible = hudConfig.Master and hudConfig.Watermark
     makeDraggable(watermarkFrame)
@@ -13487,7 +13568,7 @@ do
     keybindsFrame.Parent = overlayGui
     keybindsFrame.Size = UDim2.new(0, 190, 0, 32)
     keybindsFrame.AutomaticSize = Enum.AutomaticSize.Y
-    keybindsFrame.Position = UDim2.new(0, 20, 0, 65)
+    keybindsFrame.Position = UDim2.new(0, 20, 0, 60)
     keybindsFrame.BackgroundColor3 = Theme.Background
     keybindsFrame.BorderSizePixel = 0
     keybindsFrame.ClipsDescendants = true
@@ -13500,14 +13581,13 @@ do
     local kbStroke = Instance.new("UIStroke")
     kbStroke.Color = Theme.Outline
     kbStroke.Thickness = 1
-    kbStroke.Transparency = 0.3
     kbStroke.Parent = keybindsFrame
     Library:AddToTheme(kbStroke, {Color = "Outline"})
 
     local kbHeader = Instance.new("Frame")
     kbHeader.Name = "Header"
     kbHeader.Parent = keybindsFrame
-    kbHeader.Size = UDim2.new(1, 0, 0, 28)
+    kbHeader.Size = UDim2.new(1, 0, 0, 26)
     kbHeader.BackgroundColor3 = Theme.Element
     kbHeader.BorderSizePixel = 0
     Library:AddToTheme(kbHeader, {BackgroundColor3 = "Element"})
@@ -13516,16 +13596,15 @@ do
     kbhCorner.CornerRadius = UDim.new(0, 8)
     kbhCorner.Parent = kbHeader
 
-    
     local kbTitle = Instance.new("TextLabel")
     kbTitle.Parent = kbHeader
     kbTitle.BackgroundTransparency = 1
     kbTitle.FontFace = Library.Font
     kbTitle.Text = "KEYBINDS"
     kbTitle.TextColor3 = Theme.Text
-    kbTitle.TextSize = 11
+    kbTitle.TextSize = 10
     kbTitle.Position = UDim2.new(0, 10, 0, 0)
-    kbTitle.Size = UDim2.new(1, -40, 1, 0)
+    kbTitle.Size = UDim2.new(1, -20, 1, 0)
     kbTitle.TextXAlignment = Enum.TextXAlignment.Left
     Library:AddToTheme(kbTitle, {TextColor3 = "Text"})
 
@@ -13533,7 +13612,7 @@ do
     kbList.Name = "List"
     kbList.Parent = keybindsFrame
     kbList.BackgroundTransparency = 1
-    kbList.Position = UDim2.new(0, 0, 0, 30)
+    kbList.Position = UDim2.new(0, 0, 0, 28)
     kbList.Size = UDim2.new(1, 0, 0, 0)
     kbList.AutomaticSize = Enum.AutomaticSize.Y
 
@@ -13545,7 +13624,7 @@ do
     kbListPad.PaddingLeft = UDim.new(0, 8)
     kbListPad.PaddingRight = UDim.new(0, 8)
     kbListPad.PaddingTop = UDim.new(0, 4)
-    kbListPad.PaddingBottom = UDim.new(0, 8)
+    kbListPad.PaddingBottom = UDim.new(0, 6)
     kbListPad.Parent = kbList
 
     keybindsFrame.Visible = hudConfig.Master and hudConfig.Keybinds
@@ -13555,7 +13634,7 @@ do
     gameDataFrame.Name = "GameDataHUD"
     gameDataFrame.Parent = overlayGui
     gameDataFrame.Size = UDim2.new(0, 220, 0, 110)
-    gameDataFrame.Position = UDim2.new(1, -240, 0, 20)
+    gameDataFrame.Position = UDim2.new(1, -240, 0, 60)
     gameDataFrame.BackgroundColor3 = Theme.Background
     gameDataFrame.BorderSizePixel = 0
     gameDataFrame.ClipsDescendants = true
@@ -13568,7 +13647,6 @@ do
     local gdStroke = Instance.new("UIStroke")
     gdStroke.Color = Theme.Outline
     gdStroke.Thickness = 1
-    gdStroke.Transparency = 0.3
     gdStroke.Parent = gameDataFrame
     Library:AddToTheme(gdStroke, {Color = "Outline"})
 
@@ -13584,7 +13662,6 @@ do
     gdhCorner.CornerRadius = UDim.new(0, 8)
     gdhCorner.Parent = gdHeader
 
-    
     local gdTitle = Instance.new("TextLabel")
     gdTitle.Parent = gdHeader
     gdTitle.BackgroundTransparency = 1
@@ -13593,7 +13670,7 @@ do
     gdTitle.TextColor3 = Theme.Text
     gdTitle.TextSize = 10
     gdTitle.Position = UDim2.new(0, 10, 0, 0)
-    gdTitle.Size = UDim2.new(1, -40, 1, 0)
+    gdTitle.Size = UDim2.new(1, -20, 1, 0)
     gdTitle.TextXAlignment = Enum.TextXAlignment.Left
     Library:AddToTheme(gdTitle, {TextColor3 = "Text"})
 
@@ -13636,7 +13713,7 @@ do
     targetHudCard.Name = "TargetHUD"
     targetHudCard.Parent = overlayGui
     targetHudCard.Size = UDim2.new(0, 260, 0, 84)
-    targetHudCard.Position = UDim2.new(0.5, -130, 0.72, 0)
+    targetHudCard.Position = UDim2.new(0.5, -130, 0.74, 0)
     targetHudCard.BackgroundColor3 = Theme.Background
     targetHudCard.BorderSizePixel = 0
     targetHudCard.ClipsDescendants = true
@@ -13649,11 +13726,9 @@ do
     local thStroke = Instance.new("UIStroke")
     thStroke.Color = Theme.Outline
     thStroke.Thickness = 1
-    thStroke.Transparency = 0.3
     thStroke.Parent = targetHudCard
     Library:AddToTheme(thStroke, {Color = "Outline"})
 
-    
     local thAvatar = Instance.new("ImageLabel")
     thAvatar.Name = "Avatar"
     thAvatar.Parent = targetHudCard
@@ -13670,7 +13745,7 @@ do
 
     local thaStroke = Instance.new("UIStroke")
     thaStroke.Color = Theme.Accent
-    thaStroke.Thickness = 1.2
+    thaStroke.Thickness = 1
     thaStroke.Parent = thAvatar
     Library:AddToTheme(thaStroke, {Color = "Accent"})
 
@@ -13683,7 +13758,7 @@ do
     thName.TextColor3 = Theme.Text
     thName.TextSize = 13
     thName.Position = UDim2.new(0, 72, 0, 12)
-    thName.Size = UDim2.new(1, -95, 0, 16)
+    thName.Size = UDim2.new(1, -82, 0, 16)
     thName.TextXAlignment = Enum.TextXAlignment.Left
     thName.TextTruncate = Enum.TextTruncate.AtEnd
     Library:AddToTheme(thName, {TextColor3 = "Text"})
@@ -13697,7 +13772,7 @@ do
     thUser.TextColor3 = Theme.Accent
     thUser.TextSize = 10
     thUser.Position = UDim2.new(0, 72, 0, 29)
-    thUser.Size = UDim2.new(1, -95, 0, 14)
+    thUser.Size = UDim2.new(1, -82, 0, 14)
     thUser.TextXAlignment = Enum.TextXAlignment.Left
     thUser.TextTruncate = Enum.TextTruncate.AtEnd
     Library:AddToTheme(thUser, {TextColor3 = "Accent"})
@@ -13718,7 +13793,7 @@ do
     local thHealthFill = Instance.new("Frame")
     thHealthFill.Name = "HealthFill"
     thHealthFill.Parent = thHealthBg
-    thHealthFill.BackgroundColor3 = Color3.fromRGB(56, 239, 125)
+    thHealthFill.BackgroundColor3 = Color3.fromRGB(240, 240, 240)
     thHealthFill.BorderSizePixel = 0
     thHealthFill.Size = UDim2.new(1, 0, 1, 0)
 
@@ -13743,13 +13818,111 @@ do
     targetHudCard.Visible = hudConfig.Master and hudConfig.TargetHUD
     makeDraggable(targetHudCard)
 
+    local spectatorsFrame = Instance.new("Frame")
+    spectatorsFrame.Name = "SpectatorsHUD"
+    spectatorsFrame.Parent = overlayGui
+    spectatorsFrame.Size = UDim2.new(0, 180, 0, 32)
+    spectatorsFrame.AutomaticSize = Enum.AutomaticSize.Y
+    spectatorsFrame.Position = UDim2.new(0, 20, 0, 200)
+    spectatorsFrame.BackgroundColor3 = Theme.Background
+    spectatorsFrame.BorderSizePixel = 0
+    spectatorsFrame.ClipsDescendants = true
+    Library:AddToTheme(spectatorsFrame, {BackgroundColor3 = "Background"})
+
+    local specCorner = Instance.new("UICorner")
+    specCorner.CornerRadius = UDim.new(0, 8)
+    specCorner.Parent = spectatorsFrame
+
+    local specStroke = Instance.new("UIStroke")
+    specStroke.Color = Theme.Outline
+    specStroke.Thickness = 1
+    specStroke.Parent = spectatorsFrame
+    Library:AddToTheme(specStroke, {Color = "Outline"})
+
+    local specHeader = Instance.new("Frame")
+    specHeader.Name = "Header"
+    specHeader.Parent = spectatorsFrame
+    specHeader.Size = UDim2.new(1, 0, 0, 26)
+    specHeader.BackgroundColor3 = Theme.Element
+    specHeader.BorderSizePixel = 0
+    Library:AddToTheme(specHeader, {BackgroundColor3 = "Element"})
+
+    local spechCorner = Instance.new("UICorner")
+    spechCorner.CornerRadius = UDim.new(0, 8)
+    spechCorner.Parent = specHeader
+
+    local specTitle = Instance.new("TextLabel")
+    specTitle.Parent = specHeader
+    specTitle.BackgroundTransparency = 1
+    specTitle.FontFace = Library.Font
+    specTitle.Text = "SPECTATORS"
+    specTitle.TextColor3 = Theme.Text
+    specTitle.TextSize = 10
+    specTitle.Position = UDim2.new(0, 10, 0, 0)
+    specTitle.Size = UDim2.new(1, -20, 1, 0)
+    specTitle.TextXAlignment = Enum.TextXAlignment.Left
+    Library:AddToTheme(specTitle, {TextColor3 = "Text"})
+
+    local specList = Instance.new("Frame")
+    specList.Name = "List"
+    specList.Parent = spectatorsFrame
+    specList.BackgroundTransparency = 1
+    specList.Position = UDim2.new(0, 0, 0, 28)
+    specList.Size = UDim2.new(1, 0, 0, 0)
+    specList.AutomaticSize = Enum.AutomaticSize.Y
+
+    local specLayout = Instance.new("UIListLayout")
+    specLayout.Parent = specList
+    specLayout.Padding = UDim.new(0, 3)
+
+    local specPad = Instance.new("UIPadding")
+    specPad.PaddingLeft = UDim.new(0, 8)
+    specPad.PaddingRight = UDim.new(0, 8)
+    specPad.PaddingTop = UDim.new(0, 4)
+    specPad.PaddingBottom = UDim.new(0, 6)
+    specPad.Parent = specList
+
+    spectatorsFrame.Visible = hudConfig.Master and hudConfig.Spectators
+    makeDraggable(spectatorsFrame, specHeader)
+
+    local velocityFrame = Instance.new("Frame")
+    velocityFrame.Name = "VelocityHUD"
+    velocityFrame.Parent = overlayGui
+    velocityFrame.Size = UDim2.new(0, 160, 0, 26)
+    velocityFrame.Position = UDim2.new(0.5, -80, 0.86, 0)
+    velocityFrame.BackgroundColor3 = Theme.Background
+    velocityFrame.BorderSizePixel = 0
+    velocityFrame.ClipsDescendants = true
+    Library:AddToTheme(velocityFrame, {BackgroundColor3 = "Background"})
+
+    local velCorner = Instance.new("UICorner")
+    velCorner.CornerRadius = UDim.new(0, 6)
+    velCorner.Parent = velocityFrame
+
+    local velStroke = Instance.new("UIStroke")
+    velStroke.Color = Theme.Outline
+    velStroke.Thickness = 1
+    velStroke.Parent = velocityFrame
+    Library:AddToTheme(velStroke, {Color = "Outline"})
+
+    local velLabel = Instance.new("TextLabel")
+    velLabel.Parent = velocityFrame
+    velLabel.BackgroundTransparency = 1
+    velLabel.FontFace = Library.Font
+    velLabel.Text = "SPEED: 0.0 STUDS/S"
+    velLabel.TextColor3 = Theme.Text
+    velLabel.TextSize = 10
+    velLabel.Size = UDim2.new(1, 0, 1, 0)
+    velLabel.TextXAlignment = Enum.TextXAlignment.Center
+    Library:AddToTheme(velLabel, {TextColor3 = "Text"})
+
+    velocityFrame.Visible = hudConfig.Master and hudConfig.Velocity
+    makeDraggable(velocityFrame)
+
     local function updateOverlaysVisibility()
         local master = (hudConfig.Master ~= false)
         if watermarkFrame then
             watermarkFrame.Visible = master and (hudConfig.Watermark == true)
-            local isImage = (hudConfig.WatermarkType == "Image")
-            if wmLabel then wmLabel.Visible = not isImage end
-            if wmImage then wmImage.Visible = isImage end
         end
         if keybindsFrame then
             keybindsFrame.Visible = master and (hudConfig.Keybinds == true)
@@ -13759,6 +13932,12 @@ do
         end
         if targetHudCard then
             targetHudCard.Visible = master and (hudConfig.TargetHUD == true)
+        end
+        if spectatorsFrame then
+            spectatorsFrame.Visible = master and (hudConfig.Spectators == true)
+        end
+        if velocityFrame then
+            velocityFrame.Visible = master and (hudConfig.Velocity == true)
         end
     end
     Library.UpdateOverlays = updateOverlaysVisibility
@@ -13778,7 +13957,8 @@ do
             if state == true or (type(state) == "table" and state.Enabled) then
                 local keyName = tostring(bindInfo.Key or "None")
                 if keyName ~= "None" and keyName ~= "" then
-                    table.insert(activeBinds, {Name = flagName:gsub("^[A-Za-z]+_", ""), Key = keyName})
+                    local cleanName = flagName:gsub("^[A-Za-z]+_", "")
+                    table.insert(activeBinds, {Name = cleanName, Key = keyName})
                 end
             end
         end
@@ -13830,6 +14010,15 @@ do
         local myChar = lp and lp.Character
         local myHrp = myChar and myChar:FindFirstChild("HumanoidRootPart")
 
+        if getgenv().AcheronPriorityTarget and getgenv().AcheronPriorityTarget.Parent then
+            local p = getgenv().AcheronPriorityTarget
+            local char = p.Character
+            local hum = char and char:FindFirstChildOfClass("Humanoid")
+            if hum and hum.Health > 0 then
+                return p, char, hum
+            end
+        end
+
         if combatState.AimbotTarget and combatState.AimbotTarget.Parent then
             local p = combatState.AimbotTarget
             local char = p.Character
@@ -13854,6 +14043,33 @@ do
             local hum = char:FindFirstChildOfClass("Humanoid")
             if hum and hum.Health > 0 then
                 return p or { Name = char.Name, DisplayName = char.Name, UserId = 1 }, char, hum
+            end
+        end
+
+        local mouse = lp:GetMouse()
+        local camera = Workspace.CurrentCamera
+        if mouse and camera and myHrp then
+            local closestPlayer = nil
+            local closestDist = math.huge
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= lp and p.Character then
+                    local hum = p.Character:FindFirstChildOfClass("Humanoid")
+                    local hrp = p.Character:FindFirstChild("HumanoidRootPart") or p.Character:FindFirstChild("Head")
+                    if hum and hum.Health > 0 and hrp then
+                        local screenPos, onScreen = camera:WorldToViewportPoint(hrp.Position)
+                        if onScreen then
+                            local mouseDist = (Vector2.new(screenPos.X, screenPos.Y) - Vector2.new(mouse.X, mouse.Y)).Magnitude
+                            if mouseDist < 150 and mouseDist < closestDist then
+                                closestDist = mouseDist
+                                closestPlayer = p
+                            end
+                        end
+                    end
+                end
+            end
+            if closestPlayer and closestPlayer.Character then
+                local hum = closestPlayer.Character:FindFirstChildOfClass("Humanoid")
+                return closestPlayer, closestPlayer.Character, hum
             end
         end
 
@@ -13886,12 +14102,19 @@ do
             local uName = tostring(targetPlayer.Name or "Player")
 
             thName.Text = dName
-            thUser.Text = "@" .. uName .. " • " .. dist .. " studs • [" .. toolName .. "]"
+            thUser.Text = "@" .. uName .. " | " .. dist .. " studs | [" .. toolName .. "]"
             thHealthText.Text = string.format("%d / %d HP (%d%%)", curHp, maxHp, math.floor(hpRatio * 100))
+
+            local col = Color3.fromRGB(240, 240, 240)
+            if hpRatio < 0.3 then
+                col = Color3.fromRGB(255, 75, 75)
+            elseif hpRatio < 0.65 then
+                col = Color3.fromRGB(255, 200, 60)
+            end
 
             TweenService:Create(thHealthFill, TweenInfo.new(0.12, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Size = UDim2.new(hpRatio, 0, 1, 0),
-                BackgroundColor3 = Color3.fromHSV(hpRatio * 0.33, 0.85, 0.95)
+                BackgroundColor3 = col
             }):Play()
 
             local uid = targetPlayer.UserId
@@ -13909,7 +14132,7 @@ do
             thHealthText.Text = "0 / 0 HP (0%)"
             TweenService:Create(thHealthFill, TweenInfo.new(0.15, Enum.EasingStyle.Quad, Enum.EasingDirection.Out), {
                 Size = UDim2.new(0, 0, 1, 0),
-                BackgroundColor3 = Color3.fromRGB(60, 60, 75)
+                BackgroundColor3 = Color3.fromRGB(60, 60, 65)
             }):Play()
             if lastAvatarUserId ~= 0 then
                 lastAvatarUserId = 0
@@ -13918,9 +14141,74 @@ do
         end
     end
 
+    local function refreshSpectatorsHUD()
+        if not (hudConfig.Master and hudConfig.Spectators) then return end
+        for _, child in ipairs(specList:GetChildren()) do
+            if child:IsA("Frame") or child:IsA("TextLabel") then
+                child:Destroy()
+            end
+        end
+
+        local lp = Players.LocalPlayer
+        local camera = Workspace.CurrentCamera
+        local myChar = lp and lp.Character
+        local myHum = myChar and myChar:FindFirstChildOfClass("Humanoid")
+
+        local specs = {}
+        if myHum then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= lp then
+                    local pCam = p:FindFirstChild("CameraSubject")
+                    if camera and camera.CameraSubject == myHum then
+                        table.insert(specs, p.Name)
+                    end
+                end
+            end
+        end
+
+        if #specs == 0 then
+            local emptyLabel = Instance.new("TextLabel")
+            emptyLabel.Parent = specList
+            emptyLabel.BackgroundTransparency = 1
+            emptyLabel.FontFace = Library.Font
+            emptyLabel.Text = "0 Spectators Watching"
+            emptyLabel.TextColor3 = Theme.Text
+            emptyLabel.TextTransparency = 0.5
+            emptyLabel.TextSize = 10
+            emptyLabel.Size = UDim2.new(1, 0, 0, 14)
+            emptyLabel.TextXAlignment = Enum.TextXAlignment.Left
+        else
+            for _, name in ipairs(specs) do
+                local lbl = Instance.new("TextLabel")
+                lbl.Parent = specList
+                lbl.BackgroundTransparency = 1
+                lbl.FontFace = Library.Font
+                lbl.Text = "@" .. name
+                lbl.TextColor3 = Theme.Accent
+                lbl.TextSize = 10
+                lbl.Size = UDim2.new(1, 0, 0, 14)
+                lbl.TextXAlignment = Enum.TextXAlignment.Left
+            end
+        end
+    end
+
+    local function refreshVelocityHUD()
+        if not (hudConfig.Master and hudConfig.Velocity) then return end
+        local lp = Players.LocalPlayer
+        local char = lp and lp.Character
+        local hrp = char and char:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            local vel = hrp.AssemblyLinearVelocity or hrp.Velocity or Vector3.new(0,0,0)
+            local speed = math.floor(vel.Magnitude * 10) / 10
+            velLabel.Text = string.format("SPEED: %.1f STUDS/S", speed)
+        else
+            velLabel.Text = "SPEED: 0.0 STUDS/S"
+        end
+    end
+
     local sessionStartTime = tick()
     task.spawn(function()
-        while not unloaded and getgenv().CrypticalGen == GEN do
+        while not unloaded and getgenv().AcheronGen == GEN do
             task.wait(0.1)
             pcall(function()
                 local stats = game:GetService("Stats")
@@ -13934,13 +14222,15 @@ do
                 local secs = elapsedSec % 60
                 local uptimeStr = string.format("%02d:%02d:%02d", hours, mins, secs)
 
-                wmLabel.Text = string.format("cryptical  |  %s  |  %d FPS  |  %d ms  |  %s", userName, fps or 60, pingNum, timeStr)
+                wmLabel.Text = string.format("acheron | %s | %d FPS | %d ms | %s", userName, fps or 60, pingNum, timeStr)
 
                 gdPlayers.Text = string.format("Players: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
                 gdUptime.Text = "Session: " .. uptimeStr
 
                 refreshKeybindsHUD()
                 refreshTargetHUD()
+                refreshSpectatorsHUD()
+                refreshVelocityHUD()
             end)
         end
     end)
