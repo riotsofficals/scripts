@@ -1,5 +1,5 @@
-getgenv().AltHackGen = (tonumber(getgenv().AltHackGen) or 0) + 1
-local GEN = getgenv().AltHackGen
+getgenv().CrypticalGen = (tonumber(getgenv().CrypticalGen) or 0) + 1
+local GEN = getgenv().CrypticalGen
 
 local previousLibrary = getgenv().Library
 if previousLibrary then
@@ -16,7 +16,7 @@ if previousLibrary then
     end
 end
 
-local previousMenuBlur = game:GetService("Lighting"):FindFirstChild("AltHack_MenuBlur")
+local previousMenuBlur = game:GetService("Lighting"):FindFirstChild("Cryptical_MenuBlur")
 if previousMenuBlur then
     pcall(function()
         previousMenuBlur:Destroy()
@@ -25,11 +25,11 @@ end
 
 local Library = (function()
 
-if getgenv().AltHackPlayerESP then
+if getgenv().CrypticalPlayerESP then
     pcall(function()
-        getgenv().AltHackPlayerESP:Destroy()
+        getgenv().CrypticalPlayerESP:Destroy()
     end)
-    getgenv().AltHackPlayerESP = nil
+    getgenv().CrypticalPlayerESP = nil
 end
 
 local Library do
@@ -677,21 +677,21 @@ local Library do
         do
             local loaded = pcall(function()
                 Library.Font = CustomFont:New("SFProText", 400, "Regular", {
-                    Id = "AltHack_SFProText",
+                    Id = "Cryptical_SFProText",
                     Url = "https://github.com/sahibjotsaggu/San-Francisco-Pro-Fonts/raw/master/SF-Pro-Text-Regular.otf"
                 })
             end)
             if not loaded then
-                pcall(function() delfile("AltHack_SFProText") end)
+                pcall(function() delfile("Cryptical_SFProText") end)
                 loaded = pcall(function()
                     Library.Font = CustomFont:New("Inter", 400, "Regular", {
-                        Id = "AltHack_Inter",
+                        Id = "Cryptical_Inter",
                         Url = "https://github.com/sametexe001/luas/raw/refs/heads/main/fonts/Inter.ttf"
                     })
                 end)
             end
             if not loaded then
-                pcall(function() delfile("AltHack_Inter") end)
+                pcall(function() delfile("Cryptical_Inter") end)
                 pcall(function()
                     Library.Font = CustomFont:New("OutfitMedium", 400, "Regular", {
                         Id = "OutfitMedium",
@@ -707,7 +707,7 @@ local Library do
 
     Library.Holder = Instances:Create("ScreenGui", {
         Parent = gethui(),
-        Name = "Swatware_MainGui",
+        Name = "Cryptical_MainGui",
         ZIndexBehavior = Enum.ZIndexBehavior.Sibling,
         DisplayOrder = 100,
         ResetOnSpawn = false
@@ -743,7 +743,7 @@ local Library do
     })
 
     function Library:Notify(Config, Content, Duration)
-        local Title = "swatware"
+        local Title = "cryptical"
         local Text = ""
         local Time = Duration or 3.5
 
@@ -933,11 +933,11 @@ local Library do
             self.UnusedHolder:Clean()
         end
 
-        if getgenv().AltHackPlayerESP then
+        if getgenv().CrypticalPlayerESP then
             pcall(function()
-                getgenv().AltHackPlayerESP:Destroy()
+                getgenv().CrypticalPlayerESP:Destroy()
             end)
-            getgenv().AltHackPlayerESP = nil
+            getgenv().CrypticalPlayerESP = nil
         end
 
         getgenv().Library = nil
@@ -1966,13 +1966,23 @@ local Library do
         end)
 
         local function matchesKeybind(Input)
-            if not Keybind.Key or Keybind.Key == "" or Keybind.Key == "None" or Keybind.Value == "None" then return false end
+            if not Keybind.Key or Keybind.Key == "" or Keybind.Key == "None" or Keybind.Key == "Enum.KeyCode.Unknown" or Keybind.Value == "None" or Keybind.Value == "Unknown" or Keybind.Value == "" then
+                return false
+            end
+            if Keybind.Picking then
+                return false
+            end
+            if UserInputService:GetFocusedTextBox() then
+                return false
+            end
+
             local keyStr = tostring(Keybind.Key)
             local codeStr = tostring(Input.KeyCode)
             local typeStr = tostring(Input.UserInputType)
             local codeName = Input.KeyCode.Name
             local typeName = Input.UserInputType.Name
-            return (codeStr == keyStr) or (typeStr == keyStr) or (codeName == keyStr) or (typeName == keyStr) or keyStr:find(codeName, 1, true) or keyStr:find(typeName, 1, true)
+
+            return (codeStr == keyStr) or (typeStr == keyStr) or (codeName == keyStr) or (typeName == keyStr)
         end
 
         Library:Connect(UserInputService.InputBegan, function(Input)
@@ -2130,7 +2140,7 @@ local Library do
             Data = Data or { }
 
             local Window = {
-                Name = Data.Name or Data.name or "swatware",
+                Name = Data.Name or Data.name or "cryptical",
                 SubName = Data.SubName or Data.subname or "",
                 Logo = Data.Logo or Data.logo or "rbxassetid://134242818164054",
                 KeyTime = Data.KeyTime or Data.keytime or "30d left",
@@ -2143,7 +2153,7 @@ local Library do
             local Items = { } do
                 Items["MainFrame"] = Instances:Create("Frame", {
                     Parent = Library.Holder.Instance,
-                    Name = "Swatware_Main",
+                    Name = "Cryptical_Main",
                     AnchorPoint = Vector2New(0.5, 0.5),
                     Position = UDim2New(0.5, 0, 0.5, 0),
                     BorderColor3 = FromRGB(0, 0, 0),
@@ -2291,7 +2301,7 @@ local Library do
                     Name = "TitleText",
                     FontFace = Library.Font,
                     TextColor3 = Library.Theme["Text"],
-                    Text = (Window.Name ~= "Window" and Window.Name ~= "alt.gg") and Window.Name or "swatware",
+                    Text = (Window.Name ~= "Window" and Window.Name ~= "alt.gg") and Window.Name or "cryptical",
                     Size = UDim2New(0, 0, 0, 20),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
@@ -5119,7 +5129,7 @@ if holderGui then
 end
 
 local Window = Library:Window({
-    Name = "swatware",
+    Name = "cryptical",
     Logo = LOGO,
 })
 
@@ -5149,7 +5159,7 @@ local function applyMenuVisuals(open)
     if open and menuBlurSize > 0 then
         if not menuBlur then
             menuBlur = Instance.new("BlurEffect")
-            menuBlur.Name = "AltHack_MenuBlur"
+            menuBlur.Name = "Cryptical_MenuBlur"
             menuBlur.Size = 0
             menuBlur.Parent = Lighting
         end
@@ -5178,8 +5188,8 @@ function Library:Unload()
     cleanupComplete = true
     unloaded = true
 
-    if getgenv().AltHackGen == GEN then
-        getgenv().AltHackGen = GEN + 1
+    if getgenv().CrypticalGen == GEN then
+        getgenv().CrypticalGen = GEN + 1
     end
 
     if menuBlur then
@@ -5201,7 +5211,7 @@ end
 local function safeConnect(event, handler)
     local conn
     conn = event:Connect(function(...)
-        if getgenv().AltHackGen ~= GEN then
+        if getgenv().CrypticalGen ~= GEN then
             conn:Disconnect()
             return
         end
@@ -5222,10 +5232,10 @@ function Window:SetOpen(v)
     end
 
     local mainFrame = Window.Items["MainFrame"].Instance
-    local uiScale = mainFrame:FindFirstChild("AltHack_Pop")
+    local uiScale = mainFrame:FindFirstChild("Cryptical_Pop")
     if not uiScale then
         uiScale = Instance.new("UIScale")
-        uiScale.Name = "AltHack_Pop"
+        uiScale.Name = "Cryptical_Pop"
         uiScale.Parent = mainFrame
     end
 
@@ -5253,7 +5263,7 @@ do
         frames = frames + 1
     end)
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             task.wait(0.5)
             fps = frames * 2
             frames = 0
@@ -5261,10 +5271,10 @@ do
     end)
 end
 
-local SwatwareAPI = {
+local CrypticalAPI = {
     Users = {},
     Loaded = false,
-    Url = "https://swatware-api.avgavg193.workers.dev/users.txt",
+    Url = "https://cryptical-api.avgavg193.workers.dev/users.txt",
     TagColors = {
         ["admin"]     = { Text = Color3.fromRGB(255, 75, 95), Bg = Color3.fromRGB(42, 14, 18), Border = Color3.fromRGB(150, 30, 45) },
         ["dev"]       = { Text = Color3.fromRGB(195, 135, 255), Bg = Color3.fromRGB(32, 16, 48), Border = Color3.fromRGB(120, 55, 175) },
@@ -5279,12 +5289,12 @@ local SwatwareAPI = {
     }
 }
 
-function SwatwareAPI:GetTagStyle(rawTag)
+function CrypticalAPI:GetTagStyle(rawTag)
     local t = string.lower(rawTag or "user"):gsub("%s+", "")
     return self.TagColors[t] or self.TagColors["user"]
 end
 
-function SwatwareAPI:GetTags(username)
+function CrypticalAPI:GetTags(username)
     if not username then return {"user"} end
     local u = string.lower(tostring(username)):gsub("%s+", "")
     local data = self.Users[u]
@@ -5294,13 +5304,13 @@ function SwatwareAPI:GetTags(username)
     return {"user"}
 end
 
-function SwatwareAPI:IsRegistered(username)
+function CrypticalAPI:IsRegistered(username)
     if not username then return false end
     local u = string.lower(tostring(username)):gsub("%s+", "")
     return self.Users[u] ~= nil
 end
 
-function SwatwareAPI:AutoRegister()
+function CrypticalAPI:AutoRegister()
     task.spawn(function()
         pcall(function()
             local lp = Players.LocalPlayer
@@ -5309,12 +5319,12 @@ function SwatwareAPI:AutoRegister()
             local uId = lp.UserId
             local exec = (identifyexecutor and identifyexecutor()) or (getexecutorname and getexecutorname()) or "Unknown"
             local queryParams = string.format("&reg=1&user=%s&uid=%d&exec=%s", game:GetService("HttpService"):UrlEncode(uName), uId, game:GetService("HttpService"):UrlEncode(exec))
-            game:HttpGet(SwatwareAPI.Url .. "?t=" .. tostring(tick()) .. queryParams)
+            game:HttpGet(CrypticalAPI.Url .. "?t=" .. tostring(tick()) .. queryParams)
         end)
     end)
 end
 
-function SwatwareAPI:Fetch()
+function CrypticalAPI:Fetch()
     task.spawn(function()
         local lp = Players.LocalPlayer
         local uName = lp and lp.Name or "Unknown"
@@ -5323,7 +5333,7 @@ function SwatwareAPI:Fetch()
         local regQuery = string.format("&u=%s&id=%s&ex=%s", game:GetService("HttpService"):UrlEncode(uName), tostring(uId), game:GetService("HttpService"):UrlEncode(exec))
 
         local success, result = pcall(function()
-            return game:HttpGet(SwatwareAPI.Url .. "?t=" .. tostring(tick()) .. regQuery)
+            return game:HttpGet(CrypticalAPI.Url .. "?t=" .. tostring(tick()) .. regQuery)
         end)
         if success and type(result) == "string" and result ~= "" then
             local newUsers = {}
@@ -5351,18 +5361,18 @@ function SwatwareAPI:Fetch()
                     end
                 end
             end
-            SwatwareAPI.Users = newUsers
-            SwatwareAPI.Loaded = true
+            CrypticalAPI.Users = newUsers
+            CrypticalAPI.Loaded = true
         end
     end)
 end
 
-SwatwareAPI:AutoRegister()
-SwatwareAPI:Fetch()
+CrypticalAPI:AutoRegister()
+CrypticalAPI:Fetch()
 task.spawn(function()
-    while not unloaded and getgenv().AltHackGen == GEN do
+    while not unloaded and getgenv().CrypticalGen == GEN do
         task.wait(45)
-        SwatwareAPI:Fetch()
+        CrypticalAPI:Fetch()
     end
 end)
 
@@ -5463,13 +5473,13 @@ do
     local titleArea = Window.Items["TitleArea"] and Window.Items["TitleArea"].Instance
     if titleArea then
         for _, child in ipairs(titleArea:GetChildren()) do
-            if child.Name == "Swatware_TitleGroup" or child.Name == "AltHack_Logo" then
+            if child.Name == "Cryptical_TitleGroup" or child.Name == "Cryptical_Logo" then
                 child:Destroy()
             end
         end
 
         local titleGroup = Instance.new("Frame")
-        titleGroup.Name = "Swatware_TitleGroup"
+        titleGroup.Name = "Cryptical_TitleGroup"
         titleGroup.Parent = titleArea
         Window.Items["MainFrame"]:MakeDraggable(titleGroup)
         titleGroup.BackgroundTransparency = 1
@@ -5489,7 +5499,7 @@ do
         brandLabel.Parent = titleGroup
         brandLabel.BackgroundTransparency = 1
         brandLabel.FontFace = Library.Font
-        brandLabel.Text = "swatware"
+        brandLabel.Text = "cryptical"
         brandLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
         brandLabel.TextSize = 17
         brandLabel.Size = UDim2.new(0, 0, 1, 0)
@@ -5501,7 +5511,7 @@ do
         brandGradient.Rotation = 0
 
         task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             local t = tick()
             local accent = Library.Theme.Accent or Color3.fromRGB(139, 149, 246)
             local white = Color3.fromRGB(255, 255, 255)
@@ -5688,9 +5698,9 @@ do
         ebLabel.Size = UDim2.new(0, 0, 1, 0)
         ebLabel.AutomaticSize = Enum.AutomaticSize.X
 
-        local myTags = SwatwareAPI:GetTags(userName)
+        local myTags = CrypticalAPI:GetTags(userName)
         for _, rawTag in ipairs(myTags) do
-            local tagStyle = SwatwareAPI:GetTagStyle(rawTag)
+            local tagStyle = CrypticalAPI:GetTagStyle(rawTag)
             local badge = Instance.new("Frame")
             badge.Name = "TagBadge_" .. tostring(rawTag)
             badge.Parent = badgesRow
@@ -5728,7 +5738,7 @@ do
 
     updateHomeProfileBadges()
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             task.wait(4)
             pcall(updateHomeProfileBadges)
         end
@@ -5818,9 +5828,9 @@ do
     local execStat = makeHomeStat("Executor", execName, 3)
     local fpsStat = makeHomeStat("Client FPS", tostring(fps or 60) .. " FPS", 4)
     local pingStat = makeHomeStat("Server Ping", tostring(getPing()) .. " ms", 5)
-    local tierStat = makeHomeStat("User Tier", string.upper(SwatwareAPI:GetTags(userName)[1] or "USER"), 6)
+    local tierStat = makeHomeStat("User Tier", string.upper(CrypticalAPI:GetTags(userName)[1] or "USER"), 6)
 
-    ProfileSection:Label("Build: SWATWARE v2.4 (Enterprise)")
+    ProfileSection:Label("Build: CRYPTICAL v2.4 (Enterprise)")
     ProfileSection:Label("Status: Active • Premium")
 
     local ActionSection = HomePage:Section({
@@ -5833,7 +5843,7 @@ do
         Name = "Copy Discord Invite",
         Callback = function()
             if setclipboard then
-                setclipboard("https://discord.gg/swatware")
+                setclipboard("https://discord.gg/cryptical")
                 Library:Notify("Discord link copied to clipboard!")
             end
         end,
@@ -5936,7 +5946,7 @@ do
             "Executor Level Safety & Anti-Detection Layer"
         },
         ["v2.0 (Core Engine)"] = {
-            "Brand New SWATWARE Sleek Dark Theming Engine",
+            "Brand New CRYPTICAL Sleek Dark Theming Engine",
             "Universal Game Compatibility Architecture",
             "Fast Loadstring Executor Bridge API",
             "Responsive Dual-Column UI Layout System",
@@ -5972,12 +5982,12 @@ do
     })
 
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             task.wait(0.5)
             pcall(function()
                 accountStat.Text = tostring(accountAge) .. " days"
                 userIdStat.Text = tostring(userId)
-                tierStat.Text = string.upper(SwatwareAPI:GetTags(userName)[1] or "USER")
+                tierStat.Text = string.upper(CrypticalAPI:GetTags(userName)[1] or "USER")
                 playersStat:SetText(
                     string.format("Players in Server: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
                 )
@@ -6165,7 +6175,7 @@ do
         Name = "Target Checks",
         Flag = "Combat_Checks",
         Multi = true,
-        Items = {"Team Check", "Wall Check", "Dead Check", "Knocked Check", "ForceField Check", "Ignore Swatware Users"},
+        Items = {"Team Check", "Wall Check", "Dead Check", "Knocked Check", "ForceField Check", "Ignore Cryptical Users"},
         Default = {"Team Check", "Wall Check", "Dead Check"},
     })
 
@@ -6339,6 +6349,33 @@ do
         Max = 50,
     })
 
+    fovRainbowToggle = AimbotFOVSection:Toggle({
+        Name = "Rainbow FOV Color",
+        Flag = "Combat_FOVRainbow",
+        Default = false,
+    })
+
+    fovPulseToggle = AimbotFOVSection:Toggle({
+        Name = "Pulsing FOV Effect",
+        Flag = "Combat_FOVPulse",
+        Default = false,
+    })
+
+    fovDynamicToggle = AimbotFOVSection:Toggle({
+        Name = "Dynamic Camera FOV Scaling",
+        Flag = "Combat_FOVDynamic",
+        Default = false,
+    })
+
+    fovThicknessSlider = AimbotFOVSection:Slider({
+        Name = "FOV Stroke Thickness",
+        Flag = "Combat_FOVThickness",
+        Default = 2,
+        Min = 1,
+        Max = 10,
+        Suffix = " px",
+    })
+
     fovPlacementDropdown = AimbotFOVSection:Dropdown({
         Name = "FOV Placement",
         Flag = "Combat_FOVPlacement",
@@ -6453,7 +6490,7 @@ do
         Name = "Silent Aim Checks",
         Flag = "SilentAim_Checks",
         Multi = true,
-        Items = {"Team Check", "Wall Check", "Ignore Swatware Users"},
+        Items = {"Team Check", "Wall Check", "Ignore Cryptical Users"},
         Default = {"Team Check", "Wall Check"},
     })
 
@@ -6546,6 +6583,33 @@ do
         Default = 4,
         Min = 1,
         Max = 50,
+    })
+
+    sRainbowToggle = SilentAimFOVSection:Toggle({
+        Name = "Rainbow FOV Color",
+        Flag = "SilentAim_FOVRainbow",
+        Default = false,
+    })
+
+    sPulseToggle = SilentAimFOVSection:Toggle({
+        Name = "Pulsing FOV Effect",
+        Flag = "SilentAim_FOVPulse",
+        Default = false,
+    })
+
+    sDynamicToggle = SilentAimFOVSection:Toggle({
+        Name = "Dynamic Camera FOV Scaling",
+        Flag = "SilentAim_FOVDynamic",
+        Default = false,
+    })
+
+    sThicknessSlider = SilentAimFOVSection:Slider({
+        Name = "FOV Stroke Thickness",
+        Flag = "SilentAim_FOVThickness",
+        Default = 2,
+        Min = 1,
+        Max = 10,
+        Suffix = " px",
     })
 
     sFovPlacement = SilentAimFOVSection:Dropdown({
@@ -6709,7 +6773,7 @@ do
 
 
     local fovGui = Instance.new("ScreenGui")
-    fovGui.Name = "Swatware_FOVOverlays"
+    fovGui.Name = "Cryptical_FOVOverlays"
     fovGui.ResetOnSpawn = false
     fovGui.DisplayOrder = 999
     fovGui.IgnoreGuiInset = true
@@ -6800,8 +6864,8 @@ do
             if isKnocked then return false end
         end
 
-        if hasCheck("Ignore Swatware Users") or hasCheck("Ignore Users - Swatware Users") then
-            if p:GetAttribute("SwatwareUser") or p:FindFirstChild("SwatwareUser") then
+        if hasCheck("Ignore Cryptical Users") or hasCheck("Ignore Users - Cryptical Users") then
+            if p:GetAttribute("CrypticalUser") or p:FindFirstChild("CrypticalUser") then
                 return false
             end
         end
@@ -7012,19 +7076,36 @@ do
     end)
 
     Library:Connect(RunService.RenderStepped, function(dt)
-        if unloaded or getgenv().AltHackGen ~= GEN then return end
+        if unloaded or getgenv().CrypticalGen ~= GEN then return end
         local cam = Workspace.CurrentCamera
         if not cam then return end
 
+        local t = tick()
         local aimDraw = Library.Flags["Combat_DrawFOV"] == true
         if aimDraw then
             local placement = Library.Flags["Combat_FOVPlacement"] or "Middle"
             local fovOrigin = getFOVOrigin(placement)
             local fovRadius = Library.Flags["Combat_FOVRadius"] or 140
+            
+            if Library.Flags["Combat_FOVDynamic"] and cam then
+                local baseFov = 70
+                fovRadius = fovRadius * (baseFov / math.max(cam.FieldOfView, 1))
+            end
+            if Library.Flags["Combat_FOVPulse"] then
+                local pulseScale = 1 + (math.sin(t * 5) * 0.15)
+                fovRadius = fovRadius * pulseScale
+            end
+
             local outlineAlpha = (Library.Flags["Combat_FOVOutlineAlpha"] or 0) / 100
             local fillAlpha = (Library.Flags["Combat_FOVFillAlpha"] or 85) / 100
             local fovColor = Library.Flags["Combat_FOVColor"] or (Theme.Accent or Color3.fromRGB(139, 149, 246))
             local fovFillColor = Library.Flags["Combat_FOVFillColor"] or fovColor
+
+            if Library.Flags["Combat_FOVRainbow"] then
+                local hue = (t * 0.4) % 1
+                fovColor = Color3.fromHSV(hue, 0.85, 1)
+                fovFillColor = fovColor
+            end
 
             fovCircleFrame.Visible = true
             fovCircleFrame.Position = UDim2.fromOffset(fovOrigin.X, fovOrigin.Y)
@@ -7033,6 +7114,7 @@ do
             fovCircleFrame.BackgroundTransparency = fillAlpha
             fovStroke.Color = fovColor
             fovStroke.Transparency = outlineAlpha
+            fovStroke.Thickness = Library.Flags["Combat_FOVThickness"] or 2
 
             if Library.Flags["Combat_FOVSpin"] then
                 local speed = Library.Flags["Combat_FOVSpinSpeed"] or 5
@@ -7050,10 +7132,26 @@ do
             local placement = Library.Flags["SilentAim_FOVPlacement"] or "Middle"
             local fovOrigin = getFOVOrigin(placement)
             local fovRadius = Library.Flags["SilentAim_FOVSize"] or 180
+
+            if Library.Flags["SilentAim_FOVDynamic"] and cam then
+                local baseFov = 70
+                fovRadius = fovRadius * (baseFov / math.max(cam.FieldOfView, 1))
+            end
+            if Library.Flags["SilentAim_FOVPulse"] then
+                local pulseScale = 1 + (math.sin(t * 5) * 0.15)
+                fovRadius = fovRadius * pulseScale
+            end
+
             local outlineAlpha = (Library.Flags["SilentAim_FOVOutlineAlpha"] or 0) / 100
             local fillAlpha = (Library.Flags["SilentAim_FOVFillAlpha"] or 90) / 100
             local fovColor = Library.Flags["SilentAim_FOVColor"] or Color3.fromRGB(255, 75, 95)
             local fovFillColor = Library.Flags["SilentAim_FOVFillColor"] or fovColor
+
+            if Library.Flags["SilentAim_FOVRainbow"] then
+                local hue = (t * 0.4 + 0.5) % 1
+                fovColor = Color3.fromHSV(hue, 0.85, 1)
+                fovFillColor = fovColor
+            end
 
             sFovCircleFrame.Visible = true
             sFovCircleFrame.Position = UDim2.fromOffset(fovOrigin.X, fovOrigin.Y)
@@ -7062,6 +7160,7 @@ do
             sFovCircleFrame.BackgroundTransparency = fillAlpha
             sFovStroke.Color = fovColor
             sFovStroke.Transparency = outlineAlpha
+            sFovStroke.Thickness = Library.Flags["SilentAim_FOVThickness"] or 2
 
             if Library.Flags["SilentAim_FOVSpin"] then
                 local speed = Library.Flags["SilentAim_FOVSpinSpeed"] or Library.Flags["SilentAim_SpinSpeed"] or 5
@@ -7178,7 +7277,7 @@ do
     end)
 
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             if not Library.Flags["Triggerbot_Enable"] then
                 task.wait(0.1)
             else
@@ -7801,7 +7900,7 @@ do
     PreviewSection.Items["SectionOutline"].Instance.LayoutOrder = -10
 
     local previewWindow = Instance.new("Frame")
-    previewWindow.Name = "Swatware_DockedESPPreview"
+    previewWindow.Name = "Cryptical_DockedESPPreview"
     previewWindow.Parent = holderGui
     previewWindow.Size = UDim2.new(0, 230, 0, 310)
     previewWindow.BackgroundColor3 = Theme.Background
@@ -8356,6 +8455,66 @@ do
                     end
                 end
             end
+
+            local cf, size = previewCharModel:GetBoundingBox()
+            local half = size * 0.5
+            local corners3D = {
+                cf * Vector3.new(-half.X,  half.Y, -half.Z),
+                cf * Vector3.new( half.X,  half.Y, -half.Z),
+                cf * Vector3.new(-half.X, -half.Y, -half.Z),
+                cf * Vector3.new( half.X, -half.Y, -half.Z),
+                cf * Vector3.new(-half.X,  half.Y,  half.Z),
+                cf * Vector3.new( half.X,  half.Y,  half.Z),
+                cf * Vector3.new(-half.X, -half.Y,  half.Z),
+                cf * Vector3.new( half.X, -half.Y,  half.Z),
+            }
+
+            local minX, maxX = math.huge, -math.huge
+            local minY, maxY = math.huge, -math.huge
+            local validCount = 0
+
+            for _, c3 in ipairs(corners3D) do
+                local pos2D, vis = projectToPreview(c3)
+                if pos2D and vis then
+                    minX = math.min(minX, pos2D.X)
+                    maxX = math.max(maxX, pos2D.X)
+                    minY = math.min(minY, pos2D.Y)
+                    maxY = math.max(maxY, pos2D.Y)
+                    validCount += 1
+                end
+            end
+
+            if validCount >= 4 and maxX > minX and maxY > minY then
+                local boxW = math.clamp(maxX - minX, 16, 180)
+                local boxH = math.clamp(maxY - minY, 24, 240)
+                local boxX = minX + (maxX - minX) * 0.5
+                local boxY = minY
+
+                previewBoxFrame.Position = UDim2.new(0, boxX, 0, boxY)
+                previewBoxFrame.Size = UDim2.new(0, boxW, 0, boxH)
+
+                local cardSize = previewCard.AbsoluteSize
+                local cw = cardSize.X > 10 and cardSize.X or 214
+                local ch = cardSize.Y > 10 and cardSize.Y or 258
+
+                local originY = ch
+                if espConfig.TracerOrigin == "Top" then
+                    originY = 0
+                elseif espConfig.TracerOrigin == "Center" then
+                    originY = ch * 0.5
+                end
+
+                local tracerOrigin = Vector2.new(cw * 0.5, originY)
+                local tracerTarget = Vector2.new(boxX, boxY + boxH)
+                local dir = tracerTarget - tracerOrigin
+                local dist = dir.Magnitude
+                local angle = math.deg(math.atan2(dir.Y, dir.X)) - 90
+
+                previewTracer.Position = UDim2.fromOffset(tracerOrigin.X, tracerOrigin.Y)
+                previewTracer.Size = UDim2.new(0, espConfig.TracerThickness or 1.5, 0, dist)
+                previewTracer.AnchorPoint = Vector2.new(0.5, 0)
+                previewTracer.Rotation = angle
+            end
         end
     end
 
@@ -8475,7 +8634,7 @@ do
     local previewRotAngle = 0
     local previewRenderConn = nil
     previewRenderConn = RunService.RenderStepped:Connect(function(dt)
-        if unloaded or getgenv().AltHackGen ~= GEN then
+        if unloaded or getgenv().CrypticalGen ~= GEN then
             if previewRenderConn then
                 previewRenderConn:Disconnect()
                 previewRenderConn = nil
@@ -8662,7 +8821,7 @@ do
 
             if not skyboxData.SkyInstance then
                 local s = Instance.new("Sky")
-                s.Name = "Swatware_Sky"
+                s.Name = "Cryptical_Sky"
                 s.Parent = Lighting
                 skyboxData.SkyInstance = s
             end
@@ -8690,7 +8849,7 @@ do
     end
 
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             if skyboxData.Active and skyboxData.Spin and skyboxData.SkyInstance then
                 pcall(function()
                     skyboxData.CurrentAngle = (skyboxData.CurrentAngle + (skyboxData.SpinSpeed * 0.05)) % 360
@@ -9024,12 +9183,12 @@ do
     })
 
     local InGameESPHolder = Instance.new("ScreenGui")
-    InGameESPHolder.Name = "Swatware_InGameESP"
+    InGameESPHolder.Name = "Cryptical_InGameESP"
     InGameESPHolder.Parent = gethui()
     InGameESPHolder.ResetOnSpawn = false
     InGameESPHolder.DisplayOrder = 1
     InGameESPHolder.IgnoreGuiInset = true
-    getgenv().AltHackPlayerESP = InGameESPHolder
+    getgenv().CrypticalPlayerESP = InGameESPHolder
 
     local playerESPCache = {}
     local playerMaterialCache = {}
@@ -9265,7 +9424,7 @@ do
     Players.PlayerRemoving:Connect(removePlayerESP)
 
     Library:Connect(RunService.RenderStepped, function()
-        if not espConfig.MasterEnabled or unloaded or getgenv().AltHackGen ~= GEN then
+        if not espConfig.MasterEnabled or unloaded or getgenv().CrypticalGen ~= GEN then
             for _, data in pairs(playerESPCache) do
                 hidePlayerESP(data)
             end
@@ -10005,7 +10164,7 @@ do
                     miscState.VoidSavedCF = root.CFrame
                     if not miscState.VoidPlatform then
                         local p = Instance.new("Part")
-                        p.Name = "Swatware_VoidPlatform"
+                        p.Name = "Cryptical_VoidPlatform"
                         p.Size = Vector3.new(20, 2, 20)
                         p.Position = Vector3.new(0, 30000, 0)
                         p.Anchored = true
@@ -10068,12 +10227,7 @@ do
         end,
     })
 
-    RageSection:Toggle({
-        Name = "No Fall Damage",
-        Flag = "Misc_NoFallDamage",
-        Default = false,
-        Callback = function(val) end,
-    })
+
 
     local UtilitiesSection = MiscPage:Section({
         Name = "Client & Server Utilities",
@@ -10185,7 +10339,7 @@ do
 
     local spinAngle = 0
     Library:Connect(RunService.Heartbeat, function(dt)
-        if unloaded or getgenv().AltHackGen ~= GEN then return end
+        if unloaded or getgenv().CrypticalGen ~= GEN then return end
 
         local char = Players.LocalPlayer.Character
         local root = char and char:FindFirstChild("HumanoidRootPart")
@@ -10253,12 +10407,7 @@ do
             end
         end
 
-        if Library.Flags["Misc_NoFallDamage"] and hum then
-            pcall(function()
-                hum:SetStateEnabled(Enum.HumanoidStateType.FallingDown, false)
-                hum:SetStateEnabled(Enum.HumanoidStateType.Ragdoll, false)
-            end)
-        end
+
 
         if Library.Flags["Misc_AntiStomp"] and hum and hum.Health < 15 and hum.Health > 0 then
             pcall(function()
@@ -10273,7 +10422,7 @@ do
     end)
 
     Library:Connect(RunService.Stepped, function()
-        if unloaded or getgenv().AltHackGen ~= GEN then return end
+        if unloaded or getgenv().CrypticalGen ~= GEN then return end
         if not miscState.Noclip then return end
 
         local char = Players.LocalPlayer.Character
@@ -10298,7 +10447,7 @@ do
     local activeSubtab = "local"
 
     local function createTagBadge(parent, rawTag)
-        local tagStyle = SwatwareAPI:GetTagStyle(rawTag)
+        local tagStyle = CrypticalAPI:GetTagStyle(rawTag)
         local badge = Instance.new("Frame")
         badge.Name = "TagBadge_" .. tostring(rawTag)
         badge.Parent = parent
@@ -10388,25 +10537,25 @@ do
     lCorner.CornerRadius = UDim.new(0, 6)
     lCorner.Parent = localTabBtn
 
-    local swatwareTabBtn = Instance.new("TextButton")
-    swatwareTabBtn.Name = "SwatwareUsersTab"
-    swatwareTabBtn.Parent = subtabContainer
-    swatwareTabBtn.Size = UDim2.new(0.5, -4, 1, -6)
-    swatwareTabBtn.BackgroundColor3 = Theme.Element
-    swatwareTabBtn.BorderSizePixel = 0
-    swatwareTabBtn.FontFace = Library.Font
-    swatwareTabBtn.Text = "Swatware Users"
-    swatwareTabBtn.TextColor3 = Theme.Text
-    swatwareTabBtn.TextSize = 11
-    swatwareTabBtn.AutoButtonColor = false
-    Library:AddToTheme(swatwareTabBtn, {
-        BackgroundColor3 = function() return activeSubtab == "swatware" and Theme.Accent or Theme.Element end,
-        TextColor3 = function() return activeSubtab == "swatware" and Theme.Background or Theme.Text end
+    local crypticalTabBtn = Instance.new("TextButton")
+    crypticalTabBtn.Name = "CrypticalUsersTab"
+    crypticalTabBtn.Parent = subtabContainer
+    crypticalTabBtn.Size = UDim2.new(0.5, -4, 1, -6)
+    crypticalTabBtn.BackgroundColor3 = Theme.Element
+    crypticalTabBtn.BorderSizePixel = 0
+    crypticalTabBtn.FontFace = Library.Font
+    crypticalTabBtn.Text = "Cryptical Users"
+    crypticalTabBtn.TextColor3 = Theme.Text
+    crypticalTabBtn.TextSize = 11
+    crypticalTabBtn.AutoButtonColor = false
+    Library:AddToTheme(crypticalTabBtn, {
+        BackgroundColor3 = function() return activeSubtab == "cryptical" and Theme.Accent or Theme.Element end,
+        TextColor3 = function() return activeSubtab == "cryptical" and Theme.Background or Theme.Text end
     })
 
     local sCorner = Instance.new("UICorner")
     sCorner.CornerRadius = UDim.new(0, 6)
-    sCorner.Parent = swatwareTabBtn
+    sCorner.Parent = crypticalTabBtn
 
     local refreshPlayerListUI
 
@@ -10423,9 +10572,9 @@ do
 
         if activeSubtab == "local" then
             TweenService:Create(localTabBtn, twInfo, {BackgroundColor3 = activeBg, TextColor3 = activeTxt}):Play()
-            TweenService:Create(swatwareTabBtn, twInfo, {BackgroundColor3 = inactiveBg, TextColor3 = inactiveTxt}):Play()
+            TweenService:Create(crypticalTabBtn, twInfo, {BackgroundColor3 = inactiveBg, TextColor3 = inactiveTxt}):Play()
         else
-            TweenService:Create(swatwareTabBtn, twInfo, {BackgroundColor3 = activeBg, TextColor3 = activeTxt}):Play()
+            TweenService:Create(crypticalTabBtn, twInfo, {BackgroundColor3 = activeBg, TextColor3 = activeTxt}):Play()
             TweenService:Create(localTabBtn, twInfo, {BackgroundColor3 = inactiveBg, TextColor3 = inactiveTxt}):Play()
         end
 
@@ -10454,8 +10603,8 @@ do
         setSubtab("local")
     end)
 
-    swatwareTabBtn.MouseButton1Click:Connect(function()
-        setSubtab("swatware")
+    crypticalTabBtn.MouseButton1Click:Connect(function()
+        setSubtab("cryptical")
     end)
 
     local filterInput = PlayersListSection:Textbox({
@@ -10613,10 +10762,10 @@ do
         elseif selectedTarget.IsInServer then
             targetInfoLabel.Text = "In Current Server (Spawning...)"
         else
-            targetInfoLabel.Text = "Swatware Database Registry • Offline / Other Server"
+            targetInfoLabel.Text = "Cryptical Database Registry • Offline / Other Server"
         end
 
-        local tags = selectedTarget.Tags or SwatwareAPI:GetTags(selectedTarget.Name)
+        local tags = selectedTarget.Tags or CrypticalAPI:GetTags(selectedTarget.Name)
         for _, tag in ipairs(tags) do
             createTagBadge(targetBadgesRow, tag)
         end
@@ -10674,7 +10823,7 @@ do
         Name = "Prioritize Target (Aimbot)",
         Callback = function()
             if selectedTarget and selectedTarget.Player then
-                getgenv().SwatwarePriorityTarget = selectedTarget.Player
+                getgenv().CrypticalPriorityTarget = selectedTarget.Player
             end
         end,
     })
@@ -10700,7 +10849,7 @@ do
     TargetDetailsSection:Button({
         Name = "Refresh Database & Players",
         Callback = function()
-            SwatwareAPI:Fetch()
+            CrypticalAPI:Fetch()
             if refreshPlayerListUI then
                 refreshPlayerListUI()
             end
@@ -10810,7 +10959,7 @@ do
                     pTagLayout.VerticalAlignment = Enum.VerticalAlignment.Center
                     pTagLayout.Padding = UDim.new(0, 4)
 
-                    local pTags = SwatwareAPI:GetTags(p.Name)
+                    local pTags = CrypticalAPI:GetTags(p.Name)
                     for _, tag in ipairs(pTags) do
                         createTagBadge(pTagWrap, tag)
                     end
@@ -10832,7 +10981,7 @@ do
         else
 
             local count = 0
-            for lowerU, uData in pairs(SwatwareAPI.Users) do
+            for lowerU, uData in pairs(CrypticalAPI.Users) do
                 local rawName = uData.Raw or lowerU
                 local tags = uData.Tags or {"user"}
                 local tagMatch = false
@@ -10860,7 +11009,7 @@ do
                     local isSelected = selectedTarget and string.lower(selectedTarget.Name) == lowerU
 
                     local row = Instance.new("TextButton")
-                    row.Name = "SwatwareUser_" .. rawName
+                    row.Name = "CrypticalUser_" .. rawName
                     row.Parent = playerListContainer
                     row.Size = UDim2.new(1, 0, 0, 44)
                     row.BackgroundColor3 = isSelected and Theme.Accent or Theme.Element
@@ -10926,7 +11075,7 @@ do
                     pStatus.Parent = row
                     pStatus.BackgroundTransparency = 1
                     pStatus.FontFace = Library.Font
-                    pStatus.Text = inServerPlayer and "• IN SERVER" or "• SWATWARE USER"
+                    pStatus.Text = inServerPlayer and "• IN SERVER" or "• CRYPTICAL USER"
                     pStatus.TextColor3 = inServerPlayer and Color3.fromRGB(60, 245, 145) or Theme.Accent
                     pStatus.TextTransparency = 0.2
                     pStatus.TextSize = 10
@@ -10982,7 +11131,7 @@ do
                 emptyLabel.BackgroundTransparency = 1
                 emptyLabel.Size = UDim2.new(1, 0, 0, 36)
                 emptyLabel.FontFace = Library.Font
-                emptyLabel.Text = SwatwareAPI.Loaded and "No registered Swatware users match filter" or "Fetching Swatware API database..."
+                emptyLabel.Text = CrypticalAPI.Loaded and "No registered Cryptical users match filter" or "Fetching Cryptical API database..."
                 emptyLabel.TextColor3 = Theme.Text
                 emptyLabel.TextTransparency = 0.5
                 emptyLabel.TextSize = 11
@@ -10991,7 +11140,7 @@ do
     end
 
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             pcall(refreshPlayerListUI)
             task.wait(2.5)
         end
@@ -11132,7 +11281,7 @@ do
     })
 
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             if rgbMenuOn then
                 local dynamicColor = Color3.fromHSV((tick() * rgbMenuSpeed * 0.35) % 1, 1, 1)
                 Library.Theme.Accent = dynamicColor
@@ -11366,7 +11515,7 @@ end
 
 do
     local overlayGui = Instance.new("ScreenGui")
-    overlayGui.Name = "Swatware_TacticalHUDOverlays"
+    overlayGui.Name = "Cryptical_TacticalHUDOverlays"
     overlayGui.ResetOnSpawn = false
     overlayGui.DisplayOrder = 9999
     overlayGui.IgnoreGuiInset = true
@@ -11442,7 +11591,7 @@ do
     wmLabel.Parent = watermarkFrame
     wmLabel.BackgroundTransparency = 1
     wmLabel.FontFace = Library.Font
-    wmLabel.Text = string.format("swatware  |  %s  |  %d FPS  |  %d ms  |  %s", userName or "user", math.floor(fps or 60), getPing(), os.date("%X"))
+    wmLabel.Text = string.format("cryptical  |  %s  |  %d FPS  |  %d ms  |  %s", userName or "user", math.floor(fps or 60), getPing(), os.date("%X"))
     wmLabel.TextColor3 = Theme.Text
     wmLabel.TextSize = 12
     wmLabel.Size = UDim2.new(0, 0, 1, 0)
@@ -11894,7 +12043,7 @@ do
 
     local sessionStartTime = tick()
     task.spawn(function()
-        while not unloaded and getgenv().AltHackGen == GEN do
+        while not unloaded and getgenv().CrypticalGen == GEN do
             task.wait(0.1)
             pcall(function()
                 local stats = game:GetService("Stats")
@@ -11908,7 +12057,7 @@ do
                 local secs = elapsedSec % 60
                 local uptimeStr = string.format("%02d:%02d:%02d", hours, mins, secs)
 
-                wmLabel.Text = string.format("swatware  |  %s  |  %d FPS  |  %d ms  |  %s", userName, fps or 60, pingNum, timeStr)
+                wmLabel.Text = string.format("cryptical  |  %s  |  %d FPS  |  %d ms  |  %s", userName, fps or 60, pingNum, timeStr)
 
                 gdPlayers.Text = string.format("Players: %d / %d", #Players:GetPlayers(), Players.MaxPlayers)
                 gdUptime.Text = "Session: " .. uptimeStr
