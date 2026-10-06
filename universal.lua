@@ -5006,7 +5006,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
                     local frame = sec.Items["SectionOutline"].Instance
                     if name == tabName then
                         frame.Visible = true
-                        frame.Position = UDim2New(0, 0, 0, 0)
+                        frame.Position = UDim2.new(0, 0, 0, 0)
                     else
                         frame.Visible = false
                     end
