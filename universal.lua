@@ -5532,9 +5532,7 @@ function AcheronAPI:Fetch()
                 end
             end
 
-            for line in string.gmatch(body, "[^
-
-]+") do
+            for line in string.gmatch(body, "[^\r\n]+") do
                 line = line:match("^%s*(.-)%s*$")
                 if #line > 0 then
                     local lineOk, lineVal = pcall(function()
