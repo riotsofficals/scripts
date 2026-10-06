@@ -3307,7 +3307,6 @@ local Library do
                     Default = Data.Default or Data.default,
                     Mode = Data.Mode or Data.mode or "Toggle",
                     Callback = function(state)
-                        Toggle:Set(state)
                         if userCallback then
                             Library:SafeCall(userCallback, state)
                         end
@@ -11888,27 +11887,15 @@ do
     watermarkFrame.Size = UDim2.new(0, 0, 0, 28)
     watermarkFrame.AutomaticSize = Enum.AutomaticSize.X
     watermarkFrame.Position = UDim2.new(0, 20, 0, 20)
-    watermarkFrame.BackgroundColor3 = Theme.Background
+    watermarkFrame.BackgroundTransparency = 1
     watermarkFrame.BorderSizePixel = 0
-    watermarkFrame.ClipsDescendants = true
-    Library:AddToTheme(watermarkFrame, {BackgroundColor3 = "Background"})
-
-    local wmCorner = Instance.new("UICorner")
-    wmCorner.CornerRadius = UDim.new(0, 6)
-    wmCorner.Parent = watermarkFrame
-
-    local wmStroke = Instance.new("UIStroke")
-    wmStroke.Color = Theme.Outline
-    wmStroke.Thickness = 1
-    wmStroke.Transparency = 0.25
-    wmStroke.Parent = watermarkFrame
-    Library:AddToTheme(wmStroke, {Color = "Outline"})
+    watermarkFrame.ClipsDescendants = false
 
     local wmPad = Instance.new("UIPadding")
-    wmPad.PaddingLeft = UDim.new(0, 12)
-    wmPad.PaddingRight = UDim.new(0, 12)
-    wmPad.PaddingTop = UDim.new(0, 5)
-    wmPad.PaddingBottom = UDim.new(0, 5)
+    wmPad.PaddingLeft = UDim.new(0, 0)
+    wmPad.PaddingRight = UDim.new(0, 0)
+    wmPad.PaddingTop = UDim.new(0, 0)
+    wmPad.PaddingBottom = UDim.new(0, 0)
     wmPad.Parent = watermarkFrame
 
     local wmLabel = Instance.new("TextLabel")
