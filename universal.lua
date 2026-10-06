@@ -9105,10 +9105,11 @@ do
         end,
     })
 
+    local initialClockTime = pcall(function() return Lighting.ClockTime end) and Lighting.ClockTime or 14
     AmbienceSection:Slider({
         Name = "Clock Time (Time of Day)",
         Flag = "World_ClockTime",
-        Default = 14,
+        Default = math.floor(initialClockTime),
         Min = 0,
         Max = 24,
         Decimals = 1,
@@ -9130,10 +9131,11 @@ do
         end,
     })
 
+    local initialFOV = pcall(function() return Workspace.CurrentCamera.FieldOfView end) and Workspace.CurrentCamera.FieldOfView or 70
     AmbienceSection:Slider({
         Name = "Field of View (FOV)",
         Flag = "Visuals_FOVChanger",
-        Default = 90,
+        Default = math.floor(initialFOV),
         Min = 60,
         Max = 120,
         Suffix = "°",
@@ -9530,12 +9532,17 @@ do
         end)
     end
 
+    local animPackInitialized = false
     AnimChangerSection:Dropdown({
         Name = "Movement Animation Pack",
         Flag = "Visuals_AnimPack",
         Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
         Default = "Default",
         Callback = function(val)
+            if not animPackInitialized then
+                animPackInitialized = true
+                return
+            end
             applyAnimPack(val)
         end,
     })
