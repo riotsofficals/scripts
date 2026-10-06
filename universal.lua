@@ -6925,6 +6925,42 @@ do
         return screenCenter
     end
 
+    local function getAllTargetCandidates()
+        local candidates = {}
+        local added = {}
+
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= Players.LocalPlayer then
+                table.insert(candidates, p)
+                if p.Character then added[p.Character] = true end
+            end
+        end
+
+        local searchFolders = {"Players", "players", "Bots", "NPCs", "Enemies", "Targets"}
+        for _, folderName in ipairs(searchFolders) do
+            local folder = Workspace:FindFirstChild(folderName)
+            if folder then
+                for _, child in ipairs(folder:GetChildren()) do
+                    if child:IsA("Model") and not added[child] and child ~= Players.LocalPlayer.Character then
+                        local hum = child:FindFirstChildOfClass("Humanoid")
+                        if hum then
+                            table.insert(candidates, {
+                                Name = child.Name,
+                                DisplayName = child.Name,
+                                UserId = 1,
+                                Character = child,
+                                IsBot = true
+                            })
+                            added[child] = true
+                        end
+                    end
+                end
+            end
+        end
+
+        return candidates
+    end
+
     local function getBestAimbotTarget()
         local cam = Workspace.CurrentCamera
         if not cam then return nil, nil end
@@ -6935,9 +6971,9 @@ do
         local checks = Library.Flags["Combat_Checks"] or {"Team Check", "Wall Check", "Dead Check"}
 
         if Library.Flags["Combat_StickyAim"] and combatState.TargetLocked and combatState.TargetLocked.Parent then
-            local p = Players:GetPlayerFromCharacter(combatState.TargetLocked)
-            if p and validateTarget(p, checks) then
-                local char = p.Character
+            local char = combatState.TargetLocked
+            local p = Players:GetPlayerFromCharacter(char) or { Name = char.Name, DisplayName = char.Name, UserId = 1, Character = char }
+            if validateTarget(p, checks) then
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local isAir = hum and (hum.FloorMaterial == Enum.Material.Air or (char.PrimaryPart and math.abs(char.PrimaryPart.Velocity.Y) > 2))
                 local hitPartName = isAir and (Library.Flags["Combat_HitpartAir"] or "HumanoidRootPart") or (Library.Flags["Combat_HitpartGround"] or "Head")
@@ -6958,7 +6994,7 @@ do
         local bestPlayer = nil
         local bestPart = nil
 
-        for _, p in ipairs(Players:GetPlayers()) do
+        for _, p in ipairs(getAllTargetCandidates()) do
             if validateTarget(p, checks) then
                 local char = p.Character
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
@@ -7022,7 +7058,7 @@ do
         local bestPlayer = nil
         local bestPart = nil
 
-        for _, p in ipairs(Players:GetPlayers()) do
+        for _, p in ipairs(getAllTargetCandidates()) do
             if validateTarget(p, checks) then
                 local char = p.Character
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
