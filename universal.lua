@@ -2301,15 +2301,60 @@ local Library do
                     Name = "TitleText",
                     FontFace = Library.Font,
                     TextColor3 = Library.Theme["Text"],
-                    Text = (Window.Name ~= "Window" and Window.Name ~= "alt.gg") and Window.Name or "cryptical",
+                    Text = "build: cryptical beta",
                     Size = UDim2New(0, 0, 0, 20),
                     BorderSizePixel = 0,
                     BackgroundTransparency = 1,
                     AutomaticSize = Enum.AutomaticSize.X,
-                    TextSize = 16,
+                    TextSize = 14,
                     LayoutOrder = 2,
                     ZIndex = 12
                 }):AddToTheme({TextColor3 = 'Text'})
+
+                Items["TitleDot"] = Instances:Create("Frame", {
+                    Parent = Items["TitleArea"].Instance,
+                    Name = "TitleDot",
+                    BackgroundColor3 = FromRGB(255, 153, 0),
+                    BorderSizePixel = 0,
+                    Size = UDim2New(0, 6, 0, 6),
+                    LayoutOrder = 3,
+                    ZIndex = 12
+                })
+
+                Instances:Create("UICorner", {
+                    Parent = Items["TitleDot"].Instance,
+                    CornerRadius = UDimNew(1, 0)
+                })
+
+                Items["StatusText"] = Instances:Create("TextLabel", {
+                    Parent = Items["TitleArea"].Instance,
+                    Name = "StatusText",
+                    FontFace = Library.Font,
+                    TextColor3 = FromRGB(140, 145, 165),
+                    Text = "status: active",
+                    Size = UDim2New(0, 0, 0, 20),
+                    BorderSizePixel = 0,
+                    BackgroundTransparency = 1,
+                    AutomaticSize = Enum.AutomaticSize.X,
+                    TextSize = 13,
+                    LayoutOrder = 4,
+                    ZIndex = 12
+                })
+
+                Items["StatusDot"] = Instances:Create("Frame", {
+                    Parent = Items["TitleArea"].Instance,
+                    Name = "StatusDot",
+                    BackgroundColor3 = FromRGB(56, 239, 125),
+                    BorderSizePixel = 0,
+                    Size = UDim2New(0, 6, 0, 6),
+                    LayoutOrder = 5,
+                    ZIndex = 12
+                })
+
+                Instances:Create("UICorner", {
+                    Parent = Items["StatusDot"].Instance,
+                    CornerRadius = UDimNew(1, 0)
+                })
 
                 Items["Pages"] = Instances:Create("ScrollingFrame", {
                     Parent = Items["TopContainer"].Instance,
@@ -10162,46 +10207,157 @@ do
         ["Knight"] = { Idle1 = 657564596, Idle2 = 657565701, Walk = 657552424, Run = 657555620, Jump = 657553854, Fall = 657563584 }
     }
 
-    local function applyAnimPack(packName)
+    local animSettings = {
+        Enabled = false,
+        Idle = "Default",
+        Walk = "Default",
+        Run = "Default",
+        Jump = "Default",
+        Fall = "Default"
+    }
+
+    local function updateCharacterAnimations()
+        if not animSettings.Enabled then return end
         pcall(function()
             local char = Players.LocalPlayer.Character
             local animate = char and char:FindFirstChild("Animate")
-            local pack = animPacks[packName]
-            if animate and pack then
-                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation1") then
-                    animate.idle.Animation1.AnimationId = "rbxassetid://" .. pack.Idle1
+            if not animate then return end
+
+            local idlePack = animPacks[animSettings.Idle]
+            if idlePack and animate:FindFirstChild("idle") then
+                if animate.idle:FindFirstChild("Animation1") then animate.idle.Animation1.AnimationId = "rbxassetid://" .. idlePack.Idle1 end
+                if animate.idle:FindFirstChild("Animation2") then animate.idle.Animation2.AnimationId = "rbxassetid://" .. idlePack.Idle2 end
+            end
+
+            local walkPack = animPacks[animSettings.Walk]
+            if walkPack and animate:FindFirstChild("walk") and animate.walk:FindFirstChild("WalkAnim") then
+                animate.walk.WalkAnim.AnimationId = "rbxassetid://" .. walkPack.Walk
+            end
+
+            local runPack = animPacks[animSettings.Run]
+            if runPack and animate:FindFirstChild("run") and animate.run:FindFirstChild("RunAnim") then
+                animate.run.RunAnim.AnimationId = "rbxassetid://" .. runPack.Run
+            end
+
+            local jumpPack = animPacks[animSettings.Jump]
+            if jumpPack and animate:FindFirstChild("jump") and animate.jump:FindFirstChild("JumpAnim") then
+                animate.jump.JumpAnim.AnimationId = "rbxassetid://" .. jumpPack.Jump
+            end
+
+            local fallPack = animPacks[animSettings.Fall]
+            if fallPack and animate:FindFirstChild("fall") and animate.fall:FindFirstChild("FallAnim") then
+                animate.fall.FallAnim.AnimationId = "rbxassetid://" .. fallPack.Fall
+            end
+        end)
+    end
+
+    local isHeadless = false
+    local isKorblox = false
+
+    local function updateCosmeticParts(char)
+        char = char or Players.LocalPlayer.Character
+        if not char then return end
+
+        pcall(function()
+            if isHeadless then
+                local head = char:FindFirstChild("Head")
+                if head then
+                    head.Transparency = 1
+                    for _, child in ipairs(head:GetChildren()) do
+                        if child:IsA("Decal") or child:IsA("SpecialMesh") then
+                            child.Transparency = 1
+                        end
+                    end
                 end
-                if animate:FindFirstChild("idle") and animate.idle:FindFirstChild("Animation2") then
-                    animate.idle.Animation2.AnimationId = "rbxassetid://" .. pack.Idle2
+            end
+
+            if isKorblox then
+                local rightLegParts = {"RightLeg", "RightLowerLeg", "RightUpperLeg", "RightFoot"}
+                for _, partName in ipairs(rightLegParts) do
+                    local part = char:FindFirstChild(partName)
+                    if part and part:IsA("BasePart") then
+                        part.Transparency = 1
+                    end
                 end
-                if animate:FindFirstChild("walk") and animate.walk:FindFirstChild("WalkAnim") then
-                    animate.walk.WalkAnim.AnimationId = "rbxassetid://" .. pack.Walk
-                end
-                if animate:FindFirstChild("run") and animate.run:FindFirstChild("RunAnim") then
-                    animate.run.RunAnim.AnimationId = "rbxassetid://" .. pack.Run
-                end
-                if animate:FindFirstChild("jump") and animate.jump:FindFirstChild("JumpAnim") then
-                    animate.jump.JumpAnim.AnimationId = "rbxassetid://" .. pack.Jump
-                end
-                if animate:FindFirstChild("fall") and animate.fall:FindFirstChild("FallAnim") then
-                    animate.fall.FallAnim.AnimationId = "rbxassetid://" .. pack.Fall
+                local rightMesh = char:FindFirstChild("Right Leg")
+                if rightMesh and rightMesh:IsA("CharacterMesh") then
+                    rightMesh:Destroy()
                 end
             end
         end)
     end
 
-    local animPackInitialized = false
+    Players.LocalPlayer.CharacterAdded:Connect(function(char)
+        char:WaitForChild("Humanoid", 5)
+        task.wait(0.3)
+        updateCharacterAnimations()
+        updateCosmeticParts(char)
+    end)
+
+    AnimChangerSection:Toggle({
+        Name = "Enable Animation Changer",
+        Flag = "Visuals_AnimMaster",
+        Default = false,
+        Callback = function(val)
+            animSettings.Enabled = val
+            if val then
+                updateCharacterAnimations()
+            end
+        end,
+    })
+
     AnimChangerSection:Dropdown({
-        Name = "Movement Animation Pack",
-        Flag = "Visuals_AnimPack",
+        Name = "Idle Animation",
+        Flag = "Visuals_AnimIdle",
         Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
         Default = "Default",
         Callback = function(val)
-            if not animPackInitialized then
-                animPackInitialized = true
-                return
-            end
-            applyAnimPack(val)
+            animSettings.Idle = val
+            updateCharacterAnimations()
+        end,
+    })
+
+    AnimChangerSection:Dropdown({
+        Name = "Walk Animation",
+        Flag = "Visuals_AnimWalk",
+        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
+        Default = "Default",
+        Callback = function(val)
+            animSettings.Walk = val
+            updateCharacterAnimations()
+        end,
+    })
+
+    AnimChangerSection:Dropdown({
+        Name = "Run Animation",
+        Flag = "Visuals_AnimRun",
+        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
+        Default = "Default",
+        Callback = function(val)
+            animSettings.Run = val
+            updateCharacterAnimations()
+        end,
+    })
+
+    AnimChangerSection:Dropdown({
+        Name = "Jump Animation",
+        Flag = "Visuals_AnimJump",
+        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
+        Default = "Default",
+        Callback = function(val)
+            animSettings.Jump = val
+            updateCharacterAnimations()
+        end,
+    })
+
+    AnimChangerSection:Dropdown({
+        Name = "Fall Animation",
+        Flag = "Visuals_AnimFall",
+        Items = {"Default", "Mage", "Ninja", "Zombie", "Vampire", "Toy", "Knight"},
+        Default = "Default",
+        Callback = function(val)
+            animSettings.Fall = val
+            updateCharacterAnimations()
         end,
     })
 
@@ -10210,16 +10366,8 @@ do
         Flag = "Visuals_Headless",
         Default = false,
         Callback = function(val)
-            pcall(function()
-                local char = Players.LocalPlayer.Character
-                local head = char and char:FindFirstChild("Head")
-                if head then
-                    head.Transparency = val and 1 or 0
-                    if head:FindFirstChildOfClass("Decal") then
-                        head:FindFirstChildOfClass("Decal").Transparency = val and 1 or 0
-                    end
-                end
-            end)
+            isHeadless = val
+            updateCosmeticParts()
         end,
     })
 
@@ -10228,13 +10376,182 @@ do
         Flag = "Visuals_Korblox",
         Default = false,
         Callback = function(val)
-            pcall(function()
-                local char = Players.LocalPlayer.Character
-                local rLeg = char and (char:FindFirstChild("RightLeg") or char:FindFirstChild("RightLowerLeg"))
-                if rLeg then
-                    rLeg.Transparency = val and 1 or 0
+            isKorblox = val
+            updateCosmeticParts()
+        end,
+    })
+
+    local SkinChangerSection = MiscPage:Section({
+        Name = "HC Weapon Skin Changer",
+        Icon = ICON_BOT,
+        Side = 1,
+    })
+
+    local skinSettings = {
+        Enabled = false,
+        DoubleBarrel = "Ascension",
+        Revolver = "Ascension",
+        TacticalShotgun = "Ascension",
+        SMG = "Ascension",
+        Shotgun = "Ascension",
+        Knife = "Beta"
+    }
+
+    local handleMap = {
+        DB_HANDLE = "DoubleBarrel",
+        REV_HANDLE = "Revolver"
+    }
+
+    local function prepSkinParts(model, isKnife)
+        for _, part in ipairs(model:GetDescendants()) do
+            if part:IsA("BasePart") then
+                part.CanCollide = false
+                part.Anchored = false
+                part.Massless = true
+            end
+            if isKnife and part:IsA("MeshPart") then
+                local sa = part:FindFirstChildOfClass("SurfaceAppearance")
+                if sa then sa:Destroy() end
+                if part.TextureID == "" then
+                    local name = part.Name:lower()
+                    if name:find("box") or name:find("cube") or name:find("part") or name:find("hit") then
+                        part.Transparency = 1
+                    end
                 end
-            end)
+            end
+        end
+    end
+
+    local function getWrapSkinModel(weaponName, skinName)
+        local wraps = game:GetService("ReplicatedStorage"):FindFirstChild("Wraps")
+        if not wraps then return nil end
+        local folder = wraps:FindFirstChild("[" .. weaponName .. "]")
+        if not folder then return nil end
+        return folder:FindFirstChild(skinName)
+    end
+
+    local function applyModelOnHolder(holder, skinModel)
+        if not holder or not skinModel then return end
+        local handle = holder:FindFirstChild("Handle")
+        if not (handle and handle:IsA("BasePart")) then return end
+        local old = holder:FindFirstChild("SkinModel")
+        if old then old:Destroy() end
+
+        local clone = skinModel:Clone()
+        clone.Name = "SkinModel"
+
+        local primary = clone.PrimaryPart or clone:FindFirstChildWhichIsA("BasePart")
+        if not primary then return end
+        clone.PrimaryPart = primary
+
+        local isKnife = holder.Name:find("Knife") and true or false
+        prepSkinParts(clone, isKnife)
+        clone.Parent = holder
+        clone:PivotTo(handle.CFrame)
+
+        for _, part in ipairs(clone:GetDescendants()) do
+            if part:IsA("BasePart") then
+                local weld = Instance.new("WeldConstraint")
+                weld.Part0 = handle
+                weld.Part1 = part
+                weld.Parent = handle
+            end
+        end
+        handle.Transparency = 1
+    end
+
+    local function applyToolSkin(tool)
+        if not (skinSettings.Enabled and tool and tool:IsA("Tool")) then return end
+        local weaponName = tool.Name:match("^%[(.+)%]$")
+        if weaponName and skinSettings[weaponName] then
+            local skinModel = getWrapSkinModel(weaponName, skinSettings[weaponName])
+            if skinModel then applyModelOnHolder(tool, skinModel) end
+        elseif tool.Name == "[Knife]" and skinSettings.Knife ~= "" then
+            local knives = game:GetService("ReplicatedStorage"):FindFirstChild("Knives")
+            if knives then
+                local skinModel = knives:FindFirstChild(skinSettings.Knife)
+                if skinModel then applyModelOnHolder(tool, skinModel) end
+            end
+        end
+    end
+
+    local function applyHandleSkin(char, handleFolderName)
+        if not skinSettings.Enabled then return end
+        local weaponName = handleMap[handleFolderName]
+        if not weaponName or not skinSettings[weaponName] then return end
+        local handleFolder = char:FindFirstChild(handleFolderName)
+        if not handleFolder then return end
+        local skinModel = getWrapSkinModel(weaponName, skinSettings[weaponName])
+        if skinModel then applyModelOnHolder(handleFolder, skinModel) end
+    end
+
+    local function applyAllSkins(char)
+        if not (skinSettings.Enabled and char) then return end
+        for _, tool in ipairs(char:GetChildren()) do
+            if tool:IsA("Tool") then applyToolSkin(tool) end
+        end
+        for handleFolderName, _ in pairs(handleMap) do
+            applyHandleSkin(char, handleFolderName)
+        end
+    end
+
+    local function connectSkinChar(char)
+        if not char then return end
+        char.ChildAdded:Connect(function(child)
+            if child:IsA("Tool") then
+                task.defer(function() applyToolSkin(child) end)
+            elseif handleMap[child.Name] then
+                task.defer(function() applyHandleSkin(char, child.Name) end)
+            end
+        end)
+        applyAllSkins(char)
+    end
+
+    Players.LocalPlayer.CharacterAdded:Connect(connectSkinChar)
+    if Players.LocalPlayer.Character then connectSkinChar(Players.LocalPlayer.Character) end
+
+    SkinChangerSection:Toggle({
+        Name = "Enable Skin Changer",
+        Flag = "Misc_SkinChangerEnabled",
+        Default = false,
+        Callback = function(val)
+            skinSettings.Enabled = val
+            if val and Players.LocalPlayer.Character then
+                applyAllSkins(Players.LocalPlayer.Character)
+            end
+        end,
+    })
+
+    SkinChangerSection:Dropdown({
+        Name = "Double Barrel Skin",
+        Flag = "Misc_DBSkin",
+        Items = {"Ascension", "Default", "Gold", "Vanguard", "Galaxy"},
+        Default = "Ascension",
+        Callback = function(val)
+            skinSettings.DoubleBarrel = val
+            if skinSettings.Enabled and Players.LocalPlayer.Character then applyAllSkins(Players.LocalPlayer.Character) end
+        end,
+    })
+
+    SkinChangerSection:Dropdown({
+        Name = "Revolver Skin",
+        Flag = "Misc_RevSkin",
+        Items = {"Ascension", "Default", "Gold", "Vanguard", "Galaxy"},
+        Default = "Ascension",
+        Callback = function(val)
+            skinSettings.Revolver = val
+            if skinSettings.Enabled and Players.LocalPlayer.Character then applyAllSkins(Players.LocalPlayer.Character) end
+        end,
+    })
+
+    SkinChangerSection:Dropdown({
+        Name = "Knife Skin",
+        Flag = "Misc_KnifeSkin",
+        Items = {"Beta", "Default", "Karambit", "Butterfly"},
+        Default = "Beta",
+        Callback = function(val)
+            skinSettings.Knife = val
+            if skinSettings.Enabled and Players.LocalPlayer.Character then applyAllSkins(Players.LocalPlayer.Character) end
         end,
     })
 
