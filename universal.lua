@@ -11117,52 +11117,8 @@ do
                 hidePlayerESP(data)
             end
         end
-                                                end)
-                                            end
-                                        end
-                                    end
-                                else
-                                    if data.Highlight then
-                                        data.Highlight.Enabled = false
-                                    end
-                                    restorePlayerMaterials(p)
-                                end
-                            else
-                                hidePlayerESP(data)
-                                if espConfig.Offscreen and data.OffscreenArrow and rootPos then
-                                    local camCFrame = cam.CFrame
-                                    local toTarget = (rootPos - camCFrame.Position).Unit
-                                    local forward = camCFrame.LookVector
-                                    local right = camCFrame.RightVector
-                                    local up = camCFrame.UpVector
-
-                                    local dotRight = right:Dot(toTarget)
-                                    local dotUp = up:Dot(toTarget)
-
-                                    local angle = math.atan2(-dotRight, dotUp)
-                                    local radius = espConfig.OffscreenRadius or 220
-                                    local arrowPos = screenCenter + Vector2.new(math.sin(angle) * radius, -math.cos(angle) * radius)
-
-                                    data.OffscreenArrow.Visible = true
-                                    data.OffscreenArrow.Position = UDim2.fromOffset(arrowPos.X, arrowPos.Y)
-                                    data.OffscreenArrow.Rotation = math.deg(angle) + 180
-                                    data.OffscreenArrow.ImageColor3 = espConfig.OffscreenColor
-                                end
-                            end
-                        else
-                            hidePlayerESP(data)
-                        end
-                    else
-                        hidePlayerESP(data)
-                    end
-                else
-                    hidePlayerESP(data)
-                end
-            end
-        end
     end)
 end
-
 do
     local MiscPage = Window:Page({
         Name = "Misc",
