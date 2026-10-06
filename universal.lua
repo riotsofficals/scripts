@@ -2598,8 +2598,8 @@ local Library do
                 local matches = false
                 if typeof(bind) == "EnumItem" then
                     matches = (inputCode == bind or inputType == bind)
-                elseif type(bind) == "string" then
-                    matches = (tostring(inputCode) == bind or inputCode.Name == bind or tostring(inputType) == bind or inputType.Name == bind or bind:find(inputCode.Name))
+                elseif type(bind) == "string" and bind ~= "" and bind ~= "None" and bind ~= "Enum.KeyCode.Unknown" then
+                    matches = (tostring(inputCode) == bind or inputCode.Name == bind or tostring(inputType) == bind or inputType.Name == bind)
                 end
 
                 if matches then
@@ -5006,10 +5006,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
                     local frame = sec.Items["SectionOutline"].Instance
                     if name == tabName then
                         frame.Visible = true
-                        frame.Position = UDim2New(0, 0, 0, 8)
-                        TweenService:Create(frame, TweenInfo.new(0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out), {
-                            Position = UDim2New(0, 0, 0, 0)
-                        }):Play()
+                        frame.Position = UDim2New(0, 0, 0, 0)
                     else
                         frame.Visible = false
                     end
@@ -7383,10 +7380,12 @@ do
         Tracers = false,
         TracerColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
         TracerOrigin = "Bottom Screen",
+        TracerThickness = 1,
 
         Offscreen = false,
         OffscreenColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
         OffscreenRadius = 220,
+        OffscreenSize = 14,
 
         Chams = false,
         ChamsColor = Theme.Accent or Color3.fromRGB(139, 149, 246),
@@ -7397,7 +7396,14 @@ do
         ChamsThroughWalls = true,
         ChamsPulse = false,
 
+        LookVector = false,
+        LookVectorColor = Color3.fromRGB(255, 255, 255),
+        LookVectorLength = 10,
+
+        RainbowESP = false,
+        TextOutline = true,
         TeamCheck = true,
+        UseTeamColors = false,
         MaxDistance = 2500
     }
     Library.ESPConfig = espConfig
@@ -7776,6 +7782,56 @@ do
         Suffix = " px",
         Callback = function(val)
             espConfig.OffscreenRadius = val
+        end,
+    })
+
+    local lookVectorToggle = PlayerESPSection:Toggle({
+        Name = "Head Look Vector ESP",
+        Flag = "Visuals_LookVectorESP",
+        Default = false,
+        Callback = function(val)
+            espConfig.LookVector = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
+        end,
+    })
+    lookVectorToggle:Colorpicker({
+        Flag = "Visuals_LookVectorColor",
+        Default = Color3.fromRGB(255, 255, 255),
+        Callback = function(val)
+            espConfig.LookVectorColor = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
+        end,
+    })
+
+    PlayerESPSection:Toggle({
+        Name = "Rainbow ESP Mode",
+        Flag = "Visuals_RainbowESP",
+        Default = false,
+        Callback = function(val)
+            espConfig.RainbowESP = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
+        end,
+    })
+
+    PlayerESPSection:Toggle({
+        Name = "Use Team Colors for ESP",
+        Flag = "Visuals_UseTeamColors",
+        Default = false,
+        Callback = function(val)
+            espConfig.UseTeamColors = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
+        end,
+    })
+
+    PlayerESPSection:Slider({
+        Name = "Max Render Distance",
+        Flag = "Visuals_MaxDistance",
+        Default = 2500,
+        Min = 100,
+        Max = 5000,
+        Suffix = " studs",
+        Callback = function(val)
+            espConfig.MaxDistance = val
         end,
     })
 
