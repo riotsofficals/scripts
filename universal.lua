@@ -5237,6 +5237,34 @@ local combatState = {
     TargetJumpTick = 0,
 }
 
+local origLightingState = {
+    Ambient = Lighting.Ambient,
+    OutdoorAmbient = Lighting.OutdoorAmbient,
+    Brightness = Lighting.Brightness,
+    ClockTime = Lighting.ClockTime,
+    FogStart = Lighting.FogStart,
+    FogEnd = Lighting.FogEnd,
+    FogColor = Lighting.FogColor,
+    GlobalShadows = Lighting.GlobalShadows,
+    ExposureCompensation = Lighting.ExposureCompensation,
+}
+
+local function getOrigAtmoState()
+    local a = Lighting:FindFirstChildOfClass("Atmosphere")
+    if a then
+        return {
+            Density = a.Density,
+            Haze = a.Haze,
+            Color = a.Color,
+            Decay = a.Decay,
+            Glare = a.Glare,
+            Offset = a.Offset,
+        }
+    end
+    return nil
+end
+local origAtmoState = getOrigAtmoState()
+
 
 
 local player = Players.LocalPlayer
@@ -5462,7 +5490,7 @@ local unloaded = false
 local updatePreviewOverlay = nil
 local syncPreviewPosition = nil
 
-local menuBlurSize = 14
+local menuBlurSize = 0
 local menuOpenState = false
 local menuBlur = nil
 local hudBlurFrames = {}
@@ -5518,6 +5546,31 @@ function Library:Unload()
             object:Destroy()
         end)
     end
+
+    pcall(function()
+        if origLightingState then
+            Lighting.Ambient = origLightingState.Ambient
+            Lighting.OutdoorAmbient = origLightingState.OutdoorAmbient
+            Lighting.Brightness = origLightingState.Brightness
+            Lighting.ClockTime = origLightingState.ClockTime
+            Lighting.FogStart = origLightingState.FogStart
+            Lighting.FogEnd = origLightingState.FogEnd
+            Lighting.FogColor = origLightingState.FogColor
+            Lighting.GlobalShadows = origLightingState.GlobalShadows
+            Lighting.ExposureCompensation = origLightingState.ExposureCompensation
+        end
+        if origAtmoState then
+            local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+            if atmo then
+                atmo.Density = origAtmoState.Density
+                atmo.Haze = origAtmoState.Haze
+                atmo.Color = origAtmoState.Color
+                atmo.Decay = origAtmoState.Decay
+                atmo.Glare = origAtmoState.Glare
+                atmo.Offset = origAtmoState.Offset
+            end
+        end
+    end)
 
     originalUnload(self)
 end
@@ -10099,9 +10152,14 @@ do
         Flag = "World_CustomAmbient",
         Default = false,
         Callback = function(val)
-            if not val then
-                pcall(function() Lighting.Ambient = Color3.fromRGB(128, 128, 128) end)
-            end
+            pcall(function()
+                if val then
+                    local col = Library.Flags["World_AmbientColor"]
+                    Lighting.Ambient = (typeof(col) == "Color3" and col) or (typeof(col) == "table" and col.Color) or Color3.fromRGB(120, 130, 180)
+                else
+                    Lighting.Ambient = origLightingState.Ambient
+                end
+            end)
         end,
     })
     ambToggle:Colorpicker({
@@ -10119,9 +10177,14 @@ do
         Flag = "World_CustomOutdoorAmbient",
         Default = false,
         Callback = function(val)
-            if not val then
-                pcall(function() Lighting.OutdoorAmbient = Color3.fromRGB(128, 128, 128) end)
-            end
+            pcall(function()
+                if val then
+                    local col = Library.Flags["World_OutdoorAmbientColor"]
+                    Lighting.OutdoorAmbient = (typeof(col) == "Color3" and col) or (typeof(col) == "table" and col.Color) or Color3.fromRGB(80, 90, 120)
+                else
+                    Lighting.OutdoorAmbient = origLightingState.OutdoorAmbient
+                end
+            end)
         end,
     })
     outAmbToggle:Colorpicker({
@@ -10146,41 +10209,90 @@ do
                     Lighting.FogEnd = 100000
                     Lighting.GlobalShadows = false
                 else
-                    Lighting.Brightness = 1
-                    Lighting.FogEnd = 1000
-                    Lighting.GlobalShadows = true
+                    Lighting.Brightness = origLightingState.Brightness
+                    Lighting.ClockTime = origLightingState.ClockTime
+                    Lighting.FogEnd = origLightingState.FogEnd
+                    Lighting.GlobalShadows = origLightingState.GlobalShadows
                 end
             end)
         end,
     })
 
-    local initialClockTime = pcall(function() return Lighting.ClockTime end) and Lighting.ClockTime or 14
+    AmbienceSection:Toggle({
+        Name = "Custom Time of Day",
+        Flag = "World_CustomClockTime",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                if val then
+                    Lighting.ClockTime = Library.Flags["World_ClockTime"] or origLightingState.ClockTime
+                else
+                    Lighting.ClockTime = origLightingState.ClockTime
+                end
+            end)
+        end,
+    })
+
     AmbienceSection:Slider({
         Name = "Clock Time (Time of Day)",
         Flag = "World_ClockTime",
-        Default = math.floor(initialClockTime),
+        Default = math.floor(origLightingState.ClockTime or 14),
         Min = 0,
         Max = 24,
         Decimals = 1,
         Suffix = " h",
         Callback = function(v)
-            pcall(function() Lighting.ClockTime = v end)
+            if Library.Flags["World_CustomClockTime"] then
+                pcall(function() Lighting.ClockTime = v end)
+            end
+        end,
+    })
+
+    AmbienceSection:Toggle({
+        Name = "Custom Exposure",
+        Flag = "World_CustomExposure",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                if val then
+                    Lighting.ExposureCompensation = Library.Flags["World_Exposure"] or origLightingState.ExposureCompensation
+                else
+                    Lighting.ExposureCompensation = origLightingState.ExposureCompensation
+                end
+            end)
         end,
     })
 
     AmbienceSection:Slider({
         Name = "Exposure Compensation",
         Flag = "World_Exposure",
-        Default = 0,
+        Default = origLightingState.ExposureCompensation or 0,
         Min = -3,
         Max = 3,
         Decimals = 2,
         Callback = function(v)
-            pcall(function() Lighting.ExposureCompensation = v end)
+            if Library.Flags["World_CustomExposure"] then
+                pcall(function() Lighting.ExposureCompensation = v end)
+            end
         end,
     })
 
     local initialFOV = pcall(function() return Workspace.CurrentCamera.FieldOfView end) and Workspace.CurrentCamera.FieldOfView or 70
+    AmbienceSection:Toggle({
+        Name = "Custom FOV",
+        Flag = "Visuals_EnableFOV",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                if val then
+                    Workspace.CurrentCamera.FieldOfView = Library.Flags["Visuals_FOVChanger"] or initialFOV
+                else
+                    Workspace.CurrentCamera.FieldOfView = initialFOV
+                end
+            end)
+        end,
+    })
+
     AmbienceSection:Slider({
         Name = "Field of View (FOV)",
         Flag = "Visuals_FOVChanger",
@@ -10189,7 +10301,9 @@ do
         Max = 120,
         Suffix = "°",
         Callback = function(v)
-            pcall(function() Workspace.CurrentCamera.FieldOfView = v end)
+            if Library.Flags["Visuals_EnableFOV"] then
+                pcall(function() Workspace.CurrentCamera.FieldOfView = v end)
+            end
         end,
     })
 
@@ -10209,12 +10323,20 @@ do
         Callback = function(val)
             if fogStartSlider then fogStartSlider:SetVisibility(val) end
             if fogEndSlider then fogEndSlider:SetVisibility(val) end
-            if not val then
-                pcall(function()
-                    Lighting.FogStart = 0
-                    Lighting.FogEnd = 100000
-                end)
-            end
+            pcall(function()
+                if val then
+                    local col = Library.Flags["World_FogColor"]
+                    if col then
+                        Lighting.FogColor = (typeof(col) == "Color3" and col) or (typeof(col) == "table" and col.Color) or Color3.fromRGB(140, 150, 200)
+                    end
+                    Lighting.FogStart = Library.Flags["World_FogStart"] or origLightingState.FogStart
+                    Lighting.FogEnd = Library.Flags["World_FogEnd"] or origLightingState.FogEnd
+                else
+                    Lighting.FogStart = origLightingState.FogStart
+                    Lighting.FogEnd = origLightingState.FogEnd
+                    Lighting.FogColor = origLightingState.FogColor
+                end
+            end)
         end,
     })
     customFogToggle:Colorpicker({
@@ -10261,48 +10383,68 @@ do
         Default = false,
         Callback = function(enabled)
             pcall(function()
-                Lighting.FogEnd = enabled and 9e9 or 1000
+                if enabled then
+                    Lighting.FogEnd = 9e9
+                else
+                    Lighting.FogEnd = origLightingState.FogEnd
+                end
             end)
         end,
     })
 
-    task.spawn(function()
-        local sAct = Library.Flags["World_SkyboxEnabled"] == true
-        if skyboxPresetDrop then skyboxPresetDrop:SetVisibility(sAct) end
-        if skyboxSpinToggle then skyboxSpinToggle:SetVisibility(sAct) end
-        if skyboxSpinSpeedSlider then skyboxSpinSpeedSlider:SetVisibility(sAct and Library.Flags["World_SkyboxSpin"] == true) end
-        local fAct = Library.Flags["World_CustomFog"] == true
-        if fogStartSlider then fogStartSlider:SetVisibility(fAct) end
-        if fogEndSlider then fogEndSlider:SetVisibility(fAct) end
-    end)
+    AtmosphereFogSection:Toggle({
+        Name = "Custom Atmosphere",
+        Flag = "World_CustomAtmosphere",
+        Default = false,
+        Callback = function(val)
+            pcall(function()
+                local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
+                if atmos then
+                    if val then
+                        atmos.Density = Library.Flags["World_AtmosDensity"] or (origAtmoState and origAtmoState.Density or 0.3)
+                        atmos.Haze = Library.Flags["World_AtmosHaze"] or (origAtmoState and origAtmoState.Haze or 0)
+                    else
+                        if origAtmoState then
+                            atmos.Density = origAtmoState.Density
+                            atmos.Haze = origAtmoState.Haze
+                        end
+                    end
+                end
+            end)
+        end,
+    })
 
     AtmosphereFogSection:Slider({
         Name = "Atmosphere Density",
         Flag = "World_AtmosDensity",
-        Default = 0.3,
+        Default = origAtmoState and origAtmoState.Density or 0.3,
         Min = 0.0,
         Max = 1.0,
         Decimals = 2,
         Callback = function(v)
-            pcall(function()
-                local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
-                if atmos then atmos.Density = v end
-            end)
+            if Library.Flags["World_CustomAtmosphere"] then
+                pcall(function()
+                    local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
+                    if atmos then atmos.Density = v end
+                end)
+            end
         end,
     })
 
     AtmosphereFogSection:Slider({
         Name = "Atmosphere Haze",
         Flag = "World_AtmosHaze",
-        Default = 0,
+        Default = origAtmoState and origAtmoState.Haze or 0,
         Min = 0,
         Max = 10,
         Decimals = 1,
         Callback = function(v)
-            pcall(function()
-                local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
-                if atmos then atmos.Haze = v end
-            end)
+            if Library.Flags["World_CustomAtmosphere"] then
+                pcall(function()
+                    local atmos = Lighting:FindFirstChildOfClass("Atmosphere")
+                    if atmos then atmos.Haze = v end
+                end)
+            end
         end,
     })
 
@@ -11254,13 +11396,23 @@ do
         Default = false,
         Callback = function(val)
             pcall(function()
-                Lighting.Brightness = val and 3 or 2
-                Lighting.Ambient = val and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
-                Lighting.OutdoorAmbient = val and Color3.fromRGB(255, 255, 255) or Color3.fromRGB(150, 150, 150)
-                
-                for _, v in ipairs(Lighting:GetChildren()) do
-                    if v:IsA("Atmosphere") then
-                        v.Density = val and 0 or v.Density
+                if val then
+                    Lighting.Brightness = 3
+                    Lighting.Ambient = Color3.fromRGB(255, 255, 255)
+                    Lighting.OutdoorAmbient = Color3.fromRGB(255, 255, 255)
+                    
+                    for _, v in ipairs(Lighting:GetChildren()) do
+                        if v:IsA("Atmosphere") then
+                            v.Density = 0
+                        end
+                    end
+                else
+                    Lighting.Brightness = origLightingState.Brightness
+                    Lighting.Ambient = origLightingState.Ambient
+                    Lighting.OutdoorAmbient = origLightingState.OutdoorAmbient
+                    if origAtmoState then
+                        local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+                        if atmo then atmo.Density = origAtmoState.Density end
                     end
                 end
             end)
@@ -11273,10 +11425,19 @@ do
         Default = false,
         Callback = function(val)
             pcall(function()
-                for _, v in ipairs(Lighting:GetChildren()) do
-                    if v:IsA("Atmosphere") then
-                        v.Density = val and 0 or 0.4
+                if val then
+                    for _, v in ipairs(Lighting:GetChildren()) do
+                        if v:IsA("Atmosphere") then
+                            v.Density = 0
+                        end
                     end
+                    Lighting.FogEnd = 9e9
+                else
+                    if origAtmoState then
+                        local atmo = Lighting:FindFirstChildOfClass("Atmosphere")
+                        if atmo then atmo.Density = origAtmoState.Density end
+                    end
+                    Lighting.FogEnd = origLightingState.FogEnd
                 end
             end)
         end,
@@ -11288,7 +11449,11 @@ do
         Default = false,
         Callback = function(val)
             pcall(function()
-                Lighting.GlobalShadows = not val
+                if val then
+                    Lighting.GlobalShadows = false
+                else
+                    Lighting.GlobalShadows = origLightingState.GlobalShadows
+                end
             end)
         end,
     })
@@ -14355,7 +14520,7 @@ do
     MenuSection:Slider({
         Name = "Menu Blur Size",
         Flag = "Example_MenuBlur",
-        Default = menuBlurSize or 14,
+        Default = 0,
         Min = 0,
         Max = 24,
         Suffix = "px",
