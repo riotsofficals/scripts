@@ -184,7 +184,7 @@ local Library do
     Library = {
         Theme =  { },
 
-        MenuKeybind = tostring(Enum.KeyCode.RightControl),
+        MenuKeybind = "None",
 
         Flags = { },
 
@@ -1888,8 +1888,8 @@ local Library do
         local Keybind = {
             Flag = Data.Flag,
 
-            Value = "",
-            Key = "",
+            Value = "None",
+            Key = "None",
             Mode = Data.Mode or Data.mode or "Toggle",
 
             Toggled = false,
@@ -2096,6 +2096,19 @@ local Library do
         end
 
         function Keybind:SetMode(Mode)
+            if not Modes[Mode] then
+                warn("[Library] Keybind:SetMode received an invalid mode")
+                return
+            end
+
+            local modeChanged = Keybind.Mode ~= Mode
+            Keybind.Mode = Mode
+            if Mode == "Always" then
+                Keybind.Toggled = true
+            elseif modeChanged then
+                Keybind.Toggled = false
+            end
+
             for Index, Value in Modes do
                 if Index == Mode then
                     Value:Tween(nil, {TextTransparency = 0})
@@ -2117,9 +2130,11 @@ local Library do
 
         function Keybind:Press(Bool)
             if Keybind.Mode == "Toggle" then
-                Keybind.Toggled = not Keybind.Toggled
+                if Bool ~= false then
+                    Keybind.Toggled = not Keybind.Toggled
+                end
             elseif Keybind.Mode == "Hold" then
-                Keybind.Toggled = Bool
+                Keybind.Toggled = Bool == true
             elseif Keybind.Mode == "Always" then
                 Keybind.Toggled = true
             end
@@ -2140,13 +2155,19 @@ local Library do
         end
 
         function Keybind:Set(Key)
-            if StringFind(tostring(Key), "Enum") then
-                Keybind.Key = tostring(Key)
+            if typeof(Key) == "EnumItem" then
+                local keyName = Key.Name
+                local newKey = (keyName == "Backspace" or keyName == "Unknown") and "None" or tostring(Key)
+                if newKey ~= Keybind.Key and Keybind.Mode ~= "Always" then
+                    Keybind.Toggled = false
+                end
+                Keybind.Key = newKey
 
-                Key = Key.Name == "Backspace" and "None" or Key.Name
-
-                local KeyString = Keys[Keybind.Key] or StringGSub(Key, "Enum.", "") or "None"
+                local KeyString = Keys[Keybind.Key] or StringGSub(tostring(Key), "Enum.", "") or "None"
                 local TextToDisplay = StringGSub(StringGSub(KeyString, "KeyCode.", ""), "UserInputType.", "") or "None"
+                if Keybind.Key == "None" then
+                    TextToDisplay = "None"
+                end
 
                 Keybind.Value = TextToDisplay
                 Items["KeyButton"].Instance.Text = "["..TextToDisplay.."]"
@@ -2161,30 +2182,33 @@ local Library do
                     Library:SafeCall(Data.Callback, Keybind.Toggled)
                 end
             elseif type(Key) == "table" then
-                local RealKey = Key.Key == "Backspace" and "None" or Key.Key
-                Keybind.Key = tostring(Key.Key)
+                local configuredKey = Key.Key
+                local keyString = tostring(configuredKey or "None")
+                local keyName = keyString:match("([^%.]+)$") or keyString
+                local newKey = (keyName == "Backspace" or keyName == "Unknown" or keyName == "None") and "None" or keyString
 
-                if Key.Mode then
-                    Keybind.Mode = Key.Mode
-                    Keybind:SetMode(Key.Mode)
-                else
-                    Keybind.Mode = "Toggle"
-                    Keybind:SetMode("Toggle")
+                local mode = Key.Mode or Data.Mode or "Toggle"
+                if not Modes[mode] then
+                    warn("[Library] Keybind:Set received an invalid mode; using Toggle")
+                    mode = "Toggle"
                 end
+                if Keybind.Key ~= newKey and mode ~= "Always" then
+                    Keybind.Toggled = false
+                end
+                Keybind.Key = newKey
 
-                local KeyString = Keys[Keybind.Key] or StringGSub(tostring(RealKey), "Enum.", "") or RealKey
+                local KeyString = Keys[Keybind.Key] or StringGSub(Keybind.Key, "Enum.", "") or Keybind.Key
                 local TextToDisplay = KeyString and StringGSub(StringGSub(KeyString, "KeyCode.", ""), "UserInputType.", "") or "None"
 
-                TextToDisplay = StringGSub(StringGSub(KeyString, "KeyCode.", ""), "UserInputType.", "")
+                if Keybind.Key == "None" then
+                    TextToDisplay = "None"
+                end
 
                 Keybind.Value = TextToDisplay
                 Items["KeyButton"].Instance.Text = "["..TextToDisplay.."]"
 
-                if Data.Callback then
-                    Library:SafeCall(Data.Callback, Keybind.Toggled)
-                end
+                Keybind:SetMode(mode)
             elseif TableFind({"Toggle", "Hold", "Always"}, Key) then
-                Keybind.Mode = Key
                 Keybind:SetMode(Key)
 
                 if Data.Callback then
@@ -2225,9 +2249,6 @@ local Library do
             if Keybind.Picking then
                 return false
             end
-            if UserInputService:GetFocusedTextBox() then
-                return false
-            end
 
             local keyStr = tostring(Keybind.Key)
             local codeStr = tostring(Input.KeyCode)
@@ -2238,7 +2259,11 @@ local Library do
             return (codeStr == keyStr) or (typeStr == keyStr) or (codeName == keyStr) or (typeName == keyStr)
         end
 
-        Library:Connect(UserInputService.InputBegan, function(Input)
+        Library:Connect(UserInputService.InputBegan, function(Input, gameProcessed)
+            if gameProcessed and UserInputService:GetFocusedTextBox() then
+                return
+            end
+
             if matchesKeybind(Input) then
                 if Keybind.Mode == "Toggle" then
                     Keybind:Press()
@@ -2277,17 +2302,14 @@ local Library do
         end)
 
         Items["Toggle"]:Connect("MouseButton1Down", function()
-            Keybind.Mode = "Toggle"
             Keybind:SetMode("Toggle")
         end)
 
         Items["Hold"]:Connect("MouseButton1Down", function()
-            Keybind.Mode = "Hold"
             Keybind:SetMode("Hold")
         end)
 
         Items["Always"]:Connect("MouseButton1Down", function()
-            Keybind.Mode = "Always"
             Keybind:SetMode("Always")
         end)
 
@@ -2296,6 +2318,12 @@ local Library do
                 Mode = Data.Mode or "Toggle",
                 Key = Data.Default,
             })
+        else
+            Library.Flags[Keybind.Flag] = {
+                Mode = Keybind.Mode,
+                Key = Keybind.Key,
+                Toggled = Keybind.Toggled
+            }
         end
 
         Library.SetFlags[Keybind.Flag] = function(Value)
@@ -2874,6 +2902,38 @@ local Library do
                 local MainFrame = Items["MainFrame"] and Items["MainFrame"].Instance
                 if MainFrame and MainFrame.Parent then
                     MainFrame.Visible = Window.IsOpen
+                end
+                if not Window.OpenButton and MainFrame and MainFrame.Parent then
+                    local openButton = Instance.new("TextButton")
+                    openButton.Name = "Acheron_OpenMenu"
+                    openButton.Parent = MainFrame.Parent
+                    openButton.Position = UDim2New(0, 12, 0, 12)
+                    openButton.Size = UDim2New(0, 76, 0, 28)
+                    openButton.BackgroundColor3 = Library.Theme.Background
+                    openButton.BorderSizePixel = 0
+                    openButton.FontFace = Library.Font
+                    openButton.Text = "MENU"
+                    openButton.TextColor3 = Library.Theme.Text
+                    openButton.TextSize = 12
+                    openButton.ZIndex = 1000
+                    openButton.Visible = false
+
+                    local corner = Instance.new("UICorner")
+                    corner.CornerRadius = UDimNew(0, 6)
+                    corner.Parent = openButton
+
+                    local stroke = Instance.new("UIStroke")
+                    stroke.Color = Library.Theme.Outline
+                    stroke.Thickness = 1
+                    stroke.Parent = openButton
+
+                    openButton.MouseButton1Click:Connect(function()
+                        Window:SetOpen(true)
+                    end)
+                    Window.OpenButton = openButton
+                end
+                if Window.OpenButton then
+                    Window.OpenButton.Visible = not Window.IsOpen
                 end
                 if applyMenuVisuals then
                     applyMenuVisuals(Window.IsOpen)
@@ -3521,7 +3581,16 @@ local Library do
                 return Toggle.Value
             end
 
+            function Toggle:IsActive()
+                local keybind = Toggle.Keybind
+                local key = keybind and keybind.Key
+                local hasKey = key ~= nil and key ~= "" and key ~= "None" and key ~= "Enum.KeyCode.Unknown"
+                return Toggle.Value and (not hasKey or keybind.Toggled)
+            end
+
             function Toggle:Set(Value)
+                Library.ToggleObjects = Library.ToggleObjects or {}
+                Library.ToggleObjects[Toggle.Flag] = Toggle
                 Toggle.Value = Value
                 Library.Flags[Toggle.Flag] = Value
 
@@ -3597,6 +3666,7 @@ local Library do
                 Data = Data or { }
 
                 local userCallback = Data.Callback or Data.callback
+                local NewKeybind
                 local Keybind = {
                     Window = Toggle.Window,
                     Page = Toggle.Page,
@@ -3605,14 +3675,14 @@ local Library do
                     Flag = Data.Flag or Data.flag or Library:NextFlag(),
                     Default = Data.Default or Data.default,
                     Mode = Data.Mode or Data.mode or "Toggle",
-                    Callback = function(state)
+                    Callback = function()
                         if userCallback then
-                            Library:SafeCall(userCallback, state)
+                            Library:SafeCall(userCallback, Toggle:IsActive())
                         end
                     end
                 }
 
-                local NewKeybind, KeybindItems = Library:CreateKeybind({
+                NewKeybind = Library:CreateKeybind({
                     Parent = Items["SubElements"],
                     Page = Keybind.Page,
                     Section = Keybind.Section,
@@ -3622,6 +3692,7 @@ local Library do
                     Callback = Keybind.Callback
                 })
 
+                Toggle.Keybind = NewKeybind
                 return NewKeybind
             end
 
@@ -5183,6 +5254,7 @@ local CoreGui = cloneref and cloneref(game:GetService("CoreGui")) or game:GetSer
 local RunService = cloneref and cloneref(game:GetService("RunService")) or game:GetService("RunService")
 local TweenService = cloneref and cloneref(game:GetService("TweenService")) or game:GetService("TweenService")
 local UserInputService = cloneref and cloneref(game:GetService("UserInputService")) or game:GetService("UserInputService")
+local GuiService = cloneref and cloneref(game:GetService("GuiService")) or game:GetService("GuiService")
 local Lighting = cloneref and cloneref(game:GetService("Lighting")) or game:GetService("Lighting")
 local HttpService = cloneref and cloneref(game:GetService("HttpService")) or game:GetService("HttpService")
 
@@ -5223,6 +5295,19 @@ local WHITE = Color3.fromRGB(255, 255, 255)
 local BLACK = Color3.fromRGB(0, 0, 0)
 local Watermark = nil
 local allToggles = {}
+local function getToggleActivation(toggle, fallback)
+    if toggle and type(toggle.IsActive) == "function" then
+        return toggle:IsActive()
+    end
+    return fallback
+end
+
+local function getViewportMouseLocation()
+    local mouseLocation = UserInputService:GetMouseLocation()
+    local inset = GuiService:GetGuiInset()
+    return mouseLocation - inset
+end
+
 local combatState = {
     AimbotTarget = nil,
     TargetLocked = nil,
@@ -5233,6 +5318,9 @@ local combatState = {
     LastTriggerShot = 0,
     TargetAcquireTick = 0,
     CurrentAimbotTargetChar = nil,
+    TargetHitpart = nil,
+    TargetHitpartName = nil,
+    TargetHitpartCharacter = nil,
     LastTargetWasAir = false,
     TargetJumpTick = 0,
 }
@@ -5417,7 +5505,7 @@ local function makePageSubtabs(page, tabsList, defaultTab)
     return registerSection, updateTabVisibility
 end
 
-Library.MenuKeybind = tostring(Enum.KeyCode.Insert)
+Library.MenuKeybind = "None"
 
 local LOGO = "rbxassetid://134242818164054"
 local PAGE_ICON = "rbxassetid://72196061405823"
@@ -6461,7 +6549,7 @@ do
     })
     aimbotToggleKeybindObj = aimbotToggle:Keybind({
         Mode = "Hold",
-        Default = Enum.KeyCode.E,
+        Default = "None",
     })
 
     local COMBAT_HITPARTS = {
@@ -6737,23 +6825,28 @@ do
 
     local drawFovToggle, fovSizeSlider, fovOutlineAlphaSlider, fovFillAlphaSlider, fovSidesSlider, fovSpinToggle, fovSpinSpeedSlider, fovRainbowToggle, fovPulseToggle, fovDynamicToggle, fovThicknessSlider, fovPlacementDropdown
 
+    local function updateCombatFovVisibility()
+        local enabled = Library.Flags["Combat_UseFOV"] == true or Library.Flags["Combat_DrawFOV"] == true
+        if drawFovToggle then drawFovToggle:SetVisibility(true) end
+        if fovSizeSlider then fovSizeSlider:SetVisibility(enabled) end
+        if fovOutlineAlphaSlider then fovOutlineAlphaSlider:SetVisibility(enabled) end
+        if fovFillAlphaSlider then fovFillAlphaSlider:SetVisibility(enabled) end
+        if fovSidesSlider then fovSidesSlider:SetVisibility(enabled) end
+        if fovSpinToggle then fovSpinToggle:SetVisibility(enabled) end
+        if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(enabled and Library.Flags["Combat_FOVSpin"] == true) end
+        if fovRainbowToggle then fovRainbowToggle:SetVisibility(enabled) end
+        if fovPulseToggle then fovPulseToggle:SetVisibility(enabled) end
+        if fovDynamicToggle then fovDynamicToggle:SetVisibility(enabled) end
+        if fovThicknessSlider then fovThicknessSlider:SetVisibility(enabled) end
+        if fovPlacementDropdown then fovPlacementDropdown:SetVisibility(enabled) end
+    end
+
     local useFovToggle = AimbotFOVSection:Toggle({
         Name = "FOV Limit",
         Flag = "Combat_UseFOV",
         Default = false,
         Callback = function(val)
-            if drawFovToggle then drawFovToggle:SetVisibility(val) end
-            if fovSizeSlider then fovSizeSlider:SetVisibility(val) end
-            if fovOutlineAlphaSlider then fovOutlineAlphaSlider:SetVisibility(val) end
-            if fovFillAlphaSlider then fovFillAlphaSlider:SetVisibility(val) end
-            if fovSidesSlider then fovSidesSlider:SetVisibility(val) end
-            if fovSpinToggle then fovSpinToggle:SetVisibility(val) end
-            if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(val and Library.Flags["Combat_FOVSpin"] == true) end
-            if fovRainbowToggle then fovRainbowToggle:SetVisibility(val) end
-            if fovPulseToggle then fovPulseToggle:SetVisibility(val) end
-            if fovDynamicToggle then fovDynamicToggle:SetVisibility(val) end
-            if fovThicknessSlider then fovThicknessSlider:SetVisibility(val) end
-            if fovPlacementDropdown then fovPlacementDropdown:SetVisibility(val) end
+            updateCombatFovVisibility()
         end,
     })
 
@@ -6761,6 +6854,9 @@ do
         Name = "Draw Circle",
         Flag = "Combat_DrawFOV",
         Default = false,
+        Callback = function()
+            updateCombatFovVisibility()
+        end,
     })
     drawFovToggle:Colorpicker({
         Flag = "Combat_FOVColor",
@@ -6781,7 +6877,7 @@ do
     })
 
     fovOutlineAlphaSlider = AimbotFOVSection:Slider({
-        Name = "Outline Alpha",
+        Name = "Outline Transparency",
         Flag = "Combat_FOVOutlineAlpha",
         Default = 0,
         Min = 0,
@@ -6790,7 +6886,7 @@ do
     })
 
     fovFillAlphaSlider = AimbotFOVSection:Slider({
-        Name = "Fill Alpha",
+        Name = "Fill Transparency",
         Flag = "Combat_FOVFillAlpha",
         Default = 85,
         Min = 0,
@@ -6811,7 +6907,7 @@ do
         Flag = "Combat_FOVSpin",
         Default = false,
         Callback = function(val)
-            if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(val and Library.Flags["Combat_UseFOV"] == true) end
+            updateCombatFovVisibility()
         end,
     })
 
@@ -6878,19 +6974,7 @@ do
         if jumpDelaySlider then jumpDelaySlider:SetVisibility(Library.Flags["Combat_JumpDelayToggle"] == true) end
         if pullResXSlider then pullResXSlider:SetVisibility(Library.Flags["Combat_PullResToggle"] == true) end
         if pullResYSlider then pullResYSlider:SetVisibility(Library.Flags["Combat_PullResToggle"] == true) end
-        local fovLimitActive = Library.Flags["Combat_UseFOV"] == true
-        if drawFovToggle then drawFovToggle:SetVisibility(fovLimitActive) end
-        if fovSizeSlider then fovSizeSlider:SetVisibility(fovLimitActive) end
-        if fovOutlineAlphaSlider then fovOutlineAlphaSlider:SetVisibility(fovLimitActive) end
-        if fovFillAlphaSlider then fovFillAlphaSlider:SetVisibility(fovLimitActive) end
-        if fovSidesSlider then fovSidesSlider:SetVisibility(fovLimitActive) end
-        if fovSpinToggle then fovSpinToggle:SetVisibility(fovLimitActive) end
-        if fovSpinSpeedSlider then fovSpinSpeedSlider:SetVisibility(fovLimitActive and Library.Flags["Combat_FOVSpin"] == true) end
-        if fovRainbowToggle then fovRainbowToggle:SetVisibility(fovLimitActive) end
-        if fovPulseToggle then fovPulseToggle:SetVisibility(fovLimitActive) end
-        if fovDynamicToggle then fovDynamicToggle:SetVisibility(fovLimitActive) end
-        if fovThicknessSlider then fovThicknessSlider:SetVisibility(fovLimitActive) end
-        if fovPlacementDropdown then fovPlacementDropdown:SetVisibility(fovLimitActive) end
+        updateCombatFovVisibility()
     end)
 
     local SilentAimMainSection = CombatPage:Section({
@@ -6916,9 +7000,9 @@ do
             if sChecks then sChecks:SetVisibility(val) end
         end,
     })
-    silentAimToggle:Keybind({
+    local silentAimKeybindObj = silentAimToggle:Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.None,
+        Default = "None",
     })
 
     sPredToggle = SilentAimMainSection:Toggle({
@@ -6990,23 +7074,28 @@ do
 
     local sDrawFov, sFovSize, sOutlineAlpha, sFillAlpha, sFovSides, sFovSpin, sSpinSpeed, sRainbowToggle, sPulseToggle, sDynamicToggle, sThicknessSlider, sFovPlacement
 
+    local function updateSilentFovVisibility()
+        local enabled = Library.Flags["SilentAim_UseFOV"] == true or Library.Flags["SilentAim_DrawFOV"] == true
+        if sDrawFov then sDrawFov:SetVisibility(true) end
+        if sFovSize then sFovSize:SetVisibility(enabled) end
+        if sOutlineAlpha then sOutlineAlpha:SetVisibility(enabled) end
+        if sFillAlpha then sFillAlpha:SetVisibility(enabled) end
+        if sFovSides then sFovSides:SetVisibility(enabled) end
+        if sFovSpin then sFovSpin:SetVisibility(enabled) end
+        if sSpinSpeed then sSpinSpeed:SetVisibility(enabled and Library.Flags["SilentAim_FOVSpin"] == true) end
+        if sRainbowToggle then sRainbowToggle:SetVisibility(enabled) end
+        if sPulseToggle then sPulseToggle:SetVisibility(enabled) end
+        if sDynamicToggle then sDynamicToggle:SetVisibility(enabled) end
+        if sThicknessSlider then sThicknessSlider:SetVisibility(enabled) end
+        if sFovPlacement then sFovPlacement:SetVisibility(enabled) end
+    end
+
     local sUseFovToggle = SilentAimFOVSection:Toggle({
         Name = "FOV Limit",
         Flag = "SilentAim_UseFOV",
         Default = false,
         Callback = function(val)
-            if sDrawFov then sDrawFov:SetVisibility(val) end
-            if sFovSize then sFovSize:SetVisibility(val) end
-            if sOutlineAlpha then sOutlineAlpha:SetVisibility(val) end
-            if sFillAlpha then sFillAlpha:SetVisibility(val) end
-            if sFovSides then sFovSides:SetVisibility(val) end
-            if sFovSpin then sFovSpin:SetVisibility(val) end
-            if sSpinSpeed then sSpinSpeed:SetVisibility(val and Library.Flags["SilentAim_FOVSpin"] == true) end
-            if sRainbowToggle then sRainbowToggle:SetVisibility(val) end
-            if sPulseToggle then sPulseToggle:SetVisibility(val) end
-            if sDynamicToggle then sDynamicToggle:SetVisibility(val) end
-            if sThicknessSlider then sThicknessSlider:SetVisibility(val) end
-            if sFovPlacement then sFovPlacement:SetVisibility(val) end
+            updateSilentFovVisibility()
         end,
     })
 
@@ -7014,6 +7103,9 @@ do
         Name = "Draw Circle",
         Flag = "SilentAim_DrawFOV",
         Default = false,
+        Callback = function()
+            updateSilentFovVisibility()
+        end,
     })
     sDrawFov:Colorpicker({
         Flag = "SilentAim_FOVColor",
@@ -7034,7 +7126,7 @@ do
     })
 
     sOutlineAlpha = SilentAimFOVSection:Slider({
-        Name = "Outline Alpha",
+        Name = "Outline Transparency",
         Flag = "SilentAim_FOVOutlineAlpha",
         Default = 0,
         Min = 0,
@@ -7043,7 +7135,7 @@ do
     })
 
     sFillAlpha = SilentAimFOVSection:Slider({
-        Name = "Fill Alpha",
+        Name = "Fill Transparency",
         Flag = "SilentAim_FOVFillAlpha",
         Default = 90,
         Min = 0,
@@ -7064,7 +7156,7 @@ do
         Flag = "SilentAim_FOVSpin",
         Default = false,
         Callback = function(val)
-            if sSpinSpeed then sSpinSpeed:SetVisibility(val and Library.Flags["SilentAim_UseFOV"] == true) end
+            updateSilentFovVisibility()
         end,
     })
 
@@ -7119,7 +7211,7 @@ do
         if sAirDrop then sAirDrop:SetVisibility(sAct) end
         if sHitChance then sHitChance:SetVisibility(sAct) end
         if sChecks then sChecks:SetVisibility(sAct) end
-        if sSpinSpeed then sSpinSpeed:SetVisibility(Library.Flags["SilentAim_FOVSpin"] == true) end
+        updateSilentFovVisibility()
     end)
 
     local TriggerbotSection = CombatPage:Section({
@@ -7144,9 +7236,9 @@ do
             if trigWallCheck then trigWallCheck:SetVisibility(val) end
         end,
     })
-    trigToggle:Keybind({
+    local triggerbotKeybindObj = trigToggle:Keybind({
         Mode = "Hold",
-        Default = Enum.KeyCode.F,
+        Default = "None",
     })
 
     trigDelay = TriggerbotSection:Slider({
@@ -7415,7 +7507,11 @@ do
         end
 
         if hasCheck("Ignore Acheron Users") or hasCheck("Ignore Users - Acheron Users") then
-            if p:GetAttribute("AcheronUser") or p:FindFirstChild("AcheronUser") then
+            local isAcheronUser = char:GetAttribute("AcheronUser") or char:FindFirstChild("AcheronUser")
+            if typeof(p) == "Instance" and p:IsA("Player") then
+                isAcheronUser = isAcheronUser or p:GetAttribute("AcheronUser") or p:FindFirstChild("AcheronUser")
+            end
+            if isAcheronUser then
                 return false
             end
         end
@@ -7442,12 +7538,12 @@ do
 
     local function getFOVOrigin(placementMode)
         local cam = Workspace.CurrentCamera
-        if not cam or not cam.ViewportSize then return Vector2.new(960, 540) end
+        if not cam or not cam.ViewportSize then return Vector2.new(0, 0) end
         local screenCenter = Vector2.new(cam.ViewportSize.X * 0.5, cam.ViewportSize.Y * 0.5)
 
         local pos = screenCenter
         if placementMode == "Mouse" then
-            local mouseLoc = UserInputService:GetMouseLocation()
+            local mouseLoc = getViewportMouseLocation()
             if mouseLoc and mouseLoc.X == mouseLoc.X and mouseLoc.Y == mouseLoc.Y then
                 pos = mouseLoc
             end
@@ -7475,6 +7571,18 @@ do
             pos = screenCenter
         end
         return pos
+    end
+
+    local function getEffectiveFOVRadius(radiusFlag, dynamicFlag, pulseFlag, cam, now)
+        cam = cam or Workspace.CurrentCamera
+        local radius = math.clamp(tonumber(Library.Flags[radiusFlag]) or 140, 2, 2500)
+        if Library.Flags[dynamicFlag] and cam and cam.FieldOfView and cam.FieldOfView > 0 then
+            radius = radius * (70 / math.max(cam.FieldOfView, 1))
+        end
+        if Library.Flags[pulseFlag] then
+            radius = radius * (1 + math.sin((now or tick()) * 5) * 0.15)
+        end
+        return math.clamp(radius, 2, 2500)
     end
 
     local botCandidateCache = setmetatable({}, {__mode = "k"})
@@ -7544,12 +7652,23 @@ do
     end
     Library.GetAllTargetCandidates = getAllTargetCandidates
 
+    local function getStableAimbotHitpart(char, hitpartName)
+        if hitpartName == "Random"
+            and combatState.TargetHitpartCharacter == char
+            and combatState.TargetHitpartName == hitpartName
+            and combatState.TargetHitpart
+            and combatState.TargetHitpart.Parent == char then
+            return combatState.TargetHitpart
+        end
+        return getTargetHitpart(char, hitpartName)
+    end
+
     local function getBestAimbotTarget()
         local cam = Workspace.CurrentCamera
         if not cam then return nil, nil end
 
         local fovOrigin = getFOVOrigin(Library.Flags["Combat_FOVPlacement"] or "Middle")
-        local fovRadius = Library.Flags["Combat_FOVRadius"] or 140
+        local fovRadius = getEffectiveFOVRadius("Combat_FOVRadius", "Combat_FOVDynamic", "Combat_FOVPulse", cam)
         local useFOV = Library.Flags["Combat_UseFOV"] == true
         local checks = Library.Flags["Combat_Checks"] or {"Team Check", "Wall Check", "Dead Check"}
 
@@ -7560,12 +7679,15 @@ do
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local isAir = hum and (hum.FloorMaterial == Enum.Material.Air or (char.PrimaryPart and math.abs(char.PrimaryPart.Velocity.Y) > 2))
                 local hitPartName = isAir and (Library.Flags["Combat_HitpartAir"] or "HumanoidRootPart") or (Library.Flags["Combat_HitpartGround"] or "Head")
-                local part = getTargetHitpart(char, hitPartName)
+                local part = getStableAimbotHitpart(char, hitPartName)
                 if part then
-                    local pos2d, onScreen = cam:WorldToViewportPoint(part.Position)
-                    if onScreen and pos2d.Z > 0 then
+                    local pos2d = cam:WorldToViewportPoint(part.Position)
+                    if pos2d.Z > 0 then
                         local distToOrigin = (Vector2.new(pos2d.X, pos2d.Y) - fovOrigin).Magnitude
                         if not useFOV or distToOrigin <= fovRadius * 1.5 then
+                            combatState.TargetHitpart = part
+                            combatState.TargetHitpartName = hitPartName
+                            combatState.TargetHitpartCharacter = char
                             return p, part
                         end
                     end
@@ -7576,6 +7698,7 @@ do
         local closestDist = math.huge
         local bestPlayer = nil
         local bestPart = nil
+        local bestHitpartName = nil
 
         for _, p in ipairs(getAllTargetCandidates()) do
             if validateTarget(p, checks) then
@@ -7583,7 +7706,7 @@ do
                 local hum = char and char:FindFirstChildOfClass("Humanoid")
                 local isAir = hum and (hum.FloorMaterial == Enum.Material.Air or (char.PrimaryPart and math.abs(char.PrimaryPart.Velocity.Y) > 2))
                 local hitPartName = isAir and (Library.Flags["Combat_HitpartAir"] or "HumanoidRootPart") or (Library.Flags["Combat_HitpartGround"] or "Head")
-                local part = getTargetHitpart(char, hitPartName)
+                local part = getStableAimbotHitpart(char, hitPartName)
 
                 if part then
                     local pos2d, onScreen = cam:WorldToViewportPoint(part.Position)
@@ -7593,12 +7716,18 @@ do
                             closestDist = screenDist
                             bestPlayer = p
                             bestPart = part
+                            bestHitpartName = hitPartName
                         end
                     end
                 end
             end
         end
 
+        if bestPlayer and bestPart then
+            combatState.TargetHitpart = bestPart
+            combatState.TargetHitpartName = bestHitpartName
+            combatState.TargetHitpartCharacter = bestPlayer.Character
+        end
         return bestPlayer, bestPart
     end
 
@@ -7716,15 +7845,9 @@ do
         if not cam then return nil, nil end
 
         local fovOrigin = getFOVOrigin(Library.Flags["SilentAim_FOVPlacement"] or "Middle")
-        local fovRadius = Library.Flags["SilentAim_FOVSize"] or 180
+        local fovRadius = getEffectiveFOVRadius("SilentAim_FOVSize", "SilentAim_FOVDynamic", "SilentAim_FOVPulse", cam)
         local useFOV = Library.Flags["SilentAim_UseFOV"] == true
         local checks = Library.Flags["SilentAim_Checks"] or {"Team Check", "Dead Check"}
-        local hitChance = Library.Flags["SilentAim_HitChance"] or 100
-
-        if math.random(1, 100) > hitChance then
-            return nil, nil
-        end
-
         local closestDist = math.huge
         local bestPlayer = nil
         local bestPart = nil
@@ -7755,7 +7878,9 @@ do
     end
 
     local function getSilentAimPosition()
-        if not Library.Flags["SilentAim_Enable"] then return nil end
+        if not getToggleActivation(Library.ToggleObjects and Library.ToggleObjects["SilentAim_Enable"], false) then return nil end
+        local hitChance = math.clamp(tonumber(Library.Flags["SilentAim_HitChance"]) or 100, 1, 100)
+        if math.random(1, 100) > hitChance then return nil end
         local p, part = getBestSilentTarget()
         if not p or not part then return nil end
 
@@ -7786,7 +7911,7 @@ do
                 local method = getnamecallmethod()
                 local args = {...}
 
-                if not unloaded and Library.Flags["SilentAim_Enable"] and (method == "Raycast" or method == "FindPartOnRay" or method == "FindPartOnRayWithWhitelist" or method == "FindPartOnRayWithIgnoreList") then
+                if not unloaded and getToggleActivation(Library.ToggleObjects and Library.ToggleObjects["SilentAim_Enable"], false) and (method == "Raycast" or method == "FindPartOnRay" or method == "FindPartOnRayWithWhitelist" or method == "FindPartOnRayWithIgnoreList") then
                     local silentPos, silentPart = getSilentAimPosition()
                     if silentPos and silentPart then
                         if method == "Raycast" and args[1] and typeof(args[1]) == "Vector3" then
@@ -7813,16 +7938,7 @@ do
         if aimDraw then
             local placement = Library.Flags["Combat_FOVPlacement"] or "Middle"
             local fovOrigin = getFOVOrigin(placement)
-            local fovRadius = math.clamp(tonumber(Library.Flags["Combat_FOVRadius"]) or 140, 2, 2500)
-            
-            if Library.Flags["Combat_FOVDynamic"] and cam and cam.FieldOfView and cam.FieldOfView > 0 then
-                local baseFov = 70
-                fovRadius = math.clamp(fovRadius * (baseFov / math.max(cam.FieldOfView, 1)), 2, 2500)
-            end
-            if Library.Flags["Combat_FOVPulse"] then
-                local pulseScale = 1 + (math.sin(t * 5) * 0.15)
-                fovRadius = math.clamp(fovRadius * pulseScale, 2, 2500)
-            end
+            local fovRadius = getEffectiveFOVRadius("Combat_FOVRadius", "Combat_FOVDynamic", "Combat_FOVPulse", cam, t)
 
             local outlineAlpha = math.clamp((tonumber(Library.Flags["Combat_FOVOutlineAlpha"]) or 0) / 100, 0, 1)
             local fillAlpha = math.clamp((tonumber(Library.Flags["Combat_FOVFillAlpha"]) or 85) / 100, 0, 1)
@@ -7859,16 +7975,7 @@ do
         if silentDraw then
             local placement = Library.Flags["SilentAim_FOVPlacement"] or "Middle"
             local fovOrigin = getFOVOrigin(placement)
-            local fovRadius = math.clamp(tonumber(Library.Flags["SilentAim_FOVSize"]) or 180, 2, 2500)
-
-            if Library.Flags["SilentAim_FOVDynamic"] and cam and cam.FieldOfView and cam.FieldOfView > 0 then
-                local baseFov = 70
-                fovRadius = math.clamp(fovRadius * (baseFov / math.max(cam.FieldOfView, 1)), 2, 2500)
-            end
-            if Library.Flags["SilentAim_FOVPulse"] then
-                local pulseScale = 1 + (math.sin(t * 5) * 0.15)
-                fovRadius = math.clamp(fovRadius * pulseScale, 2, 2500)
-            end
+            local fovRadius = getEffectiveFOVRadius("SilentAim_FOVSize", "SilentAim_FOVDynamic", "SilentAim_FOVPulse", cam, t)
 
             local outlineAlpha = math.clamp((tonumber(Library.Flags["SilentAim_FOVOutlineAlpha"]) or 0) / 100, 0, 1)
             local fillAlpha = math.clamp((tonumber(Library.Flags["SilentAim_FOVFillAlpha"]) or 90) / 100, 0, 1)
@@ -7901,7 +8008,7 @@ do
             sFovCircleFrame.Visible = false
         end
 
-        if Library.Flags["SilentAim_Enable"] then
+        if getToggleActivation(Library.ToggleObjects and Library.ToggleObjects["SilentAim_Enable"], false) then
             local sPlayer, sPart = getBestSilentTarget()
             combatState.SilentTarget = sPlayer
             combatState.SilentLocked = sPart
@@ -7910,9 +8017,7 @@ do
             combatState.SilentLocked = nil
         end
 
-        local aimbotMaster = Library.Flags["Combat_Aimbot"] == true
-        local aimbindState = aimbotToggleKeybindObj and aimbotToggleKeybindObj.Toggled
-        local aimbotActive = aimbotMaster and (aimbindState == nil or aimbindState == true)
+        local aimbotActive = getToggleActivation(Library.ToggleObjects and Library.ToggleObjects["Combat_Aimbot"], false)
 
         if aimbotActive then
             local bestPlayer, targetPart = getBestAimbotTarget()
@@ -8044,11 +8149,17 @@ do
                 combatState.AimbotTarget = nil
                 combatState.TargetLocked = nil
                 combatState.CurrentAimbotTargetChar = nil
+                combatState.TargetHitpart = nil
+                combatState.TargetHitpartName = nil
+                combatState.TargetHitpartCharacter = nil
             end
         else
             combatState.AimbotTarget = nil
             combatState.TargetLocked = nil
             combatState.CurrentAimbotTargetChar = nil
+            combatState.TargetHitpart = nil
+            combatState.TargetHitpartName = nil
+            combatState.TargetHitpartCharacter = nil
         end
 
         if Library.Flags["Hitbox_Enable"] then
@@ -8091,13 +8202,13 @@ do
 
     task.spawn(function()
         while not unloaded and getgenv().AcheronGen == GEN do
-            if not Library.Flags["Triggerbot_Enable"] then
+            if not getToggleActivation(Library.ToggleObjects and Library.ToggleObjects["Triggerbot_Enable"], false) then
                 task.wait(0.1)
             else
                 task.wait(0.03)
                 local cam = Workspace.CurrentCamera
                 if cam then
-                    local mousePos = UserInputService:GetMouseLocation()
+                    local mousePos = getViewportMouseLocation()
                     local unitRay = cam:ViewportPointToRay(mousePos.X, mousePos.Y)
                     local rayParams = RaycastParams.new()
                     rayParams.FilterType = Enum.RaycastFilterType.Exclude
@@ -8252,6 +8363,21 @@ do
                 ColorSequenceKeypoint.new(1.0, c2),
             })
         end
+    end
+
+    local function getHealthBarColor(healthPercent)
+        healthPercent = math.clamp(healthPercent, 0, 1)
+        if espConfig.HealthBarMode == "Gradient (Green-Red)" or espConfig.HealthBarMode == "Dynamic Gradient" then
+            if healthPercent > 0.6 then
+                return Color3.fromRGB(56, 239, 125):Lerp(Color3.fromRGB(255, 215, 0), (1 - healthPercent) * 2.5)
+            elseif healthPercent > 0.25 then
+                return Color3.fromRGB(255, 215, 0):Lerp(Color3.fromRGB(255, 120, 40), (0.6 - healthPercent) * 2.85)
+            end
+            return Color3.fromRGB(255, 120, 40):Lerp(Color3.fromRGB(255, 45, 45), (0.25 - healthPercent) * 4)
+        elseif espConfig.HealthBarMode == "Theme Accent" then
+            return Library.Theme.Accent or espConfig.HealthColor
+        end
+        return espConfig.HealthColor
     end
 
     local bwGradientSequence = getEspTextGradientSequence("Monochrome Wave")
@@ -8471,6 +8597,7 @@ do
         Callback = function(val)
             espConfig.HeadDot = val
             if headDotSizeSlider then headDotSizeSlider:SetVisibility(val) end
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
     headDotToggle:Colorpicker({
@@ -8478,6 +8605,7 @@ do
         Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.HeadDotColor = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
 
@@ -8490,6 +8618,7 @@ do
         Suffix = " px",
         Callback = function(val)
             espConfig.HeadDotSize = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
 
@@ -8583,6 +8712,7 @@ do
         Callback = function(val)
             espConfig.Offscreen = val
             if offscreenRadiusSlider then offscreenRadiusSlider:SetVisibility(val) end
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
     offscreenToggle:Colorpicker({
@@ -8590,6 +8720,7 @@ do
         Default = Color3.fromRGB(255, 255, 255),
         Callback = function(val)
             espConfig.OffscreenColor = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
 
@@ -8602,6 +8733,7 @@ do
         Suffix = " px",
         Callback = function(val)
             espConfig.OffscreenRadius = val
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
 
@@ -9021,6 +9153,10 @@ do
     local originalPartMaterials = {}
     local originalPartColors = {}
     local originalPartTrans = {}
+    local previewHighlight = Instance.new("Highlight")
+    previewHighlight.Name = "ESPPreviewHighlight"
+    previewHighlight.Parent = worldModel
+    previewHighlight.Enabled = false
 
     local overlayContainer = Instance.new("Frame")
     overlayContainer.Name = "ESPOverlayCanvas"
@@ -9070,9 +9206,17 @@ do
     cornerGroup.BackgroundTransparency = 1
     cornerGroup.ZIndex = 64
 
-    local function rebuildPreviewCorners()
-        for _, ch in ipairs(cornerGroup:GetChildren()) do ch:Destroy() end
-        local col = espConfig.BoxColor
+    local function rebuildPreviewCorners(color)
+        local col = color or espConfig.BoxColor
+        local children = cornerGroup:GetChildren()
+        if #children > 0 then
+            for _, child in ipairs(children) do
+                if child.Name == "HF" or child.Name == "VF" then
+                    child.BackgroundColor3 = col
+                end
+            end
+            return
+        end
         local L = 10
 
         local function addCorner(hPos, vPos, hSize, vSize, hForePos, vForePos, hForeSize, vForeSize)
@@ -9085,6 +9229,7 @@ do
             hb.ZIndex = 64
 
             local hf = Instance.new("Frame")
+            hf.Name = "HF"
             hf.Parent = cornerGroup
             hf.BackgroundColor3 = col
             hf.BorderSizePixel = 0
@@ -9101,6 +9246,7 @@ do
             vb.ZIndex = 64
 
             local vf = Instance.new("Frame")
+            vf.Name = "VF"
             vf.Parent = cornerGroup
             vf.BackgroundColor3 = col
             vf.BorderSizePixel = 0
@@ -9164,21 +9310,60 @@ do
     previewHealthFill.Position = UDim2.new(0, 0, 1, 0)
     previewHealthFill.Size = UDim2.new(1, 0, 1.0, 0)
     previewHealthFill.ZIndex = 66
+    local previewHealthGradient = Instance.new("UIGradient")
+    previewHealthGradient.Rotation = 90
+    previewHealthGradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 255, 255)),
+        ColorSequenceKeypoint.new(1, Color3.fromRGB(170, 170, 180))
+    })
+    previewHealthGradient.Parent = previewHealthFill
 
     local previewHealthNum = Instance.new("TextLabel")
     previewHealthNum.Name = "HealthNum"
     previewHealthNum.Parent = previewHealthBg
     previewHealthNum.BackgroundTransparency = 1
     previewHealthNum.FontFace = Library.Font
-    previewHealthNum.Text = "100"
+    previewHealthNum.Text = "100 HP"
     previewHealthNum.TextColor3 = espConfig.HealthColor
     previewHealthNum.TextStrokeTransparency = 0
     previewHealthNum.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
     previewHealthNum.TextSize = 9
-    previewHealthNum.Position = UDim2.new(0, -22, 0, 0)
-    previewHealthNum.Size = UDim2.new(0, 18, 0, 12)
+    previewHealthNum.Position = UDim2.new(0, -38, 0, 0)
+    previewHealthNum.Size = UDim2.new(0, 34, 0, 12)
     previewHealthNum.TextXAlignment = Enum.TextXAlignment.Right
     previewHealthNum.ZIndex = 66
+
+    local previewHeadDot = Instance.new("Frame")
+    previewHeadDot.Name = "HeadDot"
+    previewHeadDot.Parent = previewBoxFrame
+    previewHeadDot.AnchorPoint = Vector2.new(0.5, 0.5)
+    previewHeadDot.Position = UDim2.new(0.5, 0, 0.17, 0)
+    previewHeadDot.Size = UDim2.fromOffset(10, 10)
+    previewHeadDot.BackgroundColor3 = espConfig.HeadDotColor
+    previewHeadDot.BorderSizePixel = 0
+    previewHeadDot.ZIndex = 67
+    local previewHeadDotCorner = Instance.new("UICorner")
+    previewHeadDotCorner.CornerRadius = UDim.new(1, 0)
+    previewHeadDotCorner.Parent = previewHeadDot
+    local previewHeadDotStroke = Instance.new("UIStroke")
+    previewHeadDotStroke.Color = Color3.fromRGB(0, 0, 0)
+    previewHeadDotStroke.Thickness = 1
+    previewHeadDotStroke.Parent = previewHeadDot
+
+    local previewLookVector = Instance.new("Frame")
+    previewLookVector.Name = "LookVector"
+    previewLookVector.Parent = previewBoxFrame
+    previewLookVector.AnchorPoint = Vector2.new(0, 0.5)
+    previewLookVector.Position = UDim2.new(0.5, 0, 0.17, 0)
+    previewLookVector.Size = UDim2.fromOffset(28, 1.5)
+    previewLookVector.Rotation = -35
+    previewLookVector.BackgroundColor3 = espConfig.LookVectorColor
+    previewLookVector.BorderSizePixel = 0
+    previewLookVector.ZIndex = 66
+    local previewLookVectorStroke = Instance.new("UIStroke")
+    previewLookVectorStroke.Color = Color3.fromRGB(0, 0, 0)
+    previewLookVectorStroke.Thickness = 0.8
+    previewLookVectorStroke.Parent = previewLookVector
 
     local function makePreviewLabel(name, pos, anchor, size, text, col, txtSize)
         local lbl = Instance.new("TextLabel")
@@ -9199,7 +9384,7 @@ do
         local grad = Instance.new("UIGradient")
         grad.Name = "TextGradient"
         grad.Color = bwGradientSequence
-        grad.Enabled = espConfig.AnimatedGradientText
+        grad.Enabled = espConfig.GradientText
         grad.Parent = lbl
 
         return lbl, grad
@@ -9208,6 +9393,18 @@ do
     local previewNameLabel, previewNameGrad = makePreviewLabel("NameLabel", UDim2.new(0.5, 0, 0, -15), Vector2.new(0.5, 0), UDim2.new(0, 150, 0, 13), Players.LocalPlayer.DisplayName .. " (@" .. Players.LocalPlayer.Name .. ")", espConfig.NameColor, 10)
     local previewDistLabel, previewDistGrad = makePreviewLabel("DistLabel", UDim2.new(0.5, 0, 1, 3), Vector2.new(0.5, 0), UDim2.new(0, 110, 0, 11), "[ 24 studs ]", espConfig.DistanceColor, 9)
     local previewWeaponLabel, previewWeaponGrad = makePreviewLabel("WeaponLabel", UDim2.new(0.5, 0, 1, 15), Vector2.new(0.5, 0), UDim2.new(0, 130, 0, 11), "SWAT M4A1 [30/90]", espConfig.WeaponColor, 9)
+
+    local previewOffscreenArrow = Instance.new("ImageLabel")
+    previewOffscreenArrow.Name = "OffscreenArrow"
+    previewOffscreenArrow.Parent = overlayContainer
+    previewOffscreenArrow.BackgroundTransparency = 1
+    previewOffscreenArrow.Image = "rbxassetid://6031094678"
+    previewOffscreenArrow.ImageColor3 = espConfig.OffscreenColor
+    previewOffscreenArrow.AnchorPoint = Vector2.new(0.5, 0.5)
+    previewOffscreenArrow.Position = UDim2.new(0.92, 0, 0.5, 0)
+    previewOffscreenArrow.Size = UDim2.fromOffset(18, 18)
+    previewOffscreenArrow.Rotation = 90
+    previewOffscreenArrow.ZIndex = 67
 
     local previewTracer = Instance.new("Frame")
     previewTracer.Name = "Tracer"
@@ -9257,46 +9454,73 @@ do
         if not previewWindow.Visible then return end
 
         local active = espConfig.MasterEnabled
+        local previewColor = espConfig.BoxColor
+        if espConfig.RainbowESP then
+            previewColor = Color3.fromHSV((tick() * 0.45) % 1, 0.85, 1)
+        end
 
-        previewBoxFrame.Visible = active and espConfig.Box
-        previewBoxOuterStroke.Enabled = (espConfig.BoxStyle == "2D Full Box")
-        previewBoxInner.Visible = (espConfig.BoxStyle == "2D Full Box")
-        previewBoxStroke.Color = espConfig.BoxColor
-        cornerGroup.Visible = (espConfig.BoxStyle == "Corner Box")
-        rebuildPreviewCorners()
+        local boxVisible = active and espConfig.Box
+        previewBoxFrame.Visible = active
+        previewBoxOuterStroke.Enabled = boxVisible and (espConfig.BoxStyle == "2D Full Box")
+        previewBoxInner.Visible = boxVisible and (espConfig.BoxStyle == "2D Full Box")
+        previewBoxStroke.Color = previewColor
+        cornerGroup.Visible = boxVisible and (espConfig.BoxStyle == "Corner Box")
+        rebuildPreviewCorners(previewColor)
 
         previewHealthBg.Visible = active and espConfig.Health
         previewHealthBg.Position = UDim2.new(0, -(espConfig.HealthBarWidth + 3), 0, 0)
         previewHealthBg.Size = UDim2.new(0, espConfig.HealthBarWidth, 1, 0)
-        previewHealthFill.BackgroundColor3 = (espConfig.HealthBarMode == "Theme Accent" and (Library.Theme.Accent or espConfig.HealthColor)) or espConfig.HealthColor
-        previewHealthNum.Visible = espConfig.HealthText
-        previewHealthNum.TextColor3 = espConfig.HealthColor
+        previewHealthFill.BackgroundColor3 = getHealthBarColor(1)
+        previewHealthNum.Visible = active and espConfig.Health and espConfig.HealthText
+        previewHealthNum.TextColor3 = getHealthBarColor(1)
+
+        previewHeadDot.Visible = active and espConfig.HeadDot
+        previewHeadDot.Size = UDim2.fromOffset(espConfig.HeadDotSize * 2, espConfig.HeadDotSize * 2)
+        previewHeadDot.BackgroundColor3 = espConfig.RainbowESP and previewColor or espConfig.HeadDotColor
+        previewLookVector.Visible = active and espConfig.LookVector
+        previewLookVector.BackgroundColor3 = espConfig.RainbowESP and previewColor or espConfig.LookVectorColor
+        previewOffscreenArrow.Visible = active and espConfig.Offscreen
+        previewOffscreenArrow.ImageColor3 = espConfig.RainbowESP and previewColor or espConfig.OffscreenColor
 
         local curGradSeq = getEspTextGradientSequence(espConfig.GradientMode, espConfig.GradientColor1, espConfig.GradientColor2)
         local gradActive = active and espConfig.GradientText
+        local previewGradOffset = gradActive and Vector2.new((tick() * 1.2) % 2 - 1, 0) or Vector2.zero
 
         previewNameLabel.Visible = active and espConfig.Name
-        previewNameLabel.TextColor3 = espConfig.NameColor
+        previewNameLabel.TextColor3 = espConfig.RainbowESP and previewColor or espConfig.NameColor
         previewNameGrad.Enabled = gradActive
         previewNameGrad.Color = curGradSeq
+        previewNameGrad.Offset = previewGradOffset
 
         previewDistLabel.Visible = active and espConfig.Distance
-        previewDistLabel.TextColor3 = espConfig.DistanceColor
+        previewDistLabel.TextColor3 = espConfig.RainbowESP and previewColor or espConfig.DistanceColor
         previewDistGrad.Enabled = gradActive
         previewDistGrad.Color = curGradSeq
+        previewDistGrad.Offset = previewGradOffset
 
         previewWeaponLabel.Visible = active and espConfig.Weapon
-        previewWeaponLabel.TextColor3 = espConfig.WeaponColor
+        previewWeaponLabel.TextColor3 = espConfig.RainbowESP and previewColor or espConfig.WeaponColor
         previewWeaponGrad.Enabled = gradActive
         previewWeaponGrad.Color = curGradSeq
+        previewWeaponGrad.Offset = previewGradOffset
 
         previewTracer.Visible = active and espConfig.Tracers
-        previewTracer.BackgroundColor3 = espConfig.TracerColor
+        previewTracer.BackgroundColor3 = espConfig.RainbowESP and previewColor or espConfig.TracerColor
+        previewTracer.Size = UDim2.new(0, espConfig.TracerThickness or 1.5, 0, previewTracer.Size.Y.Offset)
 
         previewSkelLines.Visible = active and espConfig.Skeleton
         for _, l in ipairs(skelSegments) do
-            l.BackgroundColor3 = espConfig.SkeletonColor
+            l.BackgroundColor3 = espConfig.RainbowESP and previewColor or espConfig.SkeletonColor
         end
+
+        local highlightActive = active and espConfig.Chams and espConfig.ChamsMaterial == "Highlight" and previewCharModel ~= nil
+        previewHighlight.Adornee = previewCharModel
+        previewHighlight.Enabled = highlightActive
+        previewHighlight.FillColor = espConfig.RainbowESP and previewColor or espConfig.ChamsColor
+        previewHighlight.OutlineColor = espConfig.RainbowESP and previewColor or espConfig.ChamsOutlineColor
+        previewHighlight.FillTransparency = math.clamp(espConfig.ChamsFillTransparency, 0, 1)
+        previewHighlight.OutlineTransparency = math.clamp(espConfig.ChamsOutlineTransparency, 0, 1)
+        previewHighlight.DepthMode = espConfig.ChamsThroughWalls and Enum.HighlightDepthMode.AlwaysOnTop or Enum.HighlightDepthMode.Occluded
 
         if previewCharModel then
             local pulse = espConfig.ChamsPulse and ((math.sin(tick() * 4) + 1) / 2) or 0
@@ -9304,8 +9528,8 @@ do
 
             for _, p in ipairs(previewCharModel:GetDescendants()) do
                 if p:IsA("BasePart") and p.Name ~= "HumanoidRootPart" then
-                    if active and espConfig.Chams then
-                        p.Color = espConfig.ChamsColor
+                    if active and espConfig.Chams and espConfig.ChamsMaterial ~= "Highlight" then
+                        p.Color = espConfig.RainbowESP and previewColor or espConfig.ChamsColor
                         p.Transparency = (espConfig.ChamsMaterial == "Neon") and 0 or effectiveFillTrans
 
                         if espConfig.ChamsMaterial == "ForceField" then
@@ -9373,14 +9597,13 @@ do
                 local cw = cardSize.X > 10 and cardSize.X or 214
                 local ch = cardSize.Y > 10 and cardSize.Y or 258
 
-                local originY = ch
-                if espConfig.TracerOrigin == "Top" then
-                    originY = 0
-                elseif espConfig.TracerOrigin == "Center" then
-                    originY = ch * 0.5
+                local tracerOrigin = Vector2.new(cw * 0.5, ch)
+                if espConfig.TracerOrigin == "Center Screen" then
+                    tracerOrigin = Vector2.new(cw * 0.5, ch * 0.5)
+                elseif espConfig.TracerOrigin == "Mouse Position" then
+                    local mouse = getViewportMouseLocation() - previewCard.AbsolutePosition
+                    tracerOrigin = Vector2.new(math.clamp(mouse.X, 0, cw), math.clamp(mouse.Y, 0, ch))
                 end
-
-                local tracerOrigin = Vector2.new(cw * 0.5, originY)
                 local tracerTarget = Vector2.new(boxX, boxY + boxH)
                 local dir = tracerTarget - tracerOrigin
                 local dist = dir.Magnitude
@@ -9555,6 +9778,7 @@ do
             if syncPreviewPosition then
                 syncPreviewPosition()
             end
+            if updatePreviewOverlay then updatePreviewOverlay() end
         end,
     })
 
@@ -11624,7 +11848,7 @@ do
             local gr = Instance.new("UIGradient")
             gr.Name = "TextGradient"
             gr.Color = bwGradientSequence
-            gr.Enabled = espConfig.AnimatedGradientText
+            gr.Enabled = espConfig.GradientText
             gr.Parent = lbl
 
             return lbl, gr
@@ -11763,6 +11987,9 @@ do
 
         for _, p in ipairs(candidates) do
             pcall(function()
+                if typeof(p) == "table" and p.IsBot and not espConfig.ShowNPCs then
+                    return
+                end
                 local isRealPlayer = (typeof(p) == "Instance" and p:IsA("Player"))
                 local isLocal = (isRealPlayer and p == Players.LocalPlayer)
 
@@ -11913,20 +12140,7 @@ do
                                         data.HealthBarBg.Size = UDim2.fromOffset(barW, boxH)
                                         data.HealthBarFill.Size = UDim2.new(1, 0, hpPct, 0)
 
-                                        local hpColor
-                                        if espConfig.HealthBarMode == "Gradient (Green-Red)" or espConfig.HealthBarMode == "Dynamic Gradient" then
-                                            if hpPct > 0.6 then
-                                                hpColor = Color3.fromRGB(56, 239, 125):Lerp(Color3.fromRGB(255, 215, 0), (1 - hpPct) * 2.5)
-                                            elseif hpPct > 0.25 then
-                                                hpColor = Color3.fromRGB(255, 215, 0):Lerp(Color3.fromRGB(255, 120, 40), (0.6 - hpPct) * 2.85)
-                                            else
-                                                hpColor = Color3.fromRGB(255, 120, 40):Lerp(Color3.fromRGB(255, 45, 45), (0.25 - hpPct) * 4)
-                                            end
-                                        elseif espConfig.HealthBarMode == "Theme Accent" then
-                                            hpColor = Library.Theme.Accent or espConfig.HealthColor
-                                        else
-                                            hpColor = espConfig.HealthColor
-                                        end
+                                        local hpColor = getHealthBarColor(hpPct)
                                         data.HealthBarFill.BackgroundColor3 = hpColor
 
                                         if espConfig.HealthText then
@@ -12030,7 +12244,7 @@ do
 
                                     if espConfig.Tracers then
                                         local origin = (espConfig.TracerOrigin == "Center Screen" and Vector2.new(screenW/2, screenH/2))
-                                            or (espConfig.TracerOrigin == "Mouse Position" and UserInputService:GetMouseLocation())
+                                            or (espConfig.TracerOrigin == "Mouse Position" and getViewportMouseLocation())
                                             or Vector2.new(screenW/2, screenH)
 
                                         local target = Vector2.new(root2d.X, bottom2d.Y)
@@ -12791,12 +13005,13 @@ do
         Side = 1,
     })
 
-    local speedToggle = MovementSection:Toggle({
+    local speedToggle
+    speedToggle = MovementSection:Toggle({
         Name = "Speed Multiplier",
         Flag = "Misc_SpeedToggle",
         Default = false,
         Callback = function(val)
-            if not val then
+            if not getToggleActivation(speedToggle, val) then
                 pcall(function()
                     local hum = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
                     if hum then hum.WalkSpeed = 16 end
@@ -12812,11 +13027,7 @@ do
     speedToggle:Keybind({
         Mode = "Toggle",
         Flag = "Misc_SpeedKeybind",
-        Default = Enum.KeyCode.None,
-        Callback = function(state)
-            Library.Flags["Misc_SpeedToggle"] = state
-            speedToggle:Set(state)
-        end,
+        Default = "None",
     })
 
     MovementSection:Slider({
@@ -12829,7 +13040,7 @@ do
         Callback = function(val)
             pcall(function()
                 local hum = Players.LocalPlayer.Character and Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
-                if hum and Library.Flags["Misc_SpeedToggle"] then
+                if hum and speedToggle:IsActive() then
                     hum.WalkSpeed = val
                 end
             end)
@@ -12887,21 +13098,22 @@ do
     end)
 
     local flySpeedSlider
-    local flyToggle = MovementSection:Toggle({
+    local flyToggle
+    flyToggle = MovementSection:Toggle({
         Name = "Fly Mode",
         Flag = "Misc_FlyToggle",
         Default = false,
         Callback = function(val)
-            miscState.Fly = val
+            miscState.Fly = getToggleActivation(flyToggle, val)
             if flySpeedSlider then flySpeedSlider:SetVisibility(val) end
         end,
     })
     flyToggle:Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.X,
+        Default = "None",
         Callback = function(state)
             miscState.Fly = state
-            if flySpeedSlider then flySpeedSlider:SetVisibility(state) end
+            if flySpeedSlider then flySpeedSlider:SetVisibility(Library.Flags["Misc_FlyToggle"] == true) end
         end,
     })
 
@@ -12917,17 +13129,18 @@ do
         end,
     })
 
-    local noclipToggle = MovementSection:Toggle({
+    local noclipToggle
+    noclipToggle = MovementSection:Toggle({
         Name = "Noclip",
         Flag = "Misc_Noclip",
         Default = false,
         Callback = function(val)
-            miscState.Noclip = val
+            miscState.Noclip = getToggleActivation(noclipToggle, val)
         end,
     })
     noclipToggle:Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.V,
+        Default = "None",
         Callback = function(state)
             miscState.Noclip = state
         end,
@@ -13010,12 +13223,12 @@ do
         Flag = "Misc_InvertYawToggle",
         Default = false,
         Callback = function(val)
-            miscState.YawInverted = val
+            miscState.YawInverted = getToggleActivation(invKeyToggle, val)
         end,
     })
     invKeyToggle:Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.Z,
+        Default = "None",
         Callback = function(state)
             miscState.YawInverted = state
         end,
@@ -13060,58 +13273,69 @@ do
         Side = 2,
     })
 
-    local voidToggle = RageSection:Toggle({
+    local voidApplied = false
+    local function applyVoidHide(val)
+        if voidApplied == val then
+            return
+        end
+        voidApplied = val
+        miscState.VoidHide = val
+
+        pcall(function()
+            local char = Players.LocalPlayer.Character
+            local root = char and char:FindFirstChild("HumanoidRootPart")
+            if not root then return end
+
+            if val then
+                if root.Position.Y < 20000 then
+                    miscState.VoidSavedCF = root.CFrame
+                end
+                if not miscState.VoidPlatform then
+                    local p = Instance.new("Part")
+                    p.Name = "Acheron_VoidPlatform"
+                    p.Size = Vector3.new(30, 2, 30)
+                    p.Position = Vector3.new(0, 30000, 0)
+                    p.Anchored = true
+                    p.CanCollide = true
+                    p.Transparency = 1
+                    p.Parent = Workspace
+                    miscState.VoidPlatform = p
+                end
+                root.CFrame = CFrame.new(0, 30005, 0)
+            else
+                if miscState.VoidSavedCF and miscState.VoidSavedCF.Position.Y < 20000 then
+                    root.CFrame = miscState.VoidSavedCF
+                    miscState.VoidSavedCF = nil
+                else
+                    local spawnPos = Workspace:FindFirstChildOfClass("SpawnLocation")
+                    if spawnPos then
+                        root.CFrame = spawnPos.CFrame + Vector3.new(0, 5, 0)
+                    else
+                        root.CFrame = CFrame.new(root.Position.X, 10, root.Position.Z)
+                    end
+                end
+                if miscState.VoidPlatform then
+                    miscState.VoidPlatform:Destroy()
+                    miscState.VoidPlatform = nil
+                end
+            end
+        end)
+    end
+
+    local voidToggle
+    voidToggle = RageSection:Toggle({
         Name = "Void Hide (Safe Haven)",
         Flag = "Misc_VoidHide",
         Default = false,
         Callback = function(val)
-            miscState.VoidHide = val
-            pcall(function()
-                local char = Players.LocalPlayer.Character
-                local root = char and char:FindFirstChild("HumanoidRootPart")
-                if not root then return end
-
-                if val then
-                    if root.Position.Y < 20000 then
-                        miscState.VoidSavedCF = root.CFrame
-                    end
-                    if not miscState.VoidPlatform then
-                        local p = Instance.new("Part")
-                        p.Name = "Acheron_VoidPlatform"
-                        p.Size = Vector3.new(30, 2, 30)
-                        p.Position = Vector3.new(0, 30000, 0)
-                        p.Anchored = true
-                        p.CanCollide = true
-                        p.Transparency = 1
-                        p.Parent = Workspace
-                        miscState.VoidPlatform = p
-                    end
-                    root.CFrame = CFrame.new(0, 30005, 0)
-                else
-                    if miscState.VoidSavedCF and miscState.VoidSavedCF.Position.Y < 20000 then
-                        root.CFrame = miscState.VoidSavedCF
-                        miscState.VoidSavedCF = nil
-                    else
-                        local spawnPos = Workspace:FindFirstChildOfClass("SpawnLocation")
-                        if spawnPos then
-                            root.CFrame = spawnPos.CFrame + Vector3.new(0, 5, 0)
-                        else
-                            root.CFrame = CFrame.new(root.Position.X, 10, root.Position.Z)
-                        end
-                    end
-                    if miscState.VoidPlatform then
-                        miscState.VoidPlatform:Destroy()
-                        miscState.VoidPlatform = nil
-                    end
-                end
-            end)
+            applyVoidHide(getToggleActivation(voidToggle, val))
         end,
     })
     voidToggle:Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.H,
+        Default = "None",
         Callback = function(state)
-            voidToggle:Set(state)
+            applyVoidHide(state)
         end,
     })
 
@@ -13130,7 +13354,7 @@ do
     })
     clickTpToggle:Keybind({
         Mode = "Hold",
-        Default = Enum.KeyCode.T,
+        Default = "None",
         Callback = function(isDown)
             miscState.ClickTPActive = isDown
             if isDown and Library.Flags["Misc_ClickTP"] then
@@ -13265,8 +13489,10 @@ do
         local hum = char and char:FindFirstChildOfClass("Humanoid")
         if not root or not hum then return end
 
-        if Library.Flags["Misc_SpeedToggle"] and hum.Health > 0 then
+        if speedToggle:IsActive() and hum.Health > 0 then
             hum.WalkSpeed = Library.Flags["Misc_SpeedValue"] or 32
+        elseif Library.Flags["Misc_SpeedToggle"] and hum.Health > 0 then
+            hum.WalkSpeed = 16
         end
 
         if miscState.Fly and hum.Health > 0 then
@@ -14399,18 +14625,23 @@ do
 
     Library.HUDConfig = hudConfig
 
-    local masterHudToggle = OverlaysSection:Toggle({
+    local masterHudToggle
+    masterHudToggle = OverlaysSection:Toggle({
         Name = "Master Overlays Toggle",
         Flag = "Overlay_Master",
         Default = false,
         Callback = function(val)
-            hudConfig.Master = val
+            hudConfig.Master = getToggleActivation(masterHudToggle, val)
             if Library.UpdateOverlays then Library.UpdateOverlays() end
         end,
     })
     masterHudToggle:Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.F11,
+        Default = "None",
+        Callback = function(state)
+            hudConfig.Master = state
+            if Library.UpdateOverlays then Library.UpdateOverlays() end
+        end,
     })
 
     local wmTypeDrop
@@ -14485,9 +14716,9 @@ do
     local menuKeybindObj
     menuKeybindObj = MenuSection:Label("Toggle Menu Key"):Keybind({
         Mode = "Toggle",
-        Default = Enum.KeyCode.Insert,
+        Default = "None",
         Callback = function()
-            if menuKeybindObj and menuKeybindObj.Picking and menuKeybindObj.Value ~= "None" then
+            if menuKeybindObj then
                 Library.MenuKeybind = tostring(menuKeybindObj.Key)
             end
         end,
@@ -15575,5 +15806,3 @@ pcall(function()
         end
     end
 end)
-
-
